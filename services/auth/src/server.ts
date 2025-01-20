@@ -5,8 +5,9 @@ import morgan from "morgan";
 import cors from "cors";
 
 import AuthRoutes from './modules/route';
+import config from '../config/config';
 const app = new App({
-    port: 5000,
+    port: config.port,
     routes: [
         new AuthRoutes()
     ],

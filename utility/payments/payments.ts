@@ -1,10 +1,10 @@
 import config from './config/config';
-import { addDays, isAfter } from "date-fns";
 
 import {
   DynamoDBClient,
   GetItemCommand,
 } from "@aws-sdk/client-dynamodb";
+
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
 export default class PaymentUtility {

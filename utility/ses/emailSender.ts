@@ -17,7 +17,7 @@ export default class EmailSenderUtility {
     try {
 
       const params = {
-        Source: '"Noble Marriage" <info@noblemarriage.com>',
+        Source: '"Career Canvas" <info@careercanvas.com>',
         Destination: {
           ToAddresses: [receiver]
         },
