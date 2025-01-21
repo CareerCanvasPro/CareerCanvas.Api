@@ -1,16 +1,22 @@
-import config from './config/config';
-import { SNSClient, 
+import config from "./config/config";
+import {
+  SNSClient,
   PublishCommand,
-  CreatePlatformEndpointCommand, 
+  CreatePlatformEndpointCommand,
   SubscribeCommand,
   SetEndpointAttributesCommand,
-  ListEndpointsByPlatformApplicationCommand   } from '@aws-sdk/client-sns';
-import { DynamoDBClient, PutItemCommand,UpdateItemCommand } from '@aws-sdk/client-dynamodb';
-import { v4 as uuidv4 } from 'uuid';
+  ListEndpointsByPlatformApplicationCommand,
+} from "@aws-sdk/client-sns";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  UpdateItemCommand,
+} from "@aws-sdk/client-dynamodb";
+import { v4 as uuidv4 } from "uuid";
 
 export default class SNSNotificationService {
-  private readonly snsClient;
-  private readonly dynamoDBClient;
+  private readonly snsClient: SNSClient;
+  private readonly dynamoDBClient: DynamoDBClient;
   private config = {
     region: config.aws.region, // Use the region from your config file
   };
@@ -21,8 +27,10 @@ export default class SNSNotificationService {
     this.dynamoDBClient = new DynamoDBClient({ region: config.aws.region });
   }
 
-
-  async sendNotificationTopic(messageData: { title: string, description: string, image: string }, topicArn: string): Promise<{ status: string }> {
+  async sendNotificationTopic(
+    messageData: { title: string; description: string; image: string },
+    topicArn: string
+  ): Promise<{ status: string }> {
     try {
       // Convert the message object into a string (e.g., JSON)
       const message = JSON.stringify({
@@ -33,22 +41,22 @@ export default class SNSNotificationService {
 
       // Set SNS message attributes
       const params = {
-        Message: message,  // The message formatted as JSON
+        Message: message, // The message formatted as JSON
         TopicArn: topicArn,
         MessageAttributes: {
-          'title': {
-            DataType: 'String',
+          title: {
+            DataType: "String",
             StringValue: messageData.title,
           },
-          'description': {
-            DataType: 'String',
+          description: {
+            DataType: "String",
             StringValue: messageData.description,
           },
-          'image': {
-            DataType: 'String',
+          image: {
+            DataType: "String",
             StringValue: messageData.image,
           },
-        }
+        },
       };
 
       // Send the message to the SNS topic
@@ -56,12 +64,15 @@ export default class SNSNotificationService {
 
       return { status: `Message sent successfully with ID: ${data.MessageId}` };
     } catch (error) {
-      console.error('Error sending notification:', error);
+      console.error("Error sending notification:", error);
       throw new Error(`Failed to send notification: ${error.message}`);
     }
   }
 
-  async sendNotificationTarget(messageData: { title: string, description: string, image: string }, targetArn: string): Promise<{ status: string }> {
+  async sendNotificationTarget(
+    messageData: { title: string; description: string; image: string },
+    targetArn: string
+  ): Promise<{ status: string }> {
     try {
       // Convert the message object into a string (e.g., JSON)
       const message = JSON.stringify({
@@ -72,22 +83,22 @@ export default class SNSNotificationService {
 
       // Set SNS message attributes
       const params = {
-        Message: message,  
+        Message: message,
         TargetArn: targetArn,
         MessageAttributes: {
-          'title': {
-            DataType: 'String',
+          title: {
+            DataType: "String",
             StringValue: messageData.title,
           },
-          'description': {
-            DataType: 'String',
+          description: {
+            DataType: "String",
             StringValue: messageData.description,
           },
-          'image': {
-            DataType: 'String',
+          image: {
+            DataType: "String",
             StringValue: messageData.image,
           },
-        }
+        },
       };
 
       // Send the message to the SNS topic
@@ -95,21 +106,35 @@ export default class SNSNotificationService {
 
       return { status: `Message sent successfully with ID: ${data.MessageId}` };
     } catch (error) {
-      console.error('Error sending notification:', error);
+      console.error("Error sending notification:", error);
       throw new Error(`Failed to send notification: ${error.message}`);
     }
   }
 
-  async ensurePlatformEndpoint(deviceToken: string, platformApplicationArn: string,   userId: string): Promise<string> {
+  async ensurePlatformEndpoint(
+    deviceToken: string,
+    platformApplicationArn: string,
+    userId: string
+  ): Promise<string> {
     try {
-      const existingEndpointArn = await this.findEndpointByToken(deviceToken, platformApplicationArn);
-
+      const existingEndpointArn = await this.findEndpointByToken(
+        deviceToken,
+        platformApplicationArn
+      );
 
       if (existingEndpointArn) {
-        await this.updatePlatformEndpoint(deviceToken, existingEndpointArn,  userId);
+        await this.updatePlatformEndpoint(
+          deviceToken,
+          existingEndpointArn,
+          userId
+        );
         return existingEndpointArn;
       } else {
-        return await this.createPlatformEndpoint(deviceToken, platformApplicationArn, userId);
+        return await this.createPlatformEndpoint(
+          deviceToken,
+          platformApplicationArn,
+          userId
+        );
       }
     } catch (error) {
       console.error("Error ensuring platform endpoint:", error);
@@ -117,28 +142,38 @@ export default class SNSNotificationService {
     }
   }
 
-  async createPlatformEndpoint(deviceToken: string, platformApplicationArn: string, userId: string): Promise<string> {
+  async createPlatformEndpoint(
+    deviceToken: string,
+    platformApplicationArn: string,
+    userId: string
+  ): Promise<string> {
     try {
       const params = {
-        Token: deviceToken,                        // The device token from the app
+        Token: deviceToken, // The device token from the app
         PlatformApplicationArn: platformApplicationArn, // ARN of the platform application (APNS or FCM)
         // CustomUserData: userId                     // Pass the user ID here
       };
-  
-      const data = await this.snsClient.send(new CreatePlatformEndpointCommand(params));
+
+      const data = await this.snsClient.send(
+        new CreatePlatformEndpointCommand(params)
+      );
       return data.EndpointArn;
     } catch (error) {
       throw new Error(`Failed to create platform endpoint: ${error.message}`);
     }
   }
-  async updatePlatformEndpoint(deviceToken: string, endpointArn: string,  userId: string): Promise<void> {
+  async updatePlatformEndpoint(
+    deviceToken: string,
+    endpointArn: string,
+    userId: string
+  ): Promise<void> {
     try {
       const params = {
         EndpointArn: endpointArn,
         Attributes: {
-          Token: deviceToken,                  // Update the device token
-          CustomUserData: userId,              // Update the user ID if needed
-          Enabled: "true"                      // Enable the endpoint if it's disabled
+          Token: deviceToken, // Update the device token
+          CustomUserData: userId, // Update the user ID if needed
+          Enabled: "true", // Enable the endpoint if it's disabled
         },
       };
 
@@ -149,21 +184,24 @@ export default class SNSNotificationService {
     }
   }
 
-  private async findEndpointByToken(deviceToken: string, platformApplicationArn: string): Promise<string | null> {
+  private async findEndpointByToken(
+    deviceToken: string,
+    platformApplicationArn: string
+  ): Promise<string | null> {
     try {
       const command = new ListEndpointsByPlatformApplicationCommand({
         PlatformApplicationArn: platformApplicationArn,
       });
-      
+
       const response = await this.snsClient.send(command);
-      
+
       for (const endpoint of response.Endpoints || []) {
         if (endpoint.Attributes?.Token === deviceToken) {
           return endpoint.EndpointArn || null;
         }
       }
-      
-      return null;  // Return null if no endpoint matches the token
+
+      return null; // Return null if no endpoint matches the token
     } catch (error) {
       console.error("Error finding endpoint by token:", error);
       throw error;
@@ -171,19 +209,24 @@ export default class SNSNotificationService {
   }
 
   // Method to subscribe platform endpoint to a topic
-  async subscribeEndpointToTopic(endpointArn: string, topicArn: string): Promise<string> {
+  async subscribeEndpointToTopic(
+    endpointArn: string,
+    topicArn: string
+  ): Promise<string> {
     try {
       const params = {
-        Protocol: 'application',  // Use 'application' protocol for platform endpoints
-        TopicArn: topicArn,       // The SNS topic ARN
-        Endpoint: endpointArn,    // The platform endpoint ARN
+        Protocol: "application", // Use 'application' protocol for platform endpoints
+        TopicArn: topicArn, // The SNS topic ARN
+        Endpoint: endpointArn, // The platform endpoint ARN
       };
 
       const data = await this.snsClient.send(new SubscribeCommand(params));
-      return data.SubscriptionArn;  // Return the subscription ARN
+      return data.SubscriptionArn; // Return the subscription ARN
     } catch (error) {
-      console.error('Error subscribing to topic:', error);
-      throw new Error(`Failed to subscribe endpoint to topic: ${error.message}`);
+      console.error("Error subscribing to topic:", error);
+      throw new Error(
+        `Failed to subscribe endpoint to topic: ${error.message}`
+      );
     }
   }
 
@@ -191,16 +234,14 @@ export default class SNSNotificationService {
     userId: string,
     receiverId: string,
     notificationType: string,
-    activityType:string,
-    actionRoute:string,
-    messageData: { title: string,
-    description: string,
-    image?: string }
+    activityType: string,
+    actionRoute: string,
+    messageData: { title: string; description: string; image?: string }
   ): Promise<{ notificationId: string }> {
     const notificationId = uuidv4(); // Generate a unique ID for the notification
 
     const params = {
-      TableName: 'notifications',
+      TableName: "notifications",
       Item: {
         id: { S: notificationId },
         senderId: { S: userId },
@@ -210,43 +251,48 @@ export default class SNSNotificationService {
         notificationType: { S: notificationType },
         activityType: { S: activityType },
         actionRoute: { S: actionRoute },
-        
-        status: { S: 'unread' },
+
+        status: { S: "unread" },
         updatedAt: { S: new Date().toISOString() },
-        createdAt: { S: new Date().toISOString() }
-      }
+        createdAt: { S: new Date().toISOString() },
+      },
     };
 
     try {
       await this.dynamoDBClient.send(new PutItemCommand(params));
       return { notificationId };
     } catch (error) {
-      throw new Error('Failed to store notification');
+      throw new Error("Failed to store notification");
     }
   }
 
-  async updateNotificationStatus(notificationId: string, status: string): Promise<{ status: string }> {
+  async updateNotificationStatus(
+    notificationId: string,
+    status: string
+  ): Promise<{ status: string }> {
     const params = {
-      TableName: 'notifications',  // Your DynamoDB table name
+      TableName: "notifications", // Your DynamoDB table name
       Key: {
-        id: { S: notificationId },  // The ID of the notification to update
+        id: { S: notificationId }, // The ID of the notification to update
       },
-      UpdateExpression: 'SET #status = :status, #updatedAt = :updatedAt',  // Update both 'status' and 'updatedAt'
+      UpdateExpression: "SET #status = :status, #updatedAt = :updatedAt", // Update both 'status' and 'updatedAt'
       ExpressionAttributeNames: {
-        '#status': 'status',  // Map '#status' to the 'status' attribute
-        '#updatedAt': 'updatedAt',  // Map '#updatedAt' to the 'updatedAt' attribute
+        "#status": "status", // Map '#status' to the 'status' attribute
+        "#updatedAt": "updatedAt", // Map '#updatedAt' to the 'updatedAt' attribute
       },
       ExpressionAttributeValues: {
-        ':status': { S: 'read' },  
-        ':updatedAt': { S: new Date().toISOString() }, 
-      }
+        ":status": { S: "read" },
+        ":updatedAt": { S: new Date().toISOString() },
+      },
     };
-    
+
     try {
-      const data = await this.dynamoDBClient.send(new UpdateItemCommand(params));
+      const data = await this.dynamoDBClient.send(
+        new UpdateItemCommand(params)
+      );
       return { status: `Notification status updated to ${status}` };
     } catch (error) {
-      throw new Error('Failed to update notification status');
+      throw new Error("Failed to update notification status");
     }
   }
 }
