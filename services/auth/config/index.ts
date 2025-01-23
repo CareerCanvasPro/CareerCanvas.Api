@@ -32,7 +32,7 @@ const envVarsSchema = Joi.object()
     MEDIA_SERVICE_STAGING: Joi.string().optional(),
 
     NODE_ENV: Joi.string()
-      .valid("production", "development", "staging")
+      .valid("development", "production", "staging")
       .required(),
 
     PORT: Joi.number().default(5000),

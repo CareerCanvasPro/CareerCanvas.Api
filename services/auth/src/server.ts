@@ -1,19 +1,22 @@
-import App from "./app";
-import * as bodyParser from "body-parser";
-import morgan from "morgan";
+import { json, urlencoded } from "body-parser";
 import cors from "cors";
+import morgan from "morgan";
 
-import AuthRoutes from "./modules/route";
-import config from "../config";
+import { config } from "../config";
+
+import { App } from "./app";
+import { AuthRoutes } from "./modules/routes";
 const app = new App({
-  port: config.port,
-  routes: [new AuthRoutes()],
   middleWares: [
-    bodyParser.json(),
-    bodyParser.urlencoded({ extended: true }),
+    json(),
+    urlencoded({
+      extended: true,
+    }),
     morgan("dev"),
     cors(),
   ],
+  port: config.port,
+  routes: [new AuthRoutes()],
 });
 
 app.listen();

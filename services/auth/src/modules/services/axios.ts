@@ -1,11 +1,11 @@
-import axios from "axios";
+import { get, post, put } from "axios";
 
 import { config } from "@career-canvas/services/auth/config";
 
 export class Axios {
-  async getItem(token: string): Promise<{ data: unknown }> {
+  public async getItem(token: string): Promise<{ data: unknown }> {
     try {
-      const response = await axios.get(
+      const response = await get(
         `${config.service.userManagement}/user/profile`,
         {
           headers: { authorization: token },
@@ -22,9 +22,9 @@ export class Axios {
     }
   }
 
-  async setItem(token: string): Promise<{ data: unknown }> {
+  public async setItem(token: string): Promise<{ data: unknown }> {
     try {
-      const response = await axios.post(
+      const response = await post(
         `${config.service.userManagement}/user/profile`,
         {
           headers: { authorization: token },
@@ -41,26 +41,12 @@ export class Axios {
     }
   }
 
-  async updateItem(
-    token: string,
+  public async updateItem(
+    accessToken: string,
     updates: unknown
-  ): Promise<{ data: unknown }> {
-    try {
-      const response = await axios.put(
-        `${config.service.userManagement}/user/profile`,
-        updates,
-        {
-          headers: { authorization: token },
-        }
-      );
-
-      return response.status === 200 && response.data["Data"].success
-        ? { data: response.data["Data"].data }
-        : { data: null };
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
-    }
+  ): Promise<Axios.AxiosXHR<unknown>> {
+    return await put(`${config.service.userManagement}/user/profile`, updates, {
+      headers: { authorization: accessToken },
+    });
   }
 }
