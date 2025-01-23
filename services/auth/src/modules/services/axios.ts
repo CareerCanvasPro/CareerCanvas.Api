@@ -1,11 +1,11 @@
-import { get, post, put } from "axios";
+import axios from "axios";
 
 import { config } from "@career-canvas/services/auth/config";
 
 export class Axios {
   public async getItem(token: string): Promise<{ data: unknown }> {
     try {
-      const response = await get(
+      const response = await axios.get(
         `${config.service.userManagement}/user/profile`,
         {
           headers: { authorization: token },
@@ -24,7 +24,7 @@ export class Axios {
 
   public async setItem(token: string): Promise<{ data: unknown }> {
     try {
-      const response = await post(
+      const response = await axios.post(
         `${config.service.userManagement}/user/profile`,
         {
           headers: { authorization: token },
@@ -44,8 +44,8 @@ export class Axios {
   public async updateItem(
     accessToken: string,
     updates: unknown
-  ): Promise<Axios.AxiosXHR<unknown>> {
-    return await put(`${config.service.userManagement}/user/profile`, updates, {
+  ): Promise<{ data: unknown }> {
+    return await axios.put(`${config.service.userManagement}/user/profile`, updates, {
       headers: { authorization: accessToken },
     });
   }

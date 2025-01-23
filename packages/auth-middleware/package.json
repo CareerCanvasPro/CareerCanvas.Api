@@ -1,5 +1,5 @@
 {
-  "name": "nm-authenticator",
+  "name": "cm-authenticator",
   "version": "1.0.0",
   "description": " Authenticator for CMSAPP with TypeScript",
   "main": "lib/src/index.js",

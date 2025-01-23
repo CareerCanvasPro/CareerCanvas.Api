@@ -77,11 +77,6 @@ export class AuthController {
     }
   }
 
-  public async verifySignIn(req: Request, res: Response): Promise<void> {
-    const user = req.body.user;
-    res.status(200).json({ "Data ": user });
-  }
-
   public async handleConfirmSignUp(req: Request, res: Response): Promise<void> {
     // Validate the request input
     const result = validationResult(req);
@@ -302,31 +297,4 @@ export class AuthController {
     }
   }
 
-  public async getIpFromRequest(req: Request) {
-    try {
-      // Check 'x-forwarded-for' header first
-      const forwardedForHeader = req.headers["x-forwarded-for"];
-      let clientIp: string | undefined;
-
-      if (forwardedForHeader) {
-        // The 'x-forwarded-for' header may contain multiple IP addresses separated by commas.
-        // The client's IP address is usually the first one.
-        const forwardedIps: string[] = forwardedForHeader.split(",");
-        clientIp = forwardedIps[0].trim();
-      } else {
-        // If 'x-forwarded-for' header is not available, try 'x-real-ip'
-        clientIp = req.headers["x-real-ip"];
-      }
-
-      if (!clientIp) {
-        // If neither 'x-forwarded-for' nor 'x-real-ip' headers are present, use req.connection.remoteAddress
-        clientIp = req.connection.remoteAddress;
-      }
-
-      return clientIp;
-    } catch (error) {
-      console.error("Error:", error);
-      return error;
-    }
-  }
 }
