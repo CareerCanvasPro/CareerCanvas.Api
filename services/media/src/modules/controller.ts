@@ -1,9 +1,11 @@
 
-import sharp from "sharp"
-import ServiceCaller from "./serviceCaller"
-import MediaManagementService from './media-management.service';
-import * as path from 'path';
 import fs from 'fs';
+import * as path from 'path';
+
+import sharp from "sharp"
+
+import MediaManagementService from './media-management.service';
+import ServiceCaller from "./serviceCaller"
 const now = new Date;
 
 class MediaServiceController {

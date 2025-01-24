@@ -2,8 +2,8 @@ import { Router } from "express";
 
 import { AuthController } from "./controllers";
 
-export class AuthRoutes {
-  private authController = new AuthController();
+export class AuthRoute {
+  private readonly authController = new AuthController();
   public path = "/auth";
   public router = Router();
 

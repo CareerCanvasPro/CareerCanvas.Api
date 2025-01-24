@@ -5,18 +5,19 @@ import morgan from "morgan";
 import { config } from "../config";
 
 import { App } from "./app";
-import { AuthRoutes } from "./modules/routes";
-const app = new App({
-  middleWares: [
-    json(),
-    urlencoded({
-      extended: true,
-    }),
-    morgan("dev"),
-    cors(),
-  ],
-  port: config.port,
-  routes: [new AuthRoutes()],
-});
+import { AuthRoute } from "./modules/routes";
+
+const app = new App(config.port);
+
+app.initMiddlewares([
+  json(),
+  urlencoded({
+    extended: true,
+  }),
+  morgan("dev"),
+  cors(),
+]);
+
+app.initRoutes([new AuthRoute()]);
 
 app.listen();

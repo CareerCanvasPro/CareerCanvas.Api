@@ -1,10 +1,12 @@
 
-import App from './app';
 import * as bodyParser from 'body-parser';
-import config from '../config/config';
-import morgan from "morgan";
 import cors from "cors";
+import morgan from "morgan";
 
+import config from '../config/config';
+
+
+import App from './app';
 import ServiceRoutes from './modules/route';
 const app = new App({
     port: 8000,

@@ -1,34 +1,25 @@
-import express, { Application } from "express";
+import { IRoute } from "@career-canvas/types";
+import express from "express";
 
 export class App {
-  public app: Application;
-  public port: number;
+  private readonly app = express();
 
-  constructor(appInit: { port: number; middleWares: any; routes: any }) {
-    this.app = express();
-    this.port = appInit.port;
+  constructor(private readonly port: number) {}
 
-    this.middlewares(appInit.middleWares);
-    this.routes(appInit.routes);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public initMiddlewares(middlewares: any[]): void {
+    this.app.use(middlewares);
   }
 
-  private middlewares(middleWares: {
-    forEach: (arg0: (middleWare: any) => void) => void;
-  }) {
-    middleWares.forEach((middleWare) => {
-      this.app.use(middleWare);
+  public initRoutes(routes: IRoute[]): void {
+    routes.forEach((route) => {
+      this.app.use(route.path, route.router);
     });
   }
 
-  private routes(routes: { forEach: (arg0: (router: any) => void) => void }) {
-    routes.forEach((router) => {
-      this.app.use(router.path, router.router);
-    });
-  }
-
-  public listen() {
+  public listen(): void {
     this.app.listen(this.port, () => {
-      console.log(`App listening on the ${this.port}`);
+      console.log(`App listening on port ${this.port}`);
     });
   }
 }

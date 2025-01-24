@@ -1,18 +1,19 @@
-import config from "./config/config";
-import {
-  SNSClient,
-  PublishCommand,
-  CreatePlatformEndpointCommand,
-  SubscribeCommand,
-  SetEndpointAttributesCommand,
-  ListEndpointsByPlatformApplicationCommand,
-} from "@aws-sdk/client-sns";
 import {
   DynamoDBClient,
   PutItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
+import {
+  CreatePlatformEndpointCommand,
+  ListEndpointsByPlatformApplicationCommand,
+  PublishCommand,
+  SNSClient,
+  SetEndpointAttributesCommand,
+  SubscribeCommand,
+} from "@aws-sdk/client-sns";
 import { v4 as uuidv4 } from "uuid";
+
+import config from "./config/config";
 
 export default class SNSNotificationService {
   private readonly snsClient: SNSClient;

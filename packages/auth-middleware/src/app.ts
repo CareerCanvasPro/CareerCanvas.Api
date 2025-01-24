@@ -1,7 +1,8 @@
 
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt, { VerifyCallback } from 'jsonwebtoken';
 import jwksClient, { CertSigningKey } from 'jwks-rsa';
+
 import config from '../config/config';
 
 interface CustomSigningKey extends CertSigningKey {

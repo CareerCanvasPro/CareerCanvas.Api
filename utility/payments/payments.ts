@@ -1,11 +1,11 @@
-import config from './config/config';
 
 import {
   DynamoDBClient,
   GetItemCommand,
 } from "@aws-sdk/client-dynamodb";
-
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+
+import config from './config/config';
 
 export default class PaymentUtility {
   private readonly dynamoDBClient: DynamoDBClient;

@@ -1,13 +1,16 @@
 import {
   DynamoDBClient,
   GetItemCommand,
-  ListTablesCommand,
-  QueryCommand,
-  QueryCommandInput,
-  ScanCommand,
-  UpdateItemCommand,
+  // ListTablesCommand,
+  // QueryCommand,
+  // QueryCommandInput,
+  // ScanCommand,
+  // UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import {
+  // marshall,
+  unmarshall,
+} from "@aws-sdk/util-dynamodb";
 
 import { config } from "./config";
 

@@ -1,12 +1,16 @@
 import * as express from 'express'
-import { Request, Response, NextFunction } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { body, validationResult } from 'express-validator';
+import { v4 as uuidv4 }  from 'uuid';
+
+import Logger from "../../../../utility/logger/logger";
+import StorageUtility from "../../../../utility/s3/storage"
+
+import UserProfile from "./schema";
 import UserManagementService from './user-management.service';
 import DataValidator from "./validators";
-import UserProfile from "./schema";
-import StorageUtility from "../../../../utility/s3/storage"
-import { v4 as uuidv4 }  from 'uuid';
-import Logger from "../../../../utility/logger/logger";
+
+
 
 class UserServiceController {
   public TableName = "userprofiles"
@@ -138,7 +142,7 @@ class UserServiceController {
   
     logger.info("Prepared update expression", { updateExpression, expressionAttributeNames, expressionAttributeValues });
   
-    let userService = new UserManagementService(this.TableName, username);
+    const userService = new UserManagementService(this.TableName, username);
   
     userService.updateItem(updateExpression, expressionAttributeNames, expressionAttributeValues)
       .then(success => {
@@ -169,7 +173,7 @@ class UserServiceController {
   
     logger.info("Received request to update profile picture", { username, profilePicture });
   
-    let userService = new UserManagementService(this.TableName, username);
+    const userService = new UserManagementService(this.TableName, username);
   
     try {
       const user = await userService.getItem(username);
@@ -183,7 +187,7 @@ class UserServiceController {
       const expressionAttributeNames: { [key: string]: string } = {};
       const expressionAttributeValues: { [key: string]: any } = {};
   
-      let updatedProfilePictureUrl = '';
+      const updatedProfilePictureUrl = '';
   
   
       // Perform the update operation
@@ -219,7 +223,7 @@ class UserServiceController {
   
     logger.info("Received request to get user item", { username });
   
-    let userService = new UserManagementService(this.TableName, username);
+    const userService = new UserManagementService(this.TableName, username);
   
     userService.getItem(username)
       .then(success => {
@@ -249,7 +253,7 @@ class UserServiceController {
 
     logger.info("Received request to update match preferences", { username, matchPreference });
 
-    let userService = new UserManagementService(this.TableName, username);
+    const userService = new UserManagementService(this.TableName, username);
 
     userService.updateMatchPreference(username, matchPreference)
         .then(success => {

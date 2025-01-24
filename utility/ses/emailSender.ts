@@ -1,9 +1,10 @@
-import config from "./config/config";
 import {
   SESClient,
   SendEmailCommand,
   SendTemplatedEmailCommand,
 } from "@aws-sdk/client-ses";
+
+import config from "./config/config";
 
 export default class EmailSenderUtility {
   private readonly sesClient: SESClient;

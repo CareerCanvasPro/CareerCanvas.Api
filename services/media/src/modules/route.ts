@@ -1,6 +1,7 @@
 import * as express from 'express'
-import MediaServiceController from './controller';
 import multer from "multer";
+
+import MediaServiceController from './controller';
 
 
 const upload = multer({ dest: 'uploads/' }); // Define your upload directorydo
