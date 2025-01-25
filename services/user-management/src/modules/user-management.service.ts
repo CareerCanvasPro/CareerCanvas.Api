@@ -4,9 +4,9 @@ import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
+  ResponseM,
   ScanCommand,
   UpdateItemCommand,
-  ResponseM,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 

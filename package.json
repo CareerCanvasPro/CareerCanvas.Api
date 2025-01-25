@@ -12,6 +12,7 @@
     "axios": "1.6.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
+    "cm-authenticator": "file:packages/auth-middleware/cm-authenticator-1.0.0.tgz",
     "config": "3.3.9",
     "cors": "2.8.5",
     "dotenv": "16.3.1",
@@ -26,8 +27,7 @@
     "multer": "^1.4.5-lts.1",
     "read-excel-file": "^5.7.1",
     "typescript": "5.3.3",
-    "uuid": "^10.0.0",
-    "cm-authenticator": "file:packages/auth-middleware/cm-authenticator-1.0.0.tgz"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",

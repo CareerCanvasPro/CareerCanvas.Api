@@ -1,4 +1,9 @@
-export * from "./error";
-export * from "./payload";
-export * from "./request";
-export * from "./user-attributes";
+export interface IError {
+  httpStatusCode: number | null;
+  message: string | null;
+}
+
+export interface IUserAttributes {
+  Name: string;
+  Value: string;
+}

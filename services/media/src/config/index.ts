@@ -1,5 +1,5 @@
-import "dotenv/config";
 import Joi from "joi";
+import "dotenv/config";
 
 const envVarsSchema = Joi.object()
   .keys({
@@ -32,7 +32,7 @@ const envVarsSchema = Joi.object()
     MEDIA_SERVICE_STAGING: Joi.string().optional(),
 
     NODE_ENV: Joi.string()
-      .valid("development", "production", "staging")
+      .valid("production", "development", "staging")
       .required(),
 
     PORT: Joi.number().default(5000),
@@ -100,12 +100,6 @@ export const config = {
           : envVars.NODE_ENV === "staging"
           ? envVars.CLIENTSECRET_STAGING
           : envVars.CLIENTSECRET,
-      region:
-        envVars.NODE_ENV === "production"
-          ? envVars.AWSREGION_PRODUCTION
-          : envVars.NODE_ENV === "staging"
-          ? envVars.AWSREGION_STAGING
-          : envVars.AWSREGION,
       secretHash:
         envVars.NODE_ENV === "production"
           ? envVars.SECRETHASH_PRODUCTION
@@ -119,36 +113,54 @@ export const config = {
           ? envVars.USERPOOLID_STAGING
           : envVars.USERPOOLID,
     },
+    region:
+      envVars.NODE_ENV === "production"
+        ? envVars.AWSREGION_PRODUCTION
+        : envVars.NODE_ENV === "staging"
+        ? envVars.AWSREGION_STAGING
+        : envVars.AWSREGION,
+    s3: {
+      accessKey:
+        envVars.NODE_ENV === "production"
+          ? envVars.ACCESSKEY_PRODUCTION
+          : envVars.NODE_ENV === "staging"
+          ? envVars.ACCESSKEY_STAGING
+          : envVars.ACCESSKEY,
+      bucketName:
+        envVars.NODE_ENV === "production"
+          ? envVars.BUCKETNAME_PRODUCTION
+          : envVars.NODE_ENV === "staging"
+          ? envVars.BUCKETNAME_STAGING
+          : envVars.BUCKETNAME,
+      secretKey:
+        envVars.NODE_ENV === "production"
+          ? envVars.SECRETKEY_PRODUCTION
+          : envVars.NODE_ENV === "staging"
+          ? envVars.SECRETKEY_STAGING
+          : envVars.SECRETKEY,
+    },
   },
   env: envVars.NODE_ENV,
   port: envVars.PORT,
-  s3: {
-    accessKey:
-      envVars.NODE_ENV === "production"
-        ? envVars.ACCESSKEY_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.ACCESSKEY_STAGING
-        : envVars.ACCESSKEY,
-    bucketName:
-      envVars.NODE_ENV === "production"
-        ? envVars.BUCKETNAME_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.BUCKETNAME_STAGING
-        : envVars.BUCKETNAME,
-    secretKey:
-      envVars.NODE_ENV === "production"
-        ? envVars.SECRETKEY_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.SECRETKEY_STAGING
-        : envVars.SECRETKEY,
-  },
   service: {
-    authservice:
+    auth:
       envVars.NODE_ENV === "production"
         ? envVars.AUTH_SERVICE_PRODUCTION
         : envVars.NODE_ENV === "staging"
         ? envVars.AUTH_SERVICE_STAGING
         : envVars.AUTH_SERVICE,
+    media:
+      envVars.NODE_ENV === "production"
+        ? envVars.MEDIA_SERVICE_PRODUCTION
+        : envVars.NODE_ENV === "staging"
+        ? envVars.MEDIA_SERVICE_STAGING
+        : envVars.MEDIA_SERVICE,
+    search:
+      envVars.NODE_ENV === "production"
+        ? envVars.SEARCH_SERVICE_PRODUCTION
+        : envVars.NODE_ENV === "staging"
+        ? envVars.SEARCH_SERVICE_STAGING
+        : envVars.SEARCH_SERVICE,
     userManagement:
       envVars.NODE_ENV === "production"
         ? envVars.USER_MANAGEMENT_SERVICE_PRODUCTION

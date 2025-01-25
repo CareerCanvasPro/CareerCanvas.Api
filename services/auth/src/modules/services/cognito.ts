@@ -65,7 +65,7 @@ import {
   VerifyUserAttributeCommandOutput,
 } from "@aws-sdk/client-cognito-identity-provider";
 
-import { config } from "@career-canvas/services/auth/config";
+import { config } from "@career-canvas/services/auth/src/config";
 import {
   IError,
   IUserAttributes,

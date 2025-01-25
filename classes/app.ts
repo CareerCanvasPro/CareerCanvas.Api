@@ -1,5 +1,6 @@
-import { IRoute } from "@career-canvas/types";
 import express from "express";
+
+import { IRoute } from "../types";
 
 export class App {
   private readonly app = express();

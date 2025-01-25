@@ -1,12 +1,10 @@
 {
-  "name": "@cms-api/auth",
-  "version": "0.0.0",
-  "description": "> TODO: description",
   "author": "CMS",
-  "homepage": "",
-  "license": "ISC",
-  "main": "lib/index.js",
-  "typings": "lib/index.d.ts",
+  "dependencies": {
+    "@types/maxmind": "^2.0.5",
+    "maxmind": "^4.3.18"
+  },
+  "description": "> TODO: description",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -14,21 +12,23 @@
   "files": [
     "lib"
   ],
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "name": "@cms-api/auth",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "tsc": "tsc",
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "watch-tsc": "tsc -w",
     "deploy": "node lib/services/auth/src/server.js",
-    "watch-deploy": "nodemon lib/services/auth/src/server.js",
+    "dev": "nodemon lib/services/auth/src/server.js",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "dev": "nodemon lib/services/auth/src/server.js"
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc",
+    "watch-deploy": "nodemon lib/services/auth/src/server.js",
+    "watch-tsc": "tsc -w"
   },
-  "dependencies": {
-    "@types/maxmind": "^2.0.5",
-    "maxmind": "^4.3.18"
-  }
+  "typings": "lib/index.d.ts",
+  "version": "0.0.0"
 }

@@ -1,10 +1,9 @@
+import { App } from "@career-canvas/classes";
 import { json, urlencoded } from "body-parser";
 import cors from "cors";
 import morgan from "morgan";
 
-import { config } from "../config";
-
-import { App } from "./app";
+import { config } from "./config";
 import { AuthRoute } from "./modules/routes";
 
 const app = new App(config.port);

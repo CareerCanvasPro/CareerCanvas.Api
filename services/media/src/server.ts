@@ -1,24 +1,22 @@
-
-import * as bodyParser from 'body-parser';
+import { json, urlencoded } from "body-parser";
 import cors from "cors";
 import morgan from "morgan";
 
-import config from '../config/config';
+import { App } from "@career-canvas/classes";
+import { config } from "./config";
+import { MediaRoute } from "./modules/routes";
 
+const app = new App(config.port);
 
-import App from './app';
-import ServiceRoutes from './modules/route';
-const app = new App({
-    port: config.port,
-    middleWares: [
-        bodyParser.json(),
-        bodyParser.urlencoded({ extended: true }),
-        morgan('dev'),
-        cors()
-    ],
-    routes: [
-        new ServiceRoutes()
-    ]
-})
+app.initMiddlewares([
+  json(),
+  urlencoded({
+    extended: true,
+  }),
+  morgan("dev"),
+  cors(),
+]);
 
-app.listen()
+app.initRoutes([new MediaRoute()]);
+
+app.listen();

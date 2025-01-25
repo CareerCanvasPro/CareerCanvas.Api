@@ -1,20 +1,20 @@
-import { DB } from "@career-canvas/utility/db";
+import { Axios } from "@career-canvas/services/axios";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 
-import { Axios, Cognito } from "./services";
+import { config } from "../../config";
+import { Cognito } from "../services";
 
 export class AuthController {
-  private readonly axios = new Axios();
+  private readonly axios = new Axios(config.service.userManagement);
   private readonly cognito = new Cognito();
-  private readonly db = new DB();
 
   // Signup new user without initial signin
   public async handleSignUp(req: Request, res: Response): Promise<void> {
-    const result = validationResult(req);
+    const validationErrors = validationResult(req);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -46,10 +46,10 @@ export class AuthController {
   }
 
   public async handleSignIn(req: Request, res: Response): Promise<void> {
-    const result = validationResult(req);
+    const validationErrors = validationResult(req);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -79,10 +79,10 @@ export class AuthController {
 
   public async handleConfirmSignUp(req: Request, res: Response): Promise<void> {
     // Validate the request input
-    const result = validationResult(req);
+    const validationErrors = validationResult(req);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -143,10 +143,10 @@ export class AuthController {
     req: Request,
     res: Response
   ): Promise<void> {
-    const result = validationResult(req);
+    const validationErrors = validationResult(req);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -178,10 +178,10 @@ export class AuthController {
     req: Request,
     res: Response
   ): Promise<void> {
-    const result = validationResult(req);
+    const validationErrors = validationResult(req);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -216,10 +216,10 @@ export class AuthController {
 
   // email change request
   public async handleUpdateEmail(req: Request, res: Response): Promise<void> {
-    const result = validationResult(req.body);
+    const validationErrors = validationResult(req.body);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -251,10 +251,10 @@ export class AuthController {
   }
 
   public async handleVerifyEmail(req: Request, res: Response): Promise<void> {
-    const result = validationResult(req.body);
+    const validationErrors = validationResult(req.body);
 
-    if (!result.isEmpty()) {
-      res.status(422).json({ data: null, message: result.array() });
+    if (!validationErrors.isEmpty()) {
+      res.status(422).json({ data: null, message: validationErrors.array() });
       return;
     }
 
@@ -272,7 +272,7 @@ export class AuthController {
 
       const httpStatusCode = metaData.httpStatusCode;
 
-      await this.axios.updateItem(accessToken, { email });
+      await this.axios.updateItem(accessToken, "profile", { email });
 
       res.status(httpStatusCode).json({
         data: metaData,
@@ -296,5 +296,4 @@ export class AuthController {
       res.status(500).json({ data: null, message: error.message });
     }
   }
-
 }
