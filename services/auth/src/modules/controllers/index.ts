@@ -1,12 +1,12 @@
-import { Axios } from "@career-canvas/services/axios";
+// import { Axios } from "@career-canvas/services/axios";
 import { Request, Response } from "express";
 import { validationResult } from "express-validator";
 
-import { config } from "../../config";
+// import { config } from "../../config";
 import { Cognito } from "../services";
 
 export class AuthController {
-  private readonly axios = new Axios(config.service.userManagement);
+  // private readonly axios = new Axios(config.service.userManagement);
   private readonly cognito = new Cognito();
 
   // Signup new user without initial signin
@@ -258,7 +258,7 @@ export class AuthController {
       return;
     }
 
-    const { confirmationCode, email } = req.body;
+    const { confirmationCode } = req.body;
 
     const accessToken = req.headers.authorization;
 
@@ -272,7 +272,7 @@ export class AuthController {
 
       const httpStatusCode = metaData.httpStatusCode;
 
-      await this.axios.updateItem(accessToken, "profile", { email });
+      // await this.axios.updateItem(accessToken, "profile", { email });
 
       res.status(httpStatusCode).json({
         data: metaData,

@@ -21,7 +21,7 @@
   },
   "scripts": {
     "deploy": "node lib/services/auth/src/server.js",
-    "dev": "nodemon lib/services/auth/src/server.js",
+    "dev": "node --watch lib/services/auth/src/server.js",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",

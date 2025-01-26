@@ -18,14 +18,11 @@
     "access": "public"
   },
   "scripts": {
-    "tsc": "tsc",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "watch-tsc": "tsc -w",
     "deploy": "node lib/services/user-management/src/server.js",
     "watch-deploy": "nodemon lib/services/user-management/src/server.js",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
-    "start": "npm run deploy",
-    "dev": "nodemon lib/services/user-management/src/server.js"
+    "start": "npm run deploy"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.485.0",

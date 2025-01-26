@@ -65,14 +65,12 @@ import {
   VerifyUserAttributeCommandOutput,
 } from "@aws-sdk/client-cognito-identity-provider";
 
-import { config } from "@career-canvas/services/auth/src/config";
-import {
-  IError,
-  IUserAttributes,
-} from "@career-canvas/services/auth/src/types";
+import { config } from "../../config";
+import { IError, IUserAttributes } from "../../types";
 
 export class Cognito {
   private readonly clientId = config.aws.cognito.clientId;
+  private readonly clientSecret = config.aws.cognito.clientSecret;
   private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient;
   private readonly config = {
     region: config.aws.cognito.region,
@@ -121,7 +119,6 @@ export class Cognito {
     UserPoolTaggingException,
     UsernameExistsException,
   ];
-  private readonly secretHash = config.aws.cognito.secretHash;
   private readonly userPoolId = config.aws.cognito.userPoolId;
 
   constructor() {
@@ -186,7 +183,7 @@ export class Cognito {
 
   // Generate Hash Code for extra leyer request security
   private generateSecretHash(username: string): string {
-    return createHmac("sha256", this.secretHash)
+    return createHmac("sha256", this.clientSecret)
       .update(username + this.clientId)
       .digest("base64");
   }
