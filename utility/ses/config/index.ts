@@ -12,14 +12,13 @@ const envVarsSchema = Joi.object()
     AWSREGION_STAGING: Joi.string().optional(),
 
     NODE_ENV: Joi.string()
-      .valid("development", "production", "staging")
+      .valid("production", "development", "staging")
       .required(),
 
     SECRET_ACCESS_KEY: Joi.string().optional(),
     SECRET_ACCESS_KEY_PRODUCTION: Joi.string().optional(),
     SECRET_ACCESS_KEY_STAGING: Joi.string().optional(),
   })
-  // Ensure at least one of AWSREGION or AWSREGION_PRODUCTION is provided
   .or("ACCESS_KEY", "ACCESS_KEY_PRODUCTION", "ACCESS_KEY_STAGING")
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
   .or(
@@ -37,7 +36,6 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-// Dynamically select the appropriate region based on NODE_ENV
 export const config = {
   aws: {
     accessKey:

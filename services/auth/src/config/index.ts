@@ -7,10 +7,6 @@ const envVarsSchema = Joi.object()
     AWSREGION_PRODUCTION: Joi.string().optional(),
     AWSREGION_STAGING: Joi.string().optional(),
 
-    CLIENTID: Joi.string().optional(),
-    CLIENTID_PRODUCTION: Joi.string().optional(),
-    CLIENTID_STAGING: Joi.string().optional(),
-
     CLIENTSECRET: Joi.string().optional(),
     CLIENTSECRET_PRODUCTION: Joi.string().optional(),
     CLIENTSECRET_STAGING: Joi.string().optional(),
@@ -20,16 +16,10 @@ const envVarsSchema = Joi.object()
       .required(),
 
     PORT: Joi.number().default(5000),
-
-    USERPOOLID: Joi.string().optional(),
-    USERPOOLID_PRODUCTION: Joi.string().optional(),
-    USERPOOLID_STAGING: Joi.string().optional(),
   })
   // Enforce at least one key from each pair (AWSREGION, CLIENTID, etc.)
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
-  .or("CLIENTID", "CLIENTID_PRODUCTION", "CLIENTID_STAGING")
   .or("CLIENTSECRET", "CLIENTSECRET_PRODUCTION", "CLIENTSECRET_STAGING")
-  .or("USERPOOLID", "USERPOOLID_PRODUCTION", "USERPOOLID_STAGING")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema

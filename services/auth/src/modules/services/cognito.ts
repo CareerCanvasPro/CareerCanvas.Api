@@ -150,37 +150,6 @@ export class Cognito {
     return output.UserStatus;
   }
 
-  public async handleConfirmForgotPassword(
-    confirmationCode: string,
-    password: string,
-    username: string
-  ): Promise<ConfirmForgotPasswordCommandOutput> {
-    return await this.cognitoIdentityProviderClient.send(
-      new ConfirmForgotPasswordCommand({
-        ClientId: this.clientId,
-        ConfirmationCode: confirmationCode,
-        Password: password,
-        SecretHash: this.generateSecretHash(username),
-        Username: username,
-      })
-    );
-  }
-
-  // Account confirm after Sign up
-  public async handleConfirmSignUp(
-    confirmationCode: string,
-    username: string
-  ): Promise<ConfirmSignUpCommandOutput> {
-    return await this.cognitoIdentityProviderClient.send(
-      new ConfirmSignUpCommand({
-        ClientId: this.clientId,
-        ConfirmationCode: confirmationCode,
-        SecretHash: this.generateSecretHash(username),
-        Username: username,
-      })
-    );
-  }
-
   // Generate Hash Code for extra leyer request security
   private generateSecretHash(username: string): string {
     return createHmac("sha256", this.clientSecret)
@@ -221,36 +190,6 @@ export class Cognito {
     };
   }
 
-  public async handleForgotPassword(
-    username: string
-  ): Promise<ForgotPasswordCommandOutput> {
-    return await this.cognitoIdentityProviderClient.send(
-      new ForgotPasswordCommand({
-        ClientId: this.clientId,
-        SecretHash: this.generateSecretHash(username),
-        Username: username,
-      })
-    );
-  }
-
-  // Sign in User
-  public async handleSignIn(
-    password: string,
-    username: string
-  ): Promise<InitiateAuthCommandOutput> {
-    return await this.cognitoIdentityProviderClient.send(
-      new InitiateAuthCommand({
-        AuthFlow: "USER_PASSWORD_AUTH",
-        AuthParameters: {
-          PASSWORD: password,
-          SECRET_HASH: this.generateSecretHash(username),
-          USERNAME: username,
-        },
-        ClientId: this.clientId,
-      })
-    );
-  }
-
   // Sign Up Method
   public async handleSignUp(
     password: string,
@@ -264,6 +203,67 @@ export class Cognito {
         SecretHash: this.generateSecretHash(username),
         UserAttributes: userAttributes,
         Username: username,
+      })
+    );
+  }
+
+  // Account confirm after Sign up
+  public async handleConfirmSignUp(
+    confirmationCode: string,
+    email: string
+  ): Promise<ConfirmSignUpCommandOutput> {
+    return await this.cognitoIdentityProviderClient.send(
+      new ConfirmSignUpCommand({
+        ClientId: this.clientId,
+        ConfirmationCode: confirmationCode,
+        SecretHash: this.generateSecretHash(email),
+        Username: email,
+      })
+    );
+  }
+
+  // Sign in User
+  public async handleSignIn(
+    email: string,
+    password: string
+  ): Promise<InitiateAuthCommandOutput> {
+    return await this.cognitoIdentityProviderClient.send(
+      new InitiateAuthCommand({
+        AuthFlow: "USER_PASSWORD_AUTH",
+        AuthParameters: {
+          PASSWORD: password,
+          SECRET_HASH: this.generateSecretHash(email),
+          USERNAME: email,
+        },
+        ClientId: this.clientId,
+      })
+    );
+  }
+
+  public async handleForgotPassword(
+    email: string
+  ): Promise<ForgotPasswordCommandOutput> {
+    return await this.cognitoIdentityProviderClient.send(
+      new ForgotPasswordCommand({
+        ClientId: this.clientId,
+        SecretHash: this.generateSecretHash(email),
+        Username: email,
+      })
+    );
+  }
+
+  public async handleConfirmForgotPassword(
+    confirmationCode: string,
+    email: string,
+    password: string
+  ): Promise<ConfirmForgotPasswordCommandOutput> {
+    return await this.cognitoIdentityProviderClient.send(
+      new ConfirmForgotPasswordCommand({
+        ClientId: this.clientId,
+        ConfirmationCode: confirmationCode,
+        Password: password,
+        SecretHash: this.generateSecretHash(email),
+        Username: email,
       })
     );
   }

@@ -22,7 +22,9 @@
     "deploy": "node lib/services/user-management/src/server.js",
     "watch-deploy": "nodemon lib/services/user-management/src/server.js",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
-    "start": "npm run deploy"
+    "start": "npm run deploy",
+    "dev": "node --watch lib/services/user-management/src/server.js",
+    "watch-tsc": "tsc -w"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.485.0",
