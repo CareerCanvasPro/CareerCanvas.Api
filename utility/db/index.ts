@@ -41,17 +41,9 @@ interface UpdateItemParams {
 }
 
 export class DB {
-  private readonly dynamoDBClient: DynamoDBClient;
-
-  constructor() {
-    this.dynamoDBClient = new DynamoDBClient({
-      credentials: {
-        accessKeyId: config.aws.accessKey,
-        secretAccessKey: config.aws.secretAccessKey,
-      },
-      region: config.aws.region,
-    });
-  }
+  private readonly dynamoDBClient = new DynamoDBClient({
+    region: config.aws.region,
+  });
 
   public async getItem({ key, tableName }: GetItemParams): Promise<{
     httpStatusCode: number;

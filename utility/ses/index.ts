@@ -14,17 +14,9 @@ interface SendEmailParams {
 }
 
 export class SES {
-  private readonly sesClient: SESClient;
-
-  constructor() {
-    this.sesClient = new SESClient({
-      credentials: {
-        accessKeyId: config.aws.accessKey,
-        secretAccessKey: config.aws.secretAccessKey,
-      },
-      region: config.aws.region,
-    });
-  }
+  private readonly sesClient = new SESClient({
+    region: config.aws.region,
+  });
 
   public async sendEmail({
     body: { html, text },

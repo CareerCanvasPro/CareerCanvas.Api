@@ -6,29 +6,18 @@ import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
 
-interface IPayload {
+interface ITokenPayload {
   email: string;
-  id: string;
 }
 
 export class AuthController {
   public async handleAuth(req: Request, res: Response): Promise<void> {
-    const db = new DB();
     const ses = new SES();
 
     const { email } = req.body;
 
     try {
-      // Check if email exists in db
-      const { items: users } = await db.scanItems({
-        attribute: { name: "email", value: email },
-        tableName: "users",
-      });
-
-      // If user does not exist, create an id using uuid
-      const id = users.length === 0 ? uuidv4() : users[0].id;
-
-      const token = sign({ email, id }, config.aws.cognito.clientSecret, {
+      const token = sign({ email }, config.aws.cognito.clientSecret, {
         expiresIn: "1d", // TODO: Change after testing
       });
 
@@ -47,7 +36,7 @@ export class AuthController {
       });
 
       res.status(httpStatusCode).json({
-        data: { token },
+        data: { email, token }, // TODO: Change after testing
         message: "Magic link sent to given email successfully",
       });
     } catch (error) {
@@ -69,49 +58,44 @@ export class AuthController {
     const { token } = req.body;
 
     try {
-      const { email, id } = verify(
+      const { email } = verify(
         token,
         config.aws.cognito.clientSecret
-      ) as IPayload;
+      ) as ITokenPayload;
 
-      const accessToken = sign({ email, id }, config.aws.cognito.clientSecret, {
-        expiresIn: "15m",
+      const { items: users } = await db.scanItems({
+        attribute: { name: "email", value: email },
+        tableName: "userprofiles",
       });
 
-      const { httpStatusCode, item: user } = await db.getItem({
-        key: { name: "id", value: id },
-        tableName: "users",
+      const userID = users.length ? users[0].userID : uuidv4();
+
+      const accessToken = sign(
+        { email, userID },
+        config.aws.cognito.clientSecret,
+        {
+          expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
+        }
+      );
+
+      res.status(200).json({
+        data: { accessToken, email },
+        message: "Authentication confirmed successfully",
       });
-
-      if (!user) {
-        const { httpStatusCode } = await db.putItem({
-          item: { email, id },
-          tableName: "users",
-        });
-
-        res.status(httpStatusCode).json({
-          data: { accessToken },
-          message:
-            "New user created successfully and authentication confirmed successfully",
-        });
-      } else {
-        res.status(httpStatusCode).json({
-          data: { accessToken },
-          message: "Authentication confirmed successfully",
-        });
-      }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res
           .status(error.$metadata.httpStatusCode)
           .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else if (
-        error.name === "JsonWebTokenError" ||
-        error.name === "TokenExpiredError"
-      ) {
+      } else if (error.name === "JsonWebTokenError") {
         res.status(401).json({
           data: null,
-          message: `${error.name}: ${error.message}`,
+          message: `${error.name}: Invalid token`,
+        });
+      } else if (error.name === "TokenExpiredError") {
+        res.status(401).json({
+          data: null,
+          message: `${error.name}: Token has expired`,
         });
       } else {
         res

@@ -4,7 +4,9 @@ import { AuthController } from "../controllers";
 
 export class AuthRoute {
   private readonly authController = new AuthController();
+
   public path = "/auth";
+
   public router = Router();
 
   constructor() {
@@ -13,6 +15,7 @@ export class AuthRoute {
 
   private initRoutes(): void {
     this.router.post("/", this.authController.handleAuth);
+
     this.router.post("/confirm", this.authController.handleConfirmAuth);
   }
 }

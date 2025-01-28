@@ -3,30 +3,23 @@ import Joi from "joi";
 
 const envVarsSchema = Joi.object()
   .keys({
-    ACCESS_KEY: Joi.string().optional(),
-    ACCESS_KEY_PRODUCTION: Joi.string().optional(),
-    ACCESS_KEY_STAGING: Joi.string().optional(),
-
     AWSREGION: Joi.string().optional(),
     AWSREGION_PRODUCTION: Joi.string().optional(),
     AWSREGION_STAGING: Joi.string().optional(),
+
+    CLIENTSECRET: Joi.string().optional(),
+    CLIENTSECRET_PRODUCTION: Joi.string().optional(),
+    CLIENTSECRET_STAGING: Joi.string().optional(),
 
     NODE_ENV: Joi.string()
       .valid("development", "production", "staging")
       .required(),
 
-    SECRET_ACCESS_KEY: Joi.string().optional(),
-    SECRET_ACCESS_KEY_PRODUCTION: Joi.string().optional(),
-    SECRET_ACCESS_KEY_STAGING: Joi.string().optional(),
+    PORT: Joi.number().default(8000),
   })
   // Ensure at least one of AWSREGION or AWSREGION_PRODUCTION is provided
-  .or("ACCESS_KEY", "ACCESS_KEY_PRODUCTION", "ACCESS_KEY_STAGING")
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
-  .or(
-    "SECRET_ACCESS_KEY",
-    "SECRET_ACCESS_KEY_PRODUCTION",
-    "SECRET_ACCESS_KEY_STAGING"
-  )
+  .or("CLIENTSECRET", "CLIENTSECRET_PRODUCTION", "CLIENTSECRET_STAGING")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -40,24 +33,19 @@ if (error) {
 // Dynamically select the appropriate region based on NODE_ENV
 export const config = {
   aws: {
-    accessKey:
+    clientSecret:
       envVars.NODE_ENV === "production"
-        ? envVars.ACCESS_KEY_PRODUCTION
+        ? envVars.CLIENTSECRET_PRODUCTION
         : envVars.NODE_ENV === "staging"
-        ? envVars.ACCESS_KEY_STAGING
-        : envVars.ACCESS_KEY,
+        ? envVars.CLIENTSECRET_STAGING
+        : envVars.CLIENTSECRET,
     region:
       envVars.NODE_ENV === "production"
         ? envVars.AWSREGION_PRODUCTION
         : envVars.NODE_ENV === "staging"
         ? envVars.AWSREGION_STAGING
         : envVars.AWSREGION,
-    secretAccessKey:
-      envVars.NODE_ENV === "production"
-        ? envVars.SECRET_ACCESS_KEY_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.SECRET_ACCESS_KEY_STAGING
-        : envVars.SECRET_ACCESS_KEY,
   },
   env: envVars.NODE_ENV,
+  port: envVars.PORT,
 };

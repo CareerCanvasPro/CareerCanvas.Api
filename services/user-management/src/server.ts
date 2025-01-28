@@ -1,20 +1,30 @@
-import * as bodyParser from "body-parser";
+import { json, urlencoded } from "body-parser";
 import cors from "cors";
 import morgan from "morgan";
 
-import config from "../config";
+import { App } from "./app";
+import { config } from "./config";
+import { UserManagementRoute } from "./modules/routes";
 
-import App from "./app";
-import ServiceRoutes from "./modules/route";
-const app = new App({
-  port: 8000,
-  routes: [new ServiceRoutes()],
-  middleWares: [
-    bodyParser.json(),
-    bodyParser.urlencoded({ extended: true }),
-    morgan("dev"),
-    cors(),
-  ],
-});
+function startServer(): void {
+  try {
+    const app = new App({ port: config.port });
 
-app.listen();
+    app.initMiddlewares([
+      json(),
+      urlencoded({
+        extended: true,
+      }),
+      morgan("dev"),
+      cors(),
+    ]);
+
+    app.initRoutes([new UserManagementRoute()]);
+
+    app.listen();
+  } catch (error) {
+    console.error(`${error.name}: ${error.message}`);
+  }
+}
+
+startServer();

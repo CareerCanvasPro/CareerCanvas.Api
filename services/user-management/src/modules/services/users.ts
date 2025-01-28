@@ -3,11 +3,12 @@ import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
+  ScanCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
-import { config } from "../../../config";
+import { config } from "../../config";
 
 interface IAttribute {
   name: string;
@@ -30,26 +31,23 @@ interface PutUserParams {
   user: Record<string, unknown>;
 }
 
+interface ScanUsersParams {
+  attribute: IAttribute;
+}
+
 interface UpdateUserParams {
   attributes: IAttribute[];
   keyValue: string;
 }
 
-export default class UserManagement {
-  private readonly dynamoDBClient: DynamoDBClient;
+export class UsersDB {
+  private readonly dynamoDBClient = new DynamoDBClient({
+    region: config.aws.region,
+  });
 
-  constructor(
-    private readonly keyName: string,
-    private readonly tableName: string
-  ) {
-    this.dynamoDBClient = new DynamoDBClient({
-      credentials: {
-        accessKeyId: config.aws.accessKey,
-        secretAccessKey: config.aws.secretAccessKey,
-      },
-      region: config.aws.region,
-    });
-  }
+  private readonly keyName = "userID";
+
+  private readonly tableName = "userprofiles";
 
   private buildUpdateExpression({ attributes }: BuildUpdateExpressionParams): {
     expressionAttributeNames: Record<string, string>;
@@ -104,6 +102,14 @@ export default class UserManagement {
 
     const deletedUser = Attributes ? unmarshall(Attributes) : null;
 
+    if (deletedUser) {
+      delete deletedUser.createdAt;
+
+      delete deletedUser.userID;
+
+      delete deletedUser.updatedAt;
+    }
+
     return { deletedUser, httpStatusCode };
   }
 
@@ -127,17 +133,33 @@ export default class UserManagement {
 
     const user = Item ? unmarshall(Item) : null;
 
+    if (user) {
+      delete user.createdAt;
+
+      delete user.userID;
+
+      delete user.updatedAt;
+    }
+
     return { httpStatusCode, user };
   }
 
   public async putUser({
     user,
   }: PutUserParams): Promise<{ httpStatusCode: number }> {
+    const now = new Date().toISOString();
+
+    const createdAt = now;
+
+    const updatedAt = now;
+
+    const newUser = { ...user, createdAt, updatedAt };
+
     const {
       $metadata: { httpStatusCode },
     } = await this.dynamoDBClient.send(
       new PutItemCommand({
-        Item: marshall(user),
+        Item: marshall(newUser),
         TableName: this.tableName,
       })
     );
@@ -145,10 +167,42 @@ export default class UserManagement {
     return { httpStatusCode };
   }
 
+  public async scanUsers({ attribute }: ScanUsersParams): Promise<{
+    httpStatusCode: number;
+    users: Record<string, unknown>[];
+  }> {
+    const {
+      $metadata: { httpStatusCode },
+      Items: Users,
+    } = await this.dynamoDBClient.send(
+      new ScanCommand({
+        ExpressionAttributeNames: {
+          "#field": attribute.name,
+        },
+        ExpressionAttributeValues: {
+          ":value": marshall({
+            value: attribute.value,
+          }).value,
+        },
+        FilterExpression: "#field = :value",
+        TableName: this.tableName,
+      })
+    );
+
+    const users = Users.map((user) => unmarshall(user));
+
+    return { httpStatusCode, users };
+  }
+
   public async updateUser({ attributes, keyValue }: UpdateUserParams): Promise<{
     httpStatusCode: number;
-    updatedItem: Record<string, unknown>;
+    updatedUser: Record<string, unknown>;
   }> {
+    attributes.push({
+      name: "updatedAt",
+      value: new Date().toISOString(),
+    });
+
     const {
       expressionAttributeNames,
       expressionAttributeValues,
@@ -171,9 +225,17 @@ export default class UserManagement {
       })
     );
 
-    const updatedItem = Attributes ? unmarshall(Attributes) : null;
+    const updatedUser = Attributes ? unmarshall(Attributes) : null;
 
-    return { httpStatusCode, updatedItem };
+    if (updatedUser) {
+      delete updatedUser.createdAt;
+
+      delete updatedUser.userID;
+
+      delete updatedUser.updatedAt;
+    }
+
+    return { httpStatusCode, updatedUser };
   }
 
   //   async updateMatchPreference(

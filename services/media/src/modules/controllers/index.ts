@@ -13,6 +13,10 @@ export class MediaController {
   private readonly axios = new Axios(config.service.userManagement);
   private readonly s3 = new S3();
 
+  // TODO: ACL === "public-read"
+
+  // TODO: BUCKET_NAME === "careercanvas-app-backend"
+
   public async uploadImage(req: Request, res: Response): Promise<void> {
     try {
       const accessToken = req.headers.authorization;

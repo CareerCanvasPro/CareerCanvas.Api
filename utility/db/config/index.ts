@@ -3,10 +3,6 @@ import Joi from "joi";
 
 const envVarsSchema = Joi.object()
   .keys({
-    ACCESS_KEY: Joi.string().optional(),
-    ACCESS_KEY_PRODUCTION: Joi.string().optional(),
-    ACCESS_KEY_STAGING: Joi.string().optional(),
-
     AWSREGION: Joi.string().optional(),
     AWSREGION_PRODUCTION: Joi.string().optional(),
     AWSREGION_STAGING: Joi.string().optional(),
@@ -14,19 +10,9 @@ const envVarsSchema = Joi.object()
     NODE_ENV: Joi.string()
       .valid("development", "production", "staging")
       .required(),
-
-    SECRET_ACCESS_KEY: Joi.string().optional(),
-    SECRET_ACCESS_KEY_PRODUCTION: Joi.string().optional(),
-    SECRET_ACCESS_KEY_STAGING: Joi.string().optional(),
   })
   // Ensure at least one of AWSREGION or AWSREGION_PRODUCTION is provided
-  .or("ACCESS_KEY", "ACCESS_KEY_PRODUCTION", "ACCESS_KEY_STAGING")
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
-  .or(
-    "SECRET_ACCESS_KEY",
-    "SECRET_ACCESS_KEY_PRODUCTION",
-    "SECRET_ACCESS_KEY_STAGING"
-  )
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -40,24 +26,12 @@ if (error) {
 // Dynamically select the appropriate region based on NODE_ENV
 export const config = {
   aws: {
-    accessKey:
-      envVars.NODE_ENV === "production"
-        ? envVars.ACCESS_KEY_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.ACCESS_KEY_STAGING
-        : envVars.ACCESS_KEY,
     region:
       envVars.NODE_ENV === "production"
         ? envVars.AWSREGION_PRODUCTION
         : envVars.NODE_ENV === "staging"
         ? envVars.AWSREGION_STAGING
         : envVars.AWSREGION,
-    secretAccessKey:
-      envVars.NODE_ENV === "production"
-        ? envVars.SECRET_ACCESS_KEY_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.SECRET_ACCESS_KEY_STAGING
-        : envVars.SECRET_ACCESS_KEY,
   },
   env: envVars.NODE_ENV,
 };

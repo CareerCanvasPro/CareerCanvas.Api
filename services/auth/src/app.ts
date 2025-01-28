@@ -1,11 +1,19 @@
 import express from "express";
 
-import { IRoute } from "../types";
+import { IRoute } from "./types";
+
+interface AppConstructorParams {
+  port: number;
+}
 
 export class App {
   private readonly app = express();
 
-  constructor(private readonly port: number) {}
+  private readonly port: number;
+
+  constructor({ port }: AppConstructorParams) {
+    this.port = port;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public initMiddlewares(middlewares: any[]): void {
