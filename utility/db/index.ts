@@ -29,6 +29,12 @@ interface PutItemParams {
   tableName: string;
 }
 
+interface RemoveAttributeParams {
+  attributeName: string;
+  key: IKey;
+  tableName: string;
+}
+
 interface ScanItemsParams {
   attribute: IAttribute;
   tableName: string;
@@ -83,6 +89,38 @@ export class DB {
     return {
       httpStatusCode,
     };
+  }
+
+  public async removeAttribute({
+    attributeName,
+    key,
+    tableName,
+  }: RemoveAttributeParams): Promise<{
+    httpStatusCode: number;
+    updatedItem: Record<string, unknown>;
+  }> {
+    const {
+      $metadata: { httpStatusCode },
+      Attributes,
+    } = await this.dynamoDBClient.send(
+      new UpdateItemCommand({
+        ExpressionAttributeNames: {
+          "#field": attributeName,
+        },
+        Key: {
+          [key.name]: {
+            S: key.value,
+          },
+        },
+        ReturnValues: "ALL_NEW",
+        TableName: tableName,
+        UpdateExpression: "REMOVE #field",
+      })
+    );
+
+    const updatedItem = Attributes ? unmarshall(Attributes) : null;
+
+    return { httpStatusCode, updatedItem };
   }
 
   public async scanItems({ attribute, tableName }: ScanItemsParams): Promise<{

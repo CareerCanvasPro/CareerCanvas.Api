@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
+import { authSchema } from "../schemas";
 
 interface ITokenPayload {
   email: string;
@@ -12,33 +13,43 @@ interface ITokenPayload {
 
 export class AuthController {
   public async handleAuth(req: Request, res: Response): Promise<void> {
-    const ses = new SES();
-
-    const { email } = req.body;
-
     try {
-      const token = sign({ email }, config.aws.cognito.clientSecret, {
-        expiresIn: "1d", // TODO: Change after testing
+      const ses = new SES();
+
+      const { error, value } = authSchema.validate(req.body, {
+        abortEarly: false,
       });
 
-      const magicLink = `https://careercanvas.pro/auth/callback?token=${token}`;
+      if (error) {
+        const validationErrors = error.details.map((error) => error.message);
 
-      const {
-        $metadata: { httpStatusCode },
-      } = await ses.sendEmail({
-        body: {
-          html: `<p>Click this <a href="${magicLink}" style="cursor: pointer; text-decoration: underline;" target="_blank">link</a> to access your account.</p>`,
-          text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
-        },
-        destination: [email as string],
-        source: "sadiaiffatjahan@gmail.com",
-        subject: "Magic Link to Career Canvas",
-      });
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        const { email } = value;
 
-      res.status(httpStatusCode).json({
-        data: { email, token }, // TODO: Change after testing
-        message: "Magic link sent to given email successfully",
-      });
+        const token = sign({ email }, config.aws.cognito.clientSecret, {
+          expiresIn: "1d", // TODO: Change after testing
+        });
+
+        const magicLink = `https://careercanvas.pro/auth/callback?token=${token}`;
+
+        const {
+          $metadata: { httpStatusCode },
+        } = await ses.sendEmail({
+          body: {
+            html: `<p>Click this <a href="${magicLink}" style="cursor: pointer; text-decoration: underline;" target="_blank">link</a> to access your account.</p>`,
+            text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
+          },
+          destination: [email as string],
+          source: "sadiaiffatjahan@gmail.com",
+          subject: "Magic Link to Career Canvas",
+        });
+
+        res.status(httpStatusCode).json({
+          data: { email, token }, // TODO: Change after testing
+          message: "Magic link sent to given email successfully",
+        });
+      }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res

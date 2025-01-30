@@ -1,21 +1,19 @@
 import "dotenv/config";
-import Joi from "joi";
+import { number, object, string } from "joi";
 
-const envVarsSchema = Joi.object()
+const envVarsSchema = object()
   .keys({
-    AWSREGION: Joi.string().optional(),
-    AWSREGION_PRODUCTION: Joi.string().optional(),
-    AWSREGION_STAGING: Joi.string().optional(),
+    AWSREGION: string().optional(),
+    AWSREGION_PRODUCTION: string().optional(),
+    AWSREGION_STAGING: string().optional(),
 
-    CLIENTSECRET: Joi.string().optional(),
-    CLIENTSECRET_PRODUCTION: Joi.string().optional(),
-    CLIENTSECRET_STAGING: Joi.string().optional(),
+    CLIENTSECRET: string().optional(),
+    CLIENTSECRET_PRODUCTION: string().optional(),
+    CLIENTSECRET_STAGING: string().optional(),
 
-    NODE_ENV: Joi.string()
-      .valid("development", "production", "staging")
-      .required(),
+    NODE_ENV: string().valid("development", "production", "staging").required(),
 
-    PORT: Joi.number().default(5000),
+    PORT: number().default(5000),
   })
   // Enforce at least one key from each pair (AWSREGION, CLIENTID, etc.)
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
