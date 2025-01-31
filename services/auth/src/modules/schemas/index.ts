@@ -1,9 +1,15 @@
-import { object, string } from "joi";
+import joi from "joi";
 
-export const authSchema = object().keys({
-  email: string().email().required(),
-});
+export const authSchema = joi
+  .object()
+  .keys({
+    email: joi.string().email().required().trim(),
+  })
+  .unknown();
 
-export const confirmAuthSchema = object().keys({
-  token: string().required(),
-});
+export const confirmAuthSchema = joi
+  .object()
+  .keys({
+    token: joi.string().required(),
+  })
+  .unknown();

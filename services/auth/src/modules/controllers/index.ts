@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
-import { authSchema } from "../schemas";
+import { cleanMessage } from "../../utils";
+import { authSchema, confirmAuthSchema } from "../schemas";
 
 interface ITokenPayload {
   email: string;
@@ -21,7 +22,9 @@ export class AuthController {
       });
 
       if (error) {
-        const validationErrors = error.details.map((error) => error.message);
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
@@ -64,35 +67,47 @@ export class AuthController {
   }
 
   public async handleConfirmAuth(req: Request, res: Response): Promise<void> {
-    const db = new DB();
-
-    const { token } = req.body;
-
     try {
-      const { email } = verify(
-        token,
-        config.aws.cognito.clientSecret
-      ) as ITokenPayload;
+      const db = new DB();
 
-      const { items: users } = await db.scanItems({
-        attribute: { name: "email", value: email },
-        tableName: "userprofiles",
+      const { error, value } = confirmAuthSchema.validate(req.body, {
+        abortEarly: false,
       });
 
-      const userID = users.length ? users[0].userID : uuidv4();
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
-      const accessToken = sign(
-        { email, userID },
-        config.aws.cognito.clientSecret,
-        {
-          expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
-        }
-      );
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        const { token } = value;
 
-      res.status(200).json({
-        data: { accessToken, email },
-        message: "Authentication confirmed successfully",
-      });
+        const { email } = verify(
+          token,
+          config.aws.cognito.clientSecret
+        ) as ITokenPayload;
+
+        const { items: users } = await db.scanItems({
+          attribute: { name: "email", value: email },
+          tableName: "userprofiles",
+        });
+
+        const userID = users.length ? users[0].userID : uuidv4();
+
+        const accessToken = sign(
+          { email, userID },
+          config.aws.cognito.clientSecret,
+          {
+            expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
+          }
+        );
+
+        res.status(200).json({
+          data: { accessToken, email },
+          message: "Authentication confirmed successfully",
+        });
+      }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res
