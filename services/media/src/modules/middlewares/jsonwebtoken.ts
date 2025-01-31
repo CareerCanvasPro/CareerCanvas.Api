@@ -24,14 +24,19 @@ export function handleVerifyAccessToken(
     const accessToken = authorization.split(" ")[1];
 
     try {
-      const decoded = verify(
+      verify(
         accessToken,
-        config.aws.clientSecret
-      ) as IAccessTokenPayload;
+        config.aws.clientSecret,
+        (error: unknown, decoded: IAccessTokenPayload) => {
+          if (error) {
+            throw error;
+          } else {
+            req.body = { ...req.body, ...decoded };
 
-      req.body = { ...req.body, ...decoded };
-
-      next();
+            next();
+          }
+        }
+      );
     } catch (error) {
       if (error.name === "JsonWebTokenError") {
         res.status(401).json({

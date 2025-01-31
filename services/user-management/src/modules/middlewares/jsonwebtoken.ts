@@ -14,7 +14,7 @@ export function handleVerifyAccessToken(
   next: NextFunction
 ): void {
   const { authorization } = req.headers;
-  console.log("AUTHORIZATION HEADER: ", authorization);
+
   if (!authorization || !authorization.startsWith("Bearer ")) {
     res.status(401).json({
       data: null,
@@ -22,17 +22,21 @@ export function handleVerifyAccessToken(
     });
   } else {
     const accessToken = authorization.split(" ")[1];
-    console.log("ACCESS TOKEN: ", accessToken);
-    console.log("CLIENT SECRET: ", config.aws.clientSecret);
-    try {
-      const decoded = verify(
-        accessToken,
-        config.aws.clientSecret
-      ) as IAccessTokenPayload;
-      console.log("USER ID: ", decoded.userID);
-      req.body = { ...req.body, ...decoded };
 
-      next();
+    try {
+      verify(
+        accessToken,
+        config.aws.clientSecret,
+        (error: unknown, decoded: IAccessTokenPayload) => {
+          if (error) {
+            throw error;
+          } else {
+            req.body = { ...req.body, ...decoded };
+
+            next();
+          }
+        }
+      );
     } catch (error) {
       if (error.name === "JsonWebTokenError") {
         res.status(401).json({

@@ -8,7 +8,7 @@ import { MediaRoute } from "./modules/routes";
 
 function startServer(): void {
   try {
-    const app = new App(config.port);
+    const app = new App({ port: config.port });
 
     app.initMiddlewares([
       json(),
