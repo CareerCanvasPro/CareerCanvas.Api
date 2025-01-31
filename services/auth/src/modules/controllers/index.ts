@@ -87,14 +87,14 @@ export class AuthController {
           token,
           config.aws.cognito.clientSecret
         ) as ITokenPayload;
-
+        console.log("EMAIL: ", email);
         const { items: users } = await db.scanItems({
           attribute: { name: "email", value: email },
           tableName: "userprofiles",
         });
-
+        console.log("USERS: ", users);
         const userID = users.length ? users[0].userID : uuidv4();
-
+        console.log("CLIENT SECRET: ", config.aws.cognito.clientSecret);
         const accessToken = sign(
           { email, userID },
           config.aws.cognito.clientSecret,

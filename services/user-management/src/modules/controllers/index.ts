@@ -4,15 +4,15 @@ import { UsersDB } from "../services";
 
 export class UserManagementController {
   public async handleCreateProfile(req: Request, res: Response): Promise<void> {
-    const usersDB = new UsersDB();
-
-    const { userID } = req.body;
-
-    delete req.body.exp;
-
-    delete req.body.iat;
-
     try {
+      const usersDB = new UsersDB();
+
+      const { userID } = req.body;
+
+      delete req.body.exp;
+
+      delete req.body.iat;
+
       const { user } = await usersDB.getUser({
         keyValue: userID,
       });
@@ -43,11 +43,11 @@ export class UserManagementController {
   }
 
   public async handleDeleteProfile(req: Request, res: Response): Promise<void> {
-    const usersDB = new UsersDB();
-
-    const { userID } = req.body;
-
     try {
+      const usersDB = new UsersDB();
+
+      const { userID } = req.body;
+
       const { deletedUser, httpStatusCode } = await usersDB.deleteUser({
         keyValue: userID,
       });
@@ -55,11 +55,9 @@ export class UserManagementController {
       if (deletedUser) {
         res
           .status(httpStatusCode)
-          .json({ data: deletedUser, message: "Profile deleted successfully" });
+          .json({ data: { userID }, message: "Profile deleted successfully" });
       } else {
-        res
-          .status(404)
-          .json({ data: deletedUser, message: "Profile not found" });
+        res.status(404).json({ data: null, message: "Profile not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -75,11 +73,11 @@ export class UserManagementController {
   }
 
   public async handleGetProfile(req: Request, res: Response): Promise<void> {
-    const usersDB = new UsersDB();
-
-    const { userID } = req.body;
-
     try {
+      const usersDB = new UsersDB();
+
+      const { userID } = req.body;
+
       const { httpStatusCode, user } = await usersDB.getUser({
         keyValue: userID,
       });
@@ -105,19 +103,19 @@ export class UserManagementController {
   }
 
   public async handleUpdateProfile(req: Request, res: Response): Promise<void> {
-    const usersDB = new UsersDB();
-
-    const { userID } = req.body;
-
-    delete req.body.email;
-
-    delete req.body.exp;
-
-    delete req.body.iat;
-
-    delete req.body.userID;
-
     try {
+      const usersDB = new UsersDB();
+
+      const { userID } = req.body;
+
+      delete req.body.email;
+
+      delete req.body.exp;
+
+      delete req.body.iat;
+
+      delete req.body.userID;
+
       const { user } = await usersDB.getUser({ keyValue: userID });
 
       if (!user) {

@@ -19,11 +19,11 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "deploy": "node lib/services/user-management/src/server.js",
-    "watch-deploy": "nodemon lib/services/user-management/src/server.js",
+    "deploy": "node lib/server.js",
+    "watch-deploy": "nodemon lib/server.js",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "dev": "node --watch lib/services/user-management/src/server.js",
+    "dev": "node --watch lib/server.js",
     "watch-tsc": "tsc -w"
   },
   "dependencies": {
