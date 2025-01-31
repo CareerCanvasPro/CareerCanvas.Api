@@ -25,7 +25,6 @@ export class MediaRoute {
     this.router
       .route("/profile-picture")
       .delete(this.mediaController.handleRemoveProfilePicture)
-      .put(this.mediaController.handleUpdateProfilePicture)
       .post(this.mediaController.handleUploadProfilePicture);
   }
 }

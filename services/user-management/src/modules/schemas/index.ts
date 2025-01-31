@@ -15,7 +15,7 @@ export const createProfileSchema = joi
       workTill: joi.date(),
     }),
     dateOfBirth: joi.date(),
-    email: joi.string().email().required().trim(),
+    email: joi.string().required(),
     fullName: joi.string().trim(),
     hardSkills: joi.array().items(joi.string().trim()),
     pastEducation: joi.array().items(
