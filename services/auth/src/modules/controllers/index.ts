@@ -5,8 +5,9 @@ import { v4 as uuidv4 } from "uuid";
 import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
-import { cleanMessage, getMagicLinkHTML } from "../../utils";
-import { authSchema, confirmAuthSchema } from "../schemas";
+import { cleanMessage } from "../../utils";
+import { authSchema } from "../schemas";
+import { getHtml } from "../templates";
 
 interface ITokenPayload {
   email: string;
@@ -46,7 +47,7 @@ export class AuthController {
                 $metadata: { httpStatusCode },
               } = await ses.sendEmail({
                 body: {
-                  html: getMagicLinkHTML(token),
+                  html: getHtml(magicLink),
                   text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
                 },
                 destination: [email as string],
@@ -79,57 +80,45 @@ export class AuthController {
     try {
       const db = new DB();
 
-      const { error, value } = confirmAuthSchema.validate(req.body, {
-        abortEarly: false,
-      });
+      const { token } = req.query;
 
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
+      verify(
+        token as string,
+        config.aws.cognito.clientSecret,
+        async (error: unknown, { email }: ITokenPayload) => {
+          if (error) {
+            throw error;
+          } else {
+            const { items: users } = await db.scanItems({
+              attribute: { name: "email", value: email },
+              tableName: "userprofiles",
+            });
 
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        const { token } = value;
+            const isNewUser = !users.length;
 
-        verify(
-          token,
-          config.aws.cognito.clientSecret,
-          async (error: unknown, { email }: ITokenPayload) => {
-            if (error) {
-              throw error;
-            } else {
-              const { items: users } = await db.scanItems({
-                attribute: { name: "email", value: email },
-                tableName: "userprofiles",
-              });
+            const userID = isNewUser ? uuidv4() : users[0].userID;
 
-              const userID = users.length ? users[0].userID : uuidv4();
-
-              const isNewUser = users.length ? false : true; // TODO: Implement if it is wrong
-
-              sign(
-                { email, userID },
-                config.aws.cognito.clientSecret,
-                {
-                  expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
-                },
-                (error, accessToken) => {
-                  if (error) {
-                    throw error;
-                  } else {
-                    res.status(200).redirect(`careercanvas://auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`);
-                    // res.status(200).json({
-                    //   data: { accessToken, email },
-                    //   message: "Authentication confirmed successfully",
-                    // });
-                  }
+            sign(
+              { email, userID },
+              config.aws.cognito.clientSecret,
+              {
+                expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
+              },
+              (error, accessToken) => {
+                if (error) {
+                  throw error;
+                } else {
+                  res
+                    .status(302)
+                    .redirect(
+                      `careercanvas://auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
+                    );
                 }
-              );
-            }
+              }
+            );
           }
-        );
-      }
+        }
+      );
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res

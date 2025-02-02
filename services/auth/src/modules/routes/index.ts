@@ -16,6 +16,6 @@ export class AuthRoute {
   private initRoutes(): void {
     this.router.post("/", this.authController.handleAuth);
 
-    this.router.post("/confirm", this.authController.handleConfirmAuth);
+    this.router.get("/confirm", this.authController.handleConfirmAuth);
   }
 }

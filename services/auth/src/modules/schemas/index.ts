@@ -6,10 +6,3 @@ export const authSchema = joi
     email: joi.string().email().required().trim(),
   })
   .unknown();
-
-export const confirmAuthSchema = joi
-  .object()
-  .keys({
-    token: joi.string().required(),
-  })
-  .unknown();

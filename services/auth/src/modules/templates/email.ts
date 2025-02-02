@@ -1,5 +1,5 @@
-export function getMagicLinkHTML(token: string): string {
-    return `
+export function getHtml(magicLink: string): string {
+  return `
 <!DOCTYPE html>
 <html>
 
@@ -61,7 +61,7 @@ export function getMagicLinkHTML(token: string): string {
         <img src="https://i.postimg.cc/Sx1xzz7C/logo-bg-ts.png" alt="Career Canvas App Logo" class="logo">
         <h2>Welcome to Career Canvas!</h2>
         <p>Click the button below to log in instantly.</p>
-        <a href="http://13.229.30.167:5000/auth/confirm?token=${token}"
+        <a href="${magicLink}"
             class="button">Login Now</a>
         <p class="footer">&copy; 2025 Career Canvas. All rights reserved.</p>
     </div>
