@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
-import { cleanMessage } from "../../utils";
+import { cleanMessage, getMagicLinkHTML } from "../../utils";
 import { authSchema, confirmAuthSchema } from "../schemas";
 
 interface ITokenPayload {
@@ -40,13 +40,13 @@ export class AuthController {
             if (error) {
               throw error;
             } else {
-              const magicLink = `https://careercanvas.pro/auth/callback?token=${token}`;
+              const magicLink = `http://13.229.30.167:5000/auth/confirm?token=${token}`;
 
               const {
                 $metadata: { httpStatusCode },
               } = await ses.sendEmail({
                 body: {
-                  html: `<p>Click this <a href="${magicLink}" style="cursor: pointer; text-decoration: underline;" target="_blank">link</a> to access your account.</p>`,
+                  html: getMagicLinkHTML(token),
                   text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
                 },
                 destination: [email as string],
@@ -55,7 +55,7 @@ export class AuthController {
               });
 
               res.status(httpStatusCode).json({
-                data: { email, token }, // TODO: Change after testing
+                data: { email, token }, // TODO: Remove after testing
                 message: "Magic link sent to given email successfully",
               });
             }
@@ -106,6 +106,8 @@ export class AuthController {
 
               const userID = users.length ? users[0].userID : uuidv4();
 
+              const isNewUser = users.length ? false : true; // TODO: Implement if it is wrong
+
               sign(
                 { email, userID },
                 config.aws.cognito.clientSecret,
@@ -116,10 +118,11 @@ export class AuthController {
                   if (error) {
                     throw error;
                   } else {
-                    res.status(200).json({
-                      data: { accessToken, email },
-                      message: "Authentication confirmed successfully",
-                    });
+                    res.status(200).redirect(`careercanvas://auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`);
+                    // res.status(200).json({
+                    //   data: { accessToken, email },
+                    //   message: "Authentication confirmed successfully",
+                    // });
                   }
                 }
               );
