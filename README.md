@@ -1,5 +1,4 @@
-# app-backend
-Repository for web app backend
+Repository for Backend APIs
 # Getting started
 
 - Install dependencies
