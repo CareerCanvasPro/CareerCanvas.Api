@@ -1,4 +1,3 @@
-Repository for Backend APIs
 # Getting started
 
 - Install dependencies
