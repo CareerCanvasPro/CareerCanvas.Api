@@ -1,10 +1,12 @@
-import Joi from "joi";
 import "dotenv/config";
+import joi from "joi";
 
-const envVarsSchema = Joi.object()
+const envVarsSchema = joi
+  .object()
   .keys({
-    AWSREGION: Joi.string().required(),
-    NODE_ENV: Joi.string()
+    AWSREGION: joi.string().required(),
+    NODE_ENV: joi
+      .string()
       .valid("production", "development", "staging")
       .required(),
   })
@@ -18,11 +20,9 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-const config = {
+export const config = {
   aws: {
     region: envVars.AWSREGION,
   },
   env: envVars.NODE_ENV,
 };
-
-export default config;
