@@ -10,6 +10,8 @@ function startServer(): void {
   try {
     const app = new App({ port: config.port });
 
+    app.initTemplates();
+
     app.initMiddlewares([
       json(),
       urlencoded({
@@ -20,6 +22,8 @@ function startServer(): void {
     ]);
 
     app.initRoutes([new AuthRoute()]);
+
+    app.initNotFound();
 
     app.listen();
   } catch (error) {

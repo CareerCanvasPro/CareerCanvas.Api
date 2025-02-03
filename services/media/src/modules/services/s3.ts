@@ -11,7 +11,7 @@ interface DeleteFileParams {
 }
 
 interface UploadFileParams {
-  body: Buffer<ArrayBufferLike>;
+  body: Buffer;
   contentType: string;
   key: string;
 }
@@ -22,25 +22,6 @@ export class S3 {
   private readonly s3Client = new S3Client({
     region: config.aws.region,
   });
-
-  // private getContentType({ extension }: GetContentTypeParams): string {
-  //   switch (extension) {
-  //     case ".jpg":
-  //     case ".jpeg":
-  //       return "image/jpeg";
-  //     case ".png":
-  //       return "image/png";
-  //     case ".webp":
-  //       return "image/webp";
-  //     case ".heic":
-  //       return "image/heic";
-  //     case ".pdf":
-  //       return "application/pdf";
-  //     // Add more cases for other file formats if needed
-  //     default:
-  //       throw new Error("Unsupported file format");
-  //   }
-  // }
 
   public async deleteFile({
     key,

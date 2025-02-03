@@ -5,6 +5,14 @@ import { MediaController } from "../controllers";
 import { handleVerifyAccessToken } from "../middlewares";
 
 export class MediaRoute {
+  private readonly allowedContentTypes = [
+    "application/pdf",
+    "image/heic",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+  ];
+
   private readonly mediaController = new MediaController();
 
   public path = "/media";
@@ -12,7 +20,19 @@ export class MediaRoute {
   public router = Router();
 
   constructor() {
-    this.initMiddlewares([handleVerifyAccessToken, multer().single("file")]);
+    this.initMiddlewares([
+      handleVerifyAccessToken,
+      multer({
+        fileFilter: (req, { mimetype }, callback) => {
+          if (this.allowedContentTypes.includes(mimetype)) {
+            callback(null, true);
+          } else {
+            req.body.error = { data: null, message: "Unsupported file format" };
+            callback(null, false);
+          }
+        },
+      }).single("file"),
+    ]);
     this.initRoutes();
   }
 

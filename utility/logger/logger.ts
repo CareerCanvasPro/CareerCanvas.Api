@@ -1,7 +1,7 @@
 import winston from "winston";
 import WinstonCloudWatch from "winston-cloudwatch";
 
-import config from "./config/config";
+import { config } from "./config";
 
 export default class Logger {
   private logger: winston.Logger;

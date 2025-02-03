@@ -3,23 +3,25 @@ import { Request, Response } from "express";
 import { S3 } from "../services";
 
 export class MediaController {
-  private readonly s3 = new S3();
-
   public async handleRemoveProfilePicture(
     req: Request,
     res: Response
   ): Promise<void> {
     try {
+      const s3 = new S3();
+
       const { userID } = req.body;
 
-      const { httpStatusCode } = await this.s3.deleteFile({
+      const { httpStatusCode } = await s3.deleteFile({
         key: userID,
       });
 
-      res.status(httpStatusCode).json({
-        data: null,
-        message: "Profile picture removed successfully",
-      });
+      if (httpStatusCode === 204) {
+        res.status(200).json({
+          data: null,
+          message: "Profile picture removed successfully",
+        });
+      }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res
@@ -38,17 +40,21 @@ export class MediaController {
     res: Response
   ): Promise<void> {
     try {
+      const s3 = new S3();
+
       const {
-        body: { userID },
+        body: { error, userID },
         file,
       } = req;
 
-      if (!file) {
+      if (error) {
+        res.status(400).json(error);
+      } else if (!file) {
         res.status(400).json({ data: null, message: "No file uploaded" });
       } else {
         const { buffer, mimetype } = file;
 
-        const { httpStatusCode, key } = await this.s3.putFile({
+        const { httpStatusCode, key } = await s3.putFile({
           body: buffer,
           contentType: mimetype,
           key: userID,

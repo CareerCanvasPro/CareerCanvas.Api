@@ -13,41 +13,46 @@ export function handleVerifyAccessToken(
   res: Response,
   next: NextFunction
 ): void {
-  try {
-    const { authorization } = req.headers;
+  const { authorization } = req.headers;
 
-    if (!authorization || !authorization.startsWith("Bearer ")) {
-      res.status(401).json({
-        data: null,
-        message: "Access token is missing",
-      });
-    } else {
-      const accessToken = authorization.split(" ")[1];
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    res.status(401).json({
+      data: null,
+      message: "Access token is missing",
+    });
+  } else {
+    const accessToken = authorization.split(" ")[1];
 
-      const decoded = verify(
+    try {
+      verify(
         accessToken,
-        config.aws.clientSecret
-      ) as IAccessTokenPayload;
+        config.aws.clientSecret,
+        (error: unknown, decoded: IAccessTokenPayload) => {
+          if (error) {
+            throw error;
+          } else {
+            req.body = { ...req.body, ...decoded };
 
-      req.body = { ...req.body, ...decoded };
-
-      next();
-    }
-  } catch (error) {
-    if (error.name === "JsonWebTokenError") {
-      res.status(401).json({
-        data: null,
-        message: `${error.name}: Invalid access token`,
-      });
-    } else if (error.name === "TokenExpiredError") {
-      res.status(401).json({
-        data: null,
-        message: `${error.name}: Access token has expired`,
-      });
-    } else {
-      res
-        .status(500)
-        .json({ data: null, message: `${error.name}: ${error.message}` });
+            next();
+          }
+        }
+      );
+    } catch (error) {
+      if (error.name === "JsonWebTokenError") {
+        res.status(401).json({
+          data: null,
+          message: `${error.name}: Invalid access token`,
+        });
+      } else if (error.name === "TokenExpiredError") {
+        res.status(401).json({
+          data: null,
+          message: `${error.name}: Access token has expired`,
+        });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
     }
   }
 }

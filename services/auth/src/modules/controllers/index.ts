@@ -1,3 +1,6 @@
+import { join } from "path";
+
+import { renderFile } from "ejs";
 import { Request, Response } from "express";
 import { sign, verify } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
@@ -6,7 +9,7 @@ import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import { authSchema, confirmAuthSchema } from "../schemas";
+import { authSchema } from "../schemas";
 
 interface ITokenPayload {
   email: string;
@@ -30,28 +33,51 @@ export class AuthController {
       } else {
         const { email } = value;
 
-        const token = sign({ email }, config.aws.cognito.clientSecret, {
-          expiresIn: "1d", // TODO: Change after testing
-        });
-
-        const magicLink = `https://careercanvas.pro/auth/callback?token=${token}`;
-
-        const {
-          $metadata: { httpStatusCode },
-        } = await ses.sendEmail({
-          body: {
-            html: `<p>Click this <a href="${magicLink}" style="cursor: pointer; text-decoration: underline;" target="_blank">link</a> to access your account.</p>`,
-            text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
+        sign(
+          { email },
+          config.aws.cognito.clientSecret,
+          {
+            expiresIn: "1d", // TODO: Change after testing
           },
-          destination: [email as string],
-          source: "sadiaiffatjahan@gmail.com",
-          subject: "Magic Link to Career Canvas",
-        });
+          async (error, token) => {
+            if (error) {
+              throw error;
+            } else {
+              const magicLink = `http://13.229.30.167:5000/auth/confirm?token=${token}`;
 
-        res.status(httpStatusCode).json({
-          data: { email, token }, // TODO: Change after testing
-          message: "Magic link sent to given email successfully",
-        });
+              const {
+                $metadata: { httpStatusCode },
+              } = await ses.sendEmail({
+                body: {
+                  html: await renderFile(
+                    join(
+                      __dirname,
+                      "..",
+                      "..",
+                      "..",
+                      "..",
+                      "..",
+                      "..",
+                      "src",
+                      "views",
+                      "email.ejs"
+                    ),
+                    { magicLink }
+                  ),
+                  text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
+                },
+                destination: [email as string],
+                source: "sadiaiffatjahan@gmail.com",
+                subject: "Magic Link to Career Canvas",
+              });
+
+              res.status(httpStatusCode).json({
+                data: { email, token }, // TODO: Remove after testing
+                message: "Magic link sent to given email successfully",
+              });
+            }
+          }
+        );
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -70,63 +96,61 @@ export class AuthController {
     try {
       const db = new DB();
 
-      const { error, value } = confirmAuthSchema.validate(req.body, {
-        abortEarly: false,
-      });
+      const { token } = req.query;
 
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
+      verify(
+        token as string,
+        config.aws.cognito.clientSecret,
+        async (error: unknown, { email }: ITokenPayload) => {
+          if (error) {
+            throw error;
+          } else {
+            const { items: users } = await db.scanItems({
+              attribute: { name: "email", value: email },
+              tableName: "userprofiles",
+            });
 
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        const { token } = value;
+            const isNewUser = !users.length;
 
-        const { email } = verify(
-          token,
-          config.aws.cognito.clientSecret
-        ) as ITokenPayload;
+            const userID = isNewUser ? uuidv4() : users[0].userID;
 
-        const { items: users } = await db.scanItems({
-          attribute: { name: "email", value: email },
-          tableName: "userprofiles",
-        });
-
-        const userID = users.length ? users[0].userID : uuidv4();
-
-        const accessToken = sign(
-          { email, userID },
-          config.aws.cognito.clientSecret,
-          {
-            expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
+            sign(
+              { email, userID },
+              config.aws.cognito.clientSecret,
+              {
+                expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
+              },
+              (error, accessToken) => {
+                if (error) {
+                  throw error;
+                } else {
+                  res
+                    .status(302)
+                    .redirect(
+                      `careercanvas://auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
+                    );
+                }
+              }
+            );
           }
-        );
-
-        res.status(200).json({
-          data: { accessToken, email },
-          message: "Authentication confirmed successfully",
-        });
-      }
+        }
+      );
     } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else if (error.name === "JsonWebTokenError") {
-        res.status(401).json({
-          data: null,
-          message: `${error.name}: Invalid token`,
+      if (error.name === "JsonWebTokenError") {
+        res.status(401).render("error", {
+          message: "401 Unauthorized | Invalid link",
+          title: "401 Unauthorized",
         });
       } else if (error.name === "TokenExpiredError") {
-        res.status(401).json({
-          data: null,
-          message: `${error.name}: Token has expired`,
+        res.status(401).render("error", {
+          message: "401 Unauthorized | Link has expired",
+          title: "401 Unauthorized",
         });
       } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
+        res.status(500).render("error", {
+          message: "500 Internal Server Error",
+          title: "500 Internal Server Error",
+        });
       }
     }
   }

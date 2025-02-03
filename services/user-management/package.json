@@ -18,13 +18,14 @@
     "access": "public"
   },
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "deploy": "node lib/server.js",
-    "watch-deploy": "nodemon lib/server.js",
+    "deploy": "node lib/server",
+    "dev": "node --watch lib/server",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "dev": "node --watch lib/server.js",
-    "watch-tsc": "tsc -w"
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc",
+    "watch-deploy": "node --watch lib/server",
+    "watch-tsc": "tsc --watch"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.485.0",
