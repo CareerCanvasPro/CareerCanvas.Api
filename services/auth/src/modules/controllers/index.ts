@@ -1,3 +1,6 @@
+import { join } from "path";
+
+import { renderFile } from "ejs";
 import { Request, Response } from "express";
 import { sign, verify } from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
@@ -7,7 +10,6 @@ import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
 import { authSchema } from "../schemas";
-import { getHtml } from "../templates";
 
 interface ITokenPayload {
   email: string;
@@ -47,7 +49,21 @@ export class AuthController {
                 $metadata: { httpStatusCode },
               } = await ses.sendEmail({
                 body: {
-                  html: getHtml(magicLink),
+                  html: await renderFile(
+                    join(
+                      __dirname,
+                      "..",
+                      "..",
+                      "..",
+                      "..",
+                      "..",
+                      "..",
+                      "src",
+                      "views",
+                      "email.ejs"
+                    ),
+                    { magicLink }
+                  ),
                   text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
                 },
                 destination: [email as string],
@@ -120,24 +136,21 @@ export class AuthController {
         }
       );
     } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else if (error.name === "JsonWebTokenError") {
-        res.status(401).json({
-          data: null,
-          message: `${error.name}: Invalid token`,
+      if (error.name === "JsonWebTokenError") {
+        res.status(401).render("error", {
+          message: "401 Unauthorized | Invalid link",
+          title: "401 Unauthorized",
         });
       } else if (error.name === "TokenExpiredError") {
-        res.status(401).json({
-          data: null,
-          message: `${error.name}: Token has expired`,
+        res.status(401).render("error", {
+          message: "401 Unauthorized | Link has expired",
+          title: "401 Unauthorized",
         });
       } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
+        res.status(500).render("error", {
+          message: "500 Internal Server Error",
+          title: "500 Internal Server Error",
+        });
       }
     }
   }
