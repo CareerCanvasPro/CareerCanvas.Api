@@ -14,30 +14,42 @@ set -e
 echo -e "${PURPLE}[Deploy.sh]:${NC} Pulling latest code..."
 git pull origin $(git rev-parse --abbrev-ref HEAD)
 
-# Step 2: Build the project using Lerna
-echo -e "${PURPLE}[Deploy.sh]:${NC} Building project..."
+# Step 2: Find all ecosystem.config.js files in subdirectories of ./services/
+ecosystem_files=($(find ./services -mindepth 2 -type f -name "ecosystem.config.js"))
+
+if [ ${#ecosystem_files[@]} -eq 0 ]; then
+    echo -e "${ERROR}[Deploy.sh]: No ecosystem.config.js files found!${NC}"
+    exit 1
+fi
+
+# Print ecosystem files found in the project
+echo -e "${PURPLE}[Deploy.sh]:${NC} Found ${#ecosystem_files[@]} ecosystem files:"
+rows=()
+for file in "${ecosystem_files[@]}"; do
+    app_name=$(node -pe "require('$file').apps[0].name")
+    rows+=("$app_name | : $file")
+done
+printf "%s\n" "${rows[@]}" | column -t -s '|'
+echo ""
+
+# Step 3: Build the project using Lerna
+echo -e "${PURPLE}[Deploy.sh]:${NC} Building project using lerna..."
 npx lerna run tsc
 
-# Step 3: Deploy ecosystem files using PM2
-ecosystem_files=(
-    "./services/auth/ecosystem.config.js"
-    "./services/media/ecosystem.config.js"
-    "./services/user-management/ecosystem.config.js"
-)
-
+# Step 4: Start/Restart the pm2 processes using the ecosystem file
 echo -e "${PURPLE}[Deploy.sh]:${NC} Deploying services..."
 for file in "${ecosystem_files[@]}"; do
     app_name=$(node -pe "require('$file').apps[0].name")
     if pm2 list | grep -q "$app_name"; then
         echo -e "${PURPLE}[Deploy.sh]:${NC} Restarting $app_name..."
-        pm2 restart "$file" --update-env
+        pm2 restart "$file"
     else
         echo -e "${PURPLE}[Deploy.sh]:${NC} Starting $app_name..."
         pm2 start "$file"
     fi
 done
 
-echo -e "${PURPLE}[Deploy.sh]:${NC} Saving current pm2 process list..."
+# Save the processes list
 pm2 save
 
 # Display PM2 process list
