@@ -6,14 +6,14 @@ interface GetItemParams {
 }
 
 export class Axios {
-  public async getItem({
+  public getItem = async ({
     accessToken,
     url,
-  }: GetItemParams): Promise<AxiosResponse> {
+  }: GetItemParams): Promise<AxiosResponse> => {
     return await axios.get(url, {
       headers: { authorization: accessToken },
     });
-  }
+  };
 
   //   async setItem(
   //     accessToken: string,

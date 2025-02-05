@@ -49,11 +49,13 @@ export class UsersDB {
 
   private readonly tableName = "userprofiles";
 
-  private buildUpdateExpression({ attributes }: BuildUpdateExpressionParams): {
+  private buildUpdateExpression = ({
+    attributes,
+  }: BuildUpdateExpressionParams): {
     expressionAttributeNames: Record<string, string>;
     expressionAttributeValues: Record<string, unknown>;
     updateExpression: string;
-  } {
+  } => {
     const expressionAttributeNames: Record<string, string> = {};
 
     const expressionAttributeValues: Record<string, unknown> = {};
@@ -79,12 +81,14 @@ export class UsersDB {
       expressionAttributeValues,
       updateExpression,
     };
-  }
+  };
 
-  public async deleteUser({ keyValue }: DeleteUserParams): Promise<{
+  public deleteUser = async ({
+    keyValue,
+  }: DeleteUserParams): Promise<{
     deletedUser: Record<string, unknown>;
     httpStatusCode: number;
-  }> {
+  }> => {
     const {
       $metadata: { httpStatusCode },
       Attributes,
@@ -111,12 +115,14 @@ export class UsersDB {
     }
 
     return { deletedUser, httpStatusCode };
-  }
+  };
 
-  public async getUser({ keyValue }: GetUserParams): Promise<{
+  public getUser = async ({
+    keyValue,
+  }: GetUserParams): Promise<{
     httpStatusCode: number;
     user: Record<string, unknown>;
-  }> {
+  }> => {
     const {
       $metadata: { httpStatusCode },
       Item,
@@ -142,11 +148,11 @@ export class UsersDB {
     }
 
     return { httpStatusCode, user };
-  }
+  };
 
-  public async putUser({
+  public putUser = async ({
     user,
-  }: PutUserParams): Promise<{ httpStatusCode: number }> {
+  }: PutUserParams): Promise<{ httpStatusCode: number }> => {
     const now = new Date().toISOString();
 
     const createdAt = now;
@@ -165,12 +171,14 @@ export class UsersDB {
     );
 
     return { httpStatusCode };
-  }
+  };
 
-  public async scanUsers({ attribute }: ScanUsersParams): Promise<{
+  public scanUsers = async ({
+    attribute,
+  }: ScanUsersParams): Promise<{
     httpStatusCode: number;
     users: Record<string, unknown>[];
-  }> {
+  }> => {
     const {
       $metadata: { httpStatusCode },
       Items: Users,
@@ -192,12 +200,15 @@ export class UsersDB {
     const users = Users.map((user) => unmarshall(user));
 
     return { httpStatusCode, users };
-  }
+  };
 
-  public async updateUser({ attributes, keyValue }: UpdateUserParams): Promise<{
+  public updateUser = async ({
+    attributes,
+    keyValue,
+  }: UpdateUserParams): Promise<{
     httpStatusCode: number;
     updatedUser: Record<string, unknown>;
-  }> {
+  }> => {
     attributes.push({
       name: "updatedAt",
       value: new Date().toISOString(),
@@ -236,7 +247,7 @@ export class UsersDB {
     }
 
     return { httpStatusCode, updatedUser };
-  }
+  };
 
   //   async updateMatchPreference(
   //     username: string,

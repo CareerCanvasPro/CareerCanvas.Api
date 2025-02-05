@@ -3,16 +3,16 @@ import { Request, Response } from "express";
 import { S3 } from "../services";
 
 export class MediaController {
+  private readonly s3 = new S3();
+
   public async handleRemoveCertificate(
     req: Request,
     res: Response
   ): Promise<void> {
     try {
-      const s3 = new S3();
-
       const { certificate } = req.query;
 
-      const { httpStatusCode } = await s3.deleteFile({
+      const { httpStatusCode } = await this.s3.deleteFile({
         key: certificate as string,
       });
 
@@ -40,11 +40,9 @@ export class MediaController {
     res: Response
   ): Promise<void> {
     try {
-      const s3 = new S3();
-
       const { profilePicture } = req.query;
 
-      const { httpStatusCode } = await s3.deleteFile({
+      const { httpStatusCode } = await this.s3.deleteFile({
         key: profilePicture as string,
       });
 
@@ -72,11 +70,9 @@ export class MediaController {
     res: Response
   ): Promise<void> {
     try {
-      const s3 = new S3();
-
       const { certificate } = req.body;
 
-      const { signedUrl } = await s3.getSignedUrl({
+      const { signedUrl } = await this.s3.getSignedUrl({
         key: certificate,
       });
 
@@ -102,11 +98,9 @@ export class MediaController {
     res: Response
   ): Promise<void> {
     try {
-      const s3 = new S3();
-
       const { profilePicture } = req.body;
 
-      const { url } = s3.getUrl({
+      const { url } = this.s3.getUrl({
         key: profilePicture,
       });
 
@@ -127,13 +121,11 @@ export class MediaController {
     }
   }
 
-  public async handleUploadCertificate(
+  public handleUploadCertificate = async (
     req: Request,
     res: Response
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
-      const s3 = new S3();
-
       const {
         body: { error, index, userID },
         file,
@@ -146,14 +138,14 @@ export class MediaController {
       } else {
         const { buffer, mimetype } = file;
 
-        const { httpStatusCode, key } = await s3.putFile({
+        const { httpStatusCode, key } = await this.s3.putFile({
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
           key: `${userID}-certificate-${index}`,
         });
 
-        const { url } = s3.getUrl({ key });
+        const { url } = this.s3.getUrl({ key });
 
         res.status(httpStatusCode).json({
           data: { url },
@@ -171,15 +163,13 @@ export class MediaController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
   public async handleUploadProfilePicture(
     req: Request,
     res: Response
   ): Promise<void> {
     try {
-      const s3 = new S3();
-
       const {
         body: { error, userID },
         file,
@@ -192,14 +182,14 @@ export class MediaController {
       } else {
         const { buffer, mimetype } = file;
 
-        const { httpStatusCode, key } = await s3.putFile({
+        const { httpStatusCode, key } = await this.s3.putFile({
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
           key: `${userID}-profile-picture`,
         });
 
-        const { url } = s3.getUrl({ key });
+        const { url } = this.s3.getUrl({ key });
 
         res.status(httpStatusCode).json({
           data: { url },

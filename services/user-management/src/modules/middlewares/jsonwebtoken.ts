@@ -8,11 +8,11 @@ interface IAccessTokenPayload {
   userID: string;
 }
 
-export function handleVerifyAccessToken(
+export const handleVerifyAccessToken = (
   req: Request,
   res: Response,
   next: NextFunction
-): void {
+): void => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith("Bearer ")) {
@@ -55,4 +55,4 @@ export function handleVerifyAccessToken(
       }
     }
   }
-}
+};

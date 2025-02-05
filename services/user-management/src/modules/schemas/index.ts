@@ -5,13 +5,13 @@ export const createProfileSchema = joi
   .keys({
     address: joi.string().trim(),
     contact: joi.string().trim(),
-    dateOfBirth: joi.date(),
+    dateOfBirth: joi.string(),
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
         certificate: joi.string().uri({ scheme: ["https"] }),
         field: joi.string().trim(),
-        graduationDate: joi.date(),
+        graduationDate: joi.string(),
         institute: joi.string().trim(),
         isCurrent: joi.boolean().default(false),
       })
@@ -21,10 +21,10 @@ export const createProfileSchema = joi
     occupation: joi.array().items(
       joi.object().keys({
         designation: joi.string().trim(),
-        from: joi.date(),
+        from: joi.string(),
         isCurrent: joi.boolean().default(false),
         organization: joi.string().trim(),
-        to: joi.date(),
+        to: joi.string(),
       })
     ),
     phone: joi.string(), // add regex for phone number
@@ -34,20 +34,20 @@ export const createProfileSchema = joi
     username: joi.string(),
   })
   .or("email", "phone")
-  .unknown();
+  .unknown(false);
 
 export const updateProfileSchema = joi
   .object()
   .keys({
     address: joi.string().trim(),
     contact: joi.string().trim(),
-    dateOfBirth: joi.date(),
+    dateOfBirth: joi.string(),
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
         certificate: joi.string().uri({ scheme: ["https"] }),
         field: joi.string().trim(),
-        graduationDate: joi.date(),
+        graduationDate: joi.string(),
         institute: joi.string().trim(),
         isCurrent: joi.boolean().default(false),
       })
@@ -56,13 +56,13 @@ export const updateProfileSchema = joi
     occupation: joi.array().items(
       joi.object().keys({
         designation: joi.string().trim(),
-        from: joi.date(),
+        from: joi.string(),
         isCurrent: joi.boolean().default(false),
         organization: joi.string().trim(),
-        to: joi.date(),
+        to: joi.string(),
       })
     ),
     profilePicture: joi.string().uri({ scheme: ["https"] }),
     skills: joi.array().items(joi.string().trim()),
   })
-  .unknown();
+  .unknown(false);

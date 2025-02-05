@@ -5,10 +5,13 @@ import { createProfileSchema, updateProfileSchema } from "../schemas";
 import { UsersDB } from "../services";
 
 export class UserManagementController {
-  public async handleCreateProfile(req: Request, res: Response): Promise<void> {
-    try {
-      const usersDB = new UsersDB();
+  private readonly usersDB = new UsersDB();
 
+  public handleCreateProfile = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
       const { error, value } = createProfileSchema.validate(req.body, {
         abortEarly: false,
       });
@@ -22,7 +25,7 @@ export class UserManagementController {
       } else {
         const { userID } = value;
 
-        const { user } = await usersDB.getUser({
+        const { user } = await this.usersDB.getUser({
           keyValue: userID,
         });
 
@@ -31,7 +34,9 @@ export class UserManagementController {
             .status(409)
             .json({ data: null, message: "Profile already exists" });
         } else {
-          const { httpStatusCode } = await usersDB.putUser({ user: value });
+          const { httpStatusCode } = await this.usersDB.putUser({
+            user: value,
+          });
 
           delete value.userID;
 
@@ -52,16 +57,17 @@ export class UserManagementController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
-  public async handleDeleteProfile(req: Request, res: Response): Promise<void> {
+  public handleDeleteProfile = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const usersDB = new UsersDB();
+      const { userID } = req.query;
 
-      const { userID } = req.body;
-
-      const { deletedUser, httpStatusCode } = await usersDB.deleteUser({
-        keyValue: userID,
+      const { deletedUser, httpStatusCode } = await this.usersDB.deleteUser({
+        keyValue: userID as string,
       });
 
       if (deletedUser) {
@@ -82,16 +88,17 @@ export class UserManagementController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
-  public async handleGetProfile(req: Request, res: Response): Promise<void> {
+  public handleGetProfile = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const usersDB = new UsersDB();
+      const { userID } = req.query;
 
-      const { userID } = req.body;
-
-      const { httpStatusCode, user } = await usersDB.getUser({
-        keyValue: userID,
+      const { httpStatusCode, user } = await this.usersDB.getUser({
+        keyValue: userID as string,
       });
 
       if (user) {
@@ -112,13 +119,14 @@ export class UserManagementController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
-  public async handleUpdateProfile(req: Request, res: Response): Promise<void> {
+  public handleUpdateProfile = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const usersDB = new UsersDB();
-
-      const { userID } = req.body;
+      const { userID } = req.query;
 
       const { error, value } = updateProfileSchema.validate(req.body, {
         abortEarly: false,
@@ -131,7 +139,9 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { user } = await usersDB.getUser({ keyValue: userID });
+        const { user } = await this.usersDB.getUser({
+          keyValue: userID as string,
+        });
 
         if (!user) {
           res.status(404).json({ data: user, message: "Profile not found" });
@@ -141,10 +151,12 @@ export class UserManagementController {
             value,
           }));
 
-          const { httpStatusCode, updatedUser } = await usersDB.updateUser({
-            attributes,
-            keyValue: userID,
-          });
+          const { httpStatusCode, updatedUser } = await this.usersDB.updateUser(
+            {
+              attributes,
+              keyValue: userID as string,
+            }
+          );
 
           res.status(httpStatusCode).json({
             data: updatedUser,
@@ -163,7 +175,7 @@ export class UserManagementController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
   //   updateProfilePicture = async (req: Request, res: Response) => {
   //     // Validate request body
