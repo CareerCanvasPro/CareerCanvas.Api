@@ -31,4 +31,4 @@ lerna run dev
 
 - Add proper `ecosystem.config.js` file to the service directory.
 - Make sure the service name is unique and set the `name` property in the `ecosystem.config.js` file.
-- Add the service name to the `ecosystem_files` array in the `deploy.sh` file.
+- Add the service relative path to the `ecosystem_files` array in the `deploy.sh` file.
