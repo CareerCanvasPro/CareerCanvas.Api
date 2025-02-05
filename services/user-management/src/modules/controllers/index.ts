@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 
+import { cleanMessage } from "../../utils";
+import { createProfileSchema, updateProfileSchema } from "../schemas";
 import { UsersDB } from "../services";
 
 export class UserManagementController {
@@ -7,27 +9,37 @@ export class UserManagementController {
     try {
       const usersDB = new UsersDB();
 
-      const { userID } = req.body;
-
-      delete req.body.exp;
-
-      delete req.body.iat;
-
-      const { user } = await usersDB.getUser({
-        keyValue: userID,
+      const { error, value } = createProfileSchema.validate(req.body, {
+        abortEarly: false,
       });
 
-      if (user) {
-        res.status(409).json({ data: null, message: "Profile already exists" });
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { httpStatusCode } = await usersDB.putUser({ user: req.body });
+        const { userID } = value;
 
-        delete req.body.userID;
-
-        res.status(httpStatusCode).json({
-          data: req.body,
-          message: "New profile created successfully",
+        const { user } = await usersDB.getUser({
+          keyValue: userID,
         });
+
+        if (user) {
+          res
+            .status(409)
+            .json({ data: null, message: "Profile already exists" });
+        } else {
+          const { httpStatusCode } = await usersDB.putUser({ user: value });
+
+          delete value.userID;
+
+          res.status(httpStatusCode).json({
+            data: value,
+            message: "New profile created successfully",
+          });
+        }
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -108,32 +120,37 @@ export class UserManagementController {
 
       const { userID } = req.body;
 
-      delete req.body.email;
+      const { error, value } = updateProfileSchema.validate(req.body, {
+        abortEarly: false,
+      });
 
-      delete req.body.exp;
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
-      delete req.body.iat;
-
-      delete req.body.userID;
-
-      const { user } = await usersDB.getUser({ keyValue: userID });
-
-      if (!user) {
-        res.status(404).json({ data: user, message: "Profile not found" });
+        res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const attributes = Object.entries(req.body).map(([name, value]) => ({
-          name,
-          value,
-        }));
+        const { user } = await usersDB.getUser({ keyValue: userID });
 
-        const { httpStatusCode, updatedUser } = await usersDB.updateUser({
-          attributes,
-          keyValue: userID,
-        });
+        if (!user) {
+          res.status(404).json({ data: user, message: "Profile not found" });
+        } else {
+          const attributes = Object.entries(value).map(([name, value]) => ({
+            name,
+            value,
+          }));
 
-        res
-          .status(httpStatusCode)
-          .json({ data: updatedUser, message: "Profile updated successfully" });
+          const { httpStatusCode, updatedUser } = await usersDB.updateUser({
+            attributes,
+            keyValue: userID,
+          });
+
+          res.status(httpStatusCode).json({
+            data: updatedUser,
+            message: "Profile updated successfully",
+          });
+        }
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

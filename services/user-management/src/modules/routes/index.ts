@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { UserManagementController } from "../controllers";
-import { handleVerifyAccessToken } from "../middlewares";
+// import { handleVerifyAccessToken } from "../middlewares";
 
 export class UserManagementRoute {
   private readonly userManagementController = new UserManagementController();
@@ -11,7 +11,6 @@ export class UserManagementRoute {
   public router = Router();
 
   constructor() {
-    this.initMiddlewares([handleVerifyAccessToken]);
     this.initRoutes();
   }
 
