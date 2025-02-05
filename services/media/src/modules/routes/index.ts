@@ -1,8 +1,8 @@
-import { Router } from "express";
-import multer from "multer";
+import { Request, Router } from "express";
+import multer, { FileFilterCallback } from "multer";
 
 import { MediaController } from "../controllers";
-import { handleVerifyAccessToken } from "../middlewares";
+// import { handleVerifyAccessToken } from "../middlewares";
 
 export class MediaRoute {
   private readonly allowedContentTypes = [
@@ -20,20 +20,20 @@ export class MediaRoute {
   public router = Router();
 
   constructor() {
-    this.initMiddlewares([
-      handleVerifyAccessToken,
-      multer({
-        fileFilter: (req, { mimetype }, callback) => {
-          if (this.allowedContentTypes.includes(mimetype)) {
-            callback(null, true);
-          } else {
-            req.body.error = { data: null, message: "Unsupported file format" };
-            callback(null, false);
-          }
-        },
-      }).single("file"),
-    ]);
     this.initRoutes();
+  }
+
+  private fileFilter(
+    req: Request,
+    { mimetype }: Express.Multer.File,
+    callback: FileFilterCallback
+  ): void {
+    if (this.allowedContentTypes.includes(mimetype)) {
+      callback(null, true);
+    } else {
+      req.body.error = { data: null, message: "Unsupported file format" };
+      callback(null, false);
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,8 +43,25 @@ export class MediaRoute {
 
   public initRoutes(): void {
     this.router
+      .route("/certificate")
+      .delete(this.mediaController.handleRemoveCertificate)
+      // .get(this.mediaController.handleRetrieveCertificate)
+      .post(
+        multer({
+          fileFilter: this.fileFilter,
+        }).single("file"),
+        this.mediaController.handleUploadCertificate
+      );
+
+    this.router
       .route("/profile-picture")
       .delete(this.mediaController.handleRemoveProfilePicture)
-      .post(this.mediaController.handleUploadProfilePicture);
+      // .get(this.mediaController.handleRetrieveProfilePicture)
+      .post(
+        multer({
+          fileFilter: this.fileFilter,
+        }).single("file"),
+        this.mediaController.handleUploadProfilePicture
+      );
   }
 }

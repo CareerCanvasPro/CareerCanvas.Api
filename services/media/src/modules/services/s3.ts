@@ -1,8 +1,11 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
+  ObjectCannedACL,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { config } from "../../config";
 
@@ -10,7 +13,16 @@ interface DeleteFileParams {
   key: string;
 }
 
+interface GetSignedUrlParams {
+  key: string;
+}
+
+interface GetUrlParams {
+  key: string;
+}
+
 interface UploadFileParams {
+  acl: ObjectCannedACL;
   body: Buffer;
   contentType: string;
   key: string;
@@ -38,7 +50,29 @@ export class S3 {
     return { httpStatusCode };
   }
 
+  public async getSignedUrl({
+    key,
+  }: GetSignedUrlParams): Promise<{ signedUrl: string }> {
+    const signedUrl = await getSignedUrl(
+      this.s3Client,
+      new GetObjectCommand({
+        Bucket: this.BUCKET_NAME,
+        Key: key,
+      }),
+      { expiresIn: 3600 }
+    );
+
+    return { signedUrl }; // when the user wants to get his profile, extract the key from the db and generate the signed url and send in the response body
+  }
+
+  public getUrl({ key }: GetUrlParams): { url: string } {
+    const url = `https://${this.BUCKET_NAME}.s3.${config.aws.region}.amazonaws.com/${key}`;
+
+    return { url };
+  }
+
   public async putFile({
+    acl,
     body,
     contentType,
     key,
@@ -47,7 +81,7 @@ export class S3 {
       $metadata: { httpStatusCode },
     } = await this.s3Client.send(
       new PutObjectCommand({
-        ACL: "public-read",
+        ACL: acl,
         Body: body,
         Bucket: this.BUCKET_NAME,
         ContentType: contentType,
@@ -57,21 +91,4 @@ export class S3 {
 
     return { httpStatusCode, key };
   }
-
-  // public async getPresignedUrls(
-  //   keys: string[] // list of file paths in bucket
-  // ): Promise<string[]> {
-  //   return await Promise.all(
-  //     keys.map(async (key) => {
-  //       return await getSignedUrl(
-  //         this.s3Client,
-  //         new GetObjectCommand({
-  //           Bucket: this.BUCKET_NAME,
-  //           Key: key,
-  //         }),
-  //         { expiresIn: 3600 }
-  //       );
-  //     })
-  //   );
-  // }
 }
