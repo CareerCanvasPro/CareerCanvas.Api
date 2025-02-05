@@ -30,7 +30,7 @@ for file in "${ecosystem_files[@]}"; do
     app_name=$(node -pe "require('$file').apps[0].name")
     if pm2 list | grep -q "$app_name"; then
         echo -e "${PURPLE}[Deploy.sh]:${NC} Restarting $app_name..."
-        pm2 restart "$file"
+        pm2 restart "$file" --update-env
     else
         echo -e "${PURPLE}[Deploy.sh]:${NC} Starting $app_name..."
         pm2 start "$file"
