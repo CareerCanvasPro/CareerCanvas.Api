@@ -15,9 +15,9 @@ export class MediaRoute {
 
   private readonly mediaController = new MediaController();
 
-  public path = "/media";
+  public readonly path = "/media";
 
-  public router = Router();
+  public readonly router = Router();
 
   constructor() {
     this.initMiddlewares([
@@ -37,11 +37,11 @@ export class MediaRoute {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public initMiddlewares(middlewares: any[]): void {
+  public initMiddlewares = (middlewares: any[]): void => {
     this.router.use(middlewares);
-  }
+  };
 
-  public initRoutes(): void {
+  public initRoutes = (): void => {
     this.router
       .route("/certificate")
       .delete(this.mediaController.handleRemoveCertificate)
@@ -51,5 +51,10 @@ export class MediaRoute {
       .route("/profile-picture")
       .delete(this.mediaController.handleRemoveProfilePicture)
       .post(this.mediaController.handleUploadProfilePicture);
-  }
+
+    this.router
+      .route("/resume")
+      .delete(this.mediaController.handleRemoveResume)
+      .post(this.mediaController.handleUploadResume);
+  };
 }

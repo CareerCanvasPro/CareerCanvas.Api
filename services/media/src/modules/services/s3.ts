@@ -35,9 +35,9 @@ export class S3 {
     region: config.aws.region,
   });
 
-  public async deleteFile({
+  public deleteFile = async ({
     key,
-  }: DeleteFileParams): Promise<{ httpStatusCode: number }> {
+  }: DeleteFileParams): Promise<{ httpStatusCode: number }> => {
     const {
       $metadata: { httpStatusCode },
     } = await this.s3Client.send(
@@ -48,11 +48,11 @@ export class S3 {
     );
 
     return { httpStatusCode };
-  }
+  };
 
-  public async getSignedUrl({
+  public getSignedUrl = async ({
     key,
-  }: GetSignedUrlParams): Promise<{ signedUrl: string }> {
+  }: GetSignedUrlParams): Promise<{ signedUrl: string }> => {
     const signedUrl = await getSignedUrl(
       this.s3Client,
       new GetObjectCommand({
@@ -63,20 +63,20 @@ export class S3 {
     );
 
     return { signedUrl }; // when the user wants to get his profile, extract the key from the db and generate the signed url and send in the response body
-  }
+  };
 
-  public getUrl({ key }: GetUrlParams): { url: string } {
+  public getUrl = ({ key }: GetUrlParams): { url: string } => {
     const url = `https://${this.BUCKET_NAME}.s3.${config.aws.region}.amazonaws.com/${key}`;
 
     return { url };
-  }
+  };
 
-  public async putFile({
+  public putFile = async ({
     acl,
     body,
     contentType,
     key,
-  }: UploadFileParams): Promise<{ httpStatusCode: number; key: string }> {
+  }: UploadFileParams): Promise<{ httpStatusCode: number; key: string }> => {
     const {
       $metadata: { httpStatusCode },
     } = await this.s3Client.send(
@@ -90,5 +90,5 @@ export class S3 {
     );
 
     return { httpStatusCode, key };
-  }
+  };
 }
