@@ -39,7 +39,15 @@ export const createProfileSchema = joi
 export const updateProfileSchema = joi
   .object()
   .keys({
+    aboutMe: joi.string().trim(),
     address: joi.string().trim(),
+    appreciations: joi.array().items(
+      joi.object().keys({
+        date: joi.string(),
+        name: joi.string().trim(),
+        organization: joi.string().trim(),
+      })
+    ),
     contact: joi.string().trim(),
     dateOfBirth: joi.string(),
     education: joi.array().items(
@@ -52,6 +60,9 @@ export const updateProfileSchema = joi
         isCurrent: joi.boolean().default(false),
       })
     ),
+    followers: joi.number(),
+    following: joi.number(),
+    languages: joi.array().items(joi.string().trim()),
     name: joi.string().trim(),
     occupation: joi.array().items(
       joi.object().keys({
@@ -62,7 +73,19 @@ export const updateProfileSchema = joi
         to: joi.string(),
       })
     ),
+    points: joi.number(),
     profilePicture: joi.string().uri({ scheme: ["https"] }),
+    resumes: joi.array().items(
+      joi.object().keys({
+        name: joi.string(),
+        size: joi.number(),
+        type: joi.string(),
+        uploadedAt: joi.string(),
+        url: joi.string().uri({
+          scheme: ["https"],
+        }),
+      })
+    ),
     skills: joi.array().items(joi.string().trim()),
   })
   .unknown(false);
