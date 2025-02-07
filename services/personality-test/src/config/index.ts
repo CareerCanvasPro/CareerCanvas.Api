@@ -17,7 +17,7 @@ const envVarsSchema = joi
       .valid("development", "production", "staging")
       .required(),
 
-    PORT: joi.number().default(8000),
+    PORT: joi.number().default(8003),
   })
   // Ensure at least one of AWSREGION or AWSREGION_PRODUCTION is provided
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
