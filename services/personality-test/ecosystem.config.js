@@ -9,7 +9,7 @@ module.exports = {
       instances: 1,
       // Set to true if you want PM2 to watch for changes
       max_memory_restart: "500M", // Restart if memory usage exceeds 500MB
-      name: "Media Upload Service",
+      name: "Personality Test Service",
       script: "npm",
       watch: false,
     },

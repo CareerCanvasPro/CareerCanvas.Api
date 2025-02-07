@@ -271,7 +271,7 @@ export class MediaController {
               name: key,
               size,
               type: mimetype,
-              uploadedAt: new Date().toISOString(),
+              uploadedAt: Date.now(),
               url,
             },
           },

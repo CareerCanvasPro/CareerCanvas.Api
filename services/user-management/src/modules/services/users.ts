@@ -153,13 +153,7 @@ export class UsersDB {
   public putUser = async ({
     user,
   }: PutUserParams): Promise<{ httpStatusCode: number }> => {
-    const now = new Date().toISOString();
-
-    const createdAt = now;
-
-    const updatedAt = now;
-
-    const newUser = { ...user, createdAt, updatedAt };
+    const newUser = { ...user, createdAt: Date.now(), updatedAt: Date.now() };
 
     const {
       $metadata: { httpStatusCode },
@@ -211,7 +205,7 @@ export class UsersDB {
   }> => {
     attributes.push({
       name: "updatedAt",
-      value: new Date().toISOString(),
+      value: Date.now(),
     });
 
     const {
