@@ -23,5 +23,11 @@ export class PersonalityTestRoute {
     this.router
       .route("/questions")
       .get(this.personalityTestController.handleRetrieveQuestions);
+
+    this.router
+      .route("/result")
+      .post(this.personalityTestController.handleEnterResult)
+      .get(this.personalityTestController.handleRetrieveResult)
+      .put(this.personalityTestController.handleUpdateResult);
   };
 }

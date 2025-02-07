@@ -60,6 +60,7 @@ export const updateProfileSchema = joi
         isCurrent: joi.boolean().default(false),
       })
     ),
+    interests: joi.array().items(joi.string()),
     languages: joi.array().items(joi.string().trim()),
     name: joi.string().trim(),
     occupation: joi.array().items(
