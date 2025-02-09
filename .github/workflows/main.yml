@@ -21,8 +21,8 @@ jobs:
     - name: Install Dependencies
       run: |
         npm install
-        npm install -g lerna@6.6.2
-        lerna bootstrap
+        npm install -g lerna
+        npm install -ws
     
     - name: Build
       run: lerna run build
@@ -46,6 +46,6 @@ jobs:
           cd /home/deploy/CareerCanvas.Api
           git pull origin main
           npm install
-          lerna bootstrap
+          npm install -ws
           lerna run build
           bash deploy.sh
