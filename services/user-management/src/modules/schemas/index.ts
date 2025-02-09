@@ -60,6 +60,7 @@ export const updateProfileSchema = joi
         isCurrent: joi.boolean().default(false),
       })
     ),
+    fcmToken: joi.string(),
     interests: joi.array().items(joi.string()),
     languages: joi.array().items(joi.string().trim()),
     name: joi.string().trim(),
