@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 
+import { DB } from "../../../../../utility/db";
 import { QuestionsDB, ResultsDB } from "../services";
 
 export class PersonalityTestController {
+  private readonly db = new DB();
+
   private readonly questionsDB = new QuestionsDB();
 
   private readonly resultsDB = new ResultsDB();
@@ -24,9 +27,18 @@ export class PersonalityTestController {
           userID,
         });
 
-        res
-          .status(httpStatusCode)
-          .json({ data: null, message: "Result entered successfully" });
+        const { updatedItem: updatedUser } = await this.db.updateItem({
+          attribute: { name: "personalityTestStatus", value: "pending" },
+          key: { name: "userID", value: userID },
+          tableName: "userprofiles",
+        });
+
+        const { personalityTestStatus } = updatedUser;
+
+        res.status(httpStatusCode).json({
+          data: { personalityTestStatus },
+          message: "Result entered successfully",
+        });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -116,9 +128,18 @@ export class PersonalityTestController {
           userID,
         });
 
-        res
-          .status(httpStatusCode)
-          .json({ data: null, message: "Result updated successfully" });
+        const { updatedItem: updatedUser } = await this.db.updateItem({
+          attribute: { name: "personalityTestStatus", value: "pending" },
+          key: { name: "userID", value: userID },
+          tableName: "userprofiles",
+        });
+
+        const { personalityTestStatus } = updatedUser;
+
+        res.status(httpStatusCode).json({
+          data: { personalityTestStatus },
+          message: "Result updated successfully",
+        });
       } else {
         res.status(404).json({ data: null, message: "User not found" });
       }
