@@ -50,7 +50,7 @@ jobs:
         username: deploy
         key_path: /home/runner/.ssh/deploy_key
         port: 22
-        envs: REPO_ACCESS_TOKEN
+        envs: REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
         script: |
           # Install Node.js using NVM
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
@@ -68,7 +68,7 @@ jobs:
           
           # Clone repository with token
           rm -rf .git
-          git clone https://oauth2:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/sohag-mbstu/CareerCanvas.Api.git .
+          git clone https://${REPO_ACCESS_TOKEN}@github.com/sohag-mbstu/CareerCanvas.Api.git .
           
           # Install project dependencies
           npm install
