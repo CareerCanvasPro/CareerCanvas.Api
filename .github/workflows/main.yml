@@ -39,16 +39,16 @@ jobs:
     steps:
     - name: Setup SSH Keys
       run: |
-        mkdir -p ~/.ssh/
-        echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-        chmod 600 ~/.ssh/deploy_key
+        mkdir -p /home/runner/.ssh/
+        echo "${{ secrets.DEPLOY_SSH_KEY }}" > /home/runner/.ssh/deploy_key
+        chmod 600 /home/runner/.ssh/deploy_key
         
     - name: Deploy to EC2
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
         username: deploy
-        key_path: ~/.ssh/deploy_key
+        key_path: /home/runner/.ssh/deploy_key
         port: 22
         script: |
           cd /home/deploy/CareerCanvas.Api
