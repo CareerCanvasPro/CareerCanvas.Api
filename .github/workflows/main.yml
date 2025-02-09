@@ -66,7 +66,9 @@ jobs:
           cd /home/deploy/CareerCanvas.Api
           
           # Clone repository with token
-          git clone "https://${REPO_ACCESS_TOKEN}@github.com/CareerCanvas/CareerCanvas.Api.git" .
+          echo "machine github.com login ${REPO_ACCESS_TOKEN} password x-oauth-basic" > ~/.netrc
+          chmod 600 ~/.netrc
+          git clone https://github.com/CareerCanvas/CareerCanvas.Api.git .
           
           # Verify clone and directory contents
           ls -la
