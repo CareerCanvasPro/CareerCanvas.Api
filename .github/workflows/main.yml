@@ -51,22 +51,26 @@ jobs:
         key_path: /home/runner/.ssh/deploy_key
         port: 22
         script: |
-          # Install required tools
-          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-          sudo apt-get install -y nodejs git
-          sudo npm install -g lerna
+          # Add deploy user to sudoers without password
+          echo "deploy ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/deploy
+          
+          # Install Node.js
+          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+          apt-get install -y nodejs git
+          npm install -g lerna
           
           # Setup project directory
           mkdir -p /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
           
-          # Initialize git if needed
-          if [ ! -d .git ]; then
-            git init
-            git remote add origin https://github.com/yourusername/CareerCanvas.Api.git
-          fi
+          # Configure git
+          git config --global user.email "deploy@careercanvas.com"
+          git config --global user.name "Deploy Bot"
           
-          git pull origin main
+          # Clone repository
+          rm -rf .git
+          git clone https://oauth2:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/sohag-mbstu/CareerCanvas.Api.git .
+          
           npm install
           npm install -ws
           lerna run build
