@@ -51,7 +51,21 @@ jobs:
         key_path: /home/runner/.ssh/deploy_key
         port: 22
         script: |
+          # Install required tools
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y nodejs git
+          sudo npm install -g lerna
+          
+          # Setup project directory
+          mkdir -p /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
+          
+          # Initialize git if needed
+          if [ ! -d .git ]; then
+            git init
+            git remote add origin https://github.com/yourusername/CareerCanvas.Api.git
+          fi
+          
           git pull origin main
           npm install
           npm install -ws
