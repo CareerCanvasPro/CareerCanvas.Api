@@ -58,7 +58,7 @@ jobs:
           nvm use 18 || nvm install 18
           
           # Install global packages
-          npm install -g lerna
+          npm install -g lerna pm2
           
           # Setup project directory
           rm -rf /home/deploy/CareerCanvas.Api
