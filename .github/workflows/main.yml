@@ -1,0 +1,52 @@
+name: CareerCanvas API CI/CD
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+    
+    - name: Install Dependencies
+      run: |
+        npm install -g lerna
+        npm install
+        lerna bootstrap
+    
+    - name: Build
+      run: lerna run build
+    
+    - name: Test
+      run: lerna run test
+    
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: deploy
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        script: |
+          cd /home/deploy/CareerCanvas.Api
+          git pull origin main
+          npm install
+          lerna bootstrap
+          lerna run build
+          bash deploy.sh
