@@ -53,21 +53,19 @@ jobs:
         envs: REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
         script: |
           # Install Node.js using NVM
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm install 18
-          nvm use 18
+          nvm use 18 || nvm install 18
           
           # Install global packages
           npm install -g lerna
           
           # Setup project directory
+          rm -rf /home/deploy/CareerCanvas.Api
           mkdir -p /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
           
           # Clone repository with token
-          rm -rf .git
           git clone https://${REPO_ACCESS_TOKEN}@github.com/sohag-mbstu/CareerCanvas.Api.git .
           
           # Install project dependencies
