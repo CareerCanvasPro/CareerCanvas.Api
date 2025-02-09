@@ -50,29 +50,34 @@ jobs:
         username: deploy
         key_path: /home/runner/.ssh/deploy_key
         port: 22
+        envs: REPO_ACCESS_TOKEN
         script: |
-          # Add deploy user to sudoers without password
-          echo "deploy ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/deploy
+          # First become root to handle system-level operations
+          sudo -i bash << 'EOF'
+          # Add deploy user to sudoers
+          echo "deploy ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/deploy
+          chmod 440 /etc/sudoers.d/deploy
           
-          # Install Node.js
-          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo bash -
-          sudo apt-get update
-          sudo apt-get install -y nodejs git
-          sudo npm install -g lerna
+          # Install Node.js and dependencies
+          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+          apt-get update
+          apt-get install -y nodejs git
+          npm install -g lerna
           
           # Setup project directory
-          sudo mkdir -p /home/deploy/CareerCanvas.Api
-          sudo chown deploy:deploy /home/deploy/CareerCanvas.Api
+          mkdir -p /home/deploy/CareerCanvas.Api
+          chown -R deploy:deploy /home/deploy/CareerCanvas.Api
+          EOF
+          
+          # Switch back to deploy user context
           cd /home/deploy/CareerCanvas.Api
           
-          # Configure git
-          git config --global user.email "deploy@careercanvas.com"
-          git config --global user.name "Deploy Bot"
-          
-          # Clone repository
+          # Clone repository with token
           rm -rf .git
           git clone https://oauth2:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/sohag-mbstu/CareerCanvas.Api.git .
           
+          # Install project dependencies
+          export PATH="$PATH:/usr/local/bin"
           npm install
           npm install -ws
           lerna run build
