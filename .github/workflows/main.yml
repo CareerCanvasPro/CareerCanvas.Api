@@ -52,19 +52,18 @@ jobs:
         port: 22
         envs: REPO_ACCESS_TOKEN
         script: |
-          # Install Node.js and dependencies as root
-          sudo su - root << 'EOSUDO'
-          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-          apt-get update
-          apt-get install -y nodejs git
+          # Install Node.js using NVM
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install 18
+          nvm use 18
+          
+          # Install global packages
           npm install -g lerna
           
           # Setup project directory
           mkdir -p /home/deploy/CareerCanvas.Api
-          chown -R deploy:deploy /home/deploy/CareerCanvas.Api
-          EOSUDO
-          
-          # Continue as deploy user
           cd /home/deploy/CareerCanvas.Api
           
           # Clone repository with token
@@ -72,8 +71,6 @@ jobs:
           git clone https://oauth2:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/sohag-mbstu/CareerCanvas.Api.git .
           
           # Install project dependencies
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           npm install
           npm install -ws
           lerna run build
