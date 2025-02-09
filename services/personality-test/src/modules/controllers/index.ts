@@ -28,7 +28,10 @@ export class PersonalityTestController {
         });
 
         const { updatedItem: updatedUser } = await this.db.updateItem({
-          attribute: { name: "personalityTestStatus", value: "pending" },
+          attributes: [
+            { name: "personalityTestResult", value: "" },
+            { name: "personalityTestStatus", value: "pending" },
+          ],
           key: { name: "userID", value: userID },
           tableName: "userprofiles",
         });
@@ -129,7 +132,10 @@ export class PersonalityTestController {
         });
 
         const { updatedItem: updatedUser } = await this.db.updateItem({
-          attribute: { name: "personalityTestStatus", value: "pending" },
+          attributes: [
+            { name: "personalityTestResult", value: "" },
+            { name: "personalityTestStatus", value: "pending" },
+          ],
           key: { name: "userID", value: userID },
           tableName: "userprofiles",
         });
