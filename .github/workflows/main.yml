@@ -65,11 +65,13 @@ jobs:
           mkdir -p /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
           
-          # Clone repository with token (using different token format)
-          git clone "https://oauth2:${REPO_ACCESS_TOKEN}@github.com/CareerCanvas/CareerCanvas.Api.git" .
+          # Clone repository with token
+          git config --global url."https://api:${REPO_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+          git clone https://github.com/CareerCanvas/CareerCanvas.Api.git .
           
           # Verify clone and directory contents
           ls -la
+          cat package.json || echo "package.json not found"
           
           # Install project dependencies only if package.json exists
           if [ -f "package.json" ]; then
