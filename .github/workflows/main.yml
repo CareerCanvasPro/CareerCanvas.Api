@@ -52,13 +52,8 @@ jobs:
         port: 22
         envs: REPO_ACCESS_TOKEN
         script: |
-          # First become root to handle system-level operations
-          sudo -i bash << 'EOF'
-          # Add deploy user to sudoers
-          echo "deploy ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/deploy
-          chmod 440 /etc/sudoers.d/deploy
-          
-          # Install Node.js and dependencies
+          # Install Node.js and dependencies as root
+          sudo su - root << 'EOSUDO'
           curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
           apt-get update
           apt-get install -y nodejs git
@@ -67,9 +62,9 @@ jobs:
           # Setup project directory
           mkdir -p /home/deploy/CareerCanvas.Api
           chown -R deploy:deploy /home/deploy/CareerCanvas.Api
-          EOF
+          EOSUDO
           
-          # Switch back to deploy user context
+          # Continue as deploy user
           cd /home/deploy/CareerCanvas.Api
           
           # Clone repository with token
@@ -77,7 +72,8 @@ jobs:
           git clone https://oauth2:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/sohag-mbstu/CareerCanvas.Api.git .
           
           # Install project dependencies
-          export PATH="$PATH:/usr/local/bin"
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           npm install
           npm install -ws
           lerna run build
