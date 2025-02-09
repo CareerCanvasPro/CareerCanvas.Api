@@ -60,6 +60,9 @@ jobs:
           # Install global packages
           npm install -g lerna pm2
           
+          # Stop existing PM2 processes
+          pm2 kill || true
+          
           # Setup project directory
           rm -rf /home/deploy/CareerCanvas.Api
           mkdir -p /home/deploy/CareerCanvas.Api
