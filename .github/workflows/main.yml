@@ -55,12 +55,14 @@ jobs:
           echo "deploy ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/deploy
           
           # Install Node.js
-          curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-          apt-get install -y nodejs git
-          npm install -g lerna
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo bash -
+          sudo apt-get update
+          sudo apt-get install -y nodejs git
+          sudo npm install -g lerna
           
           # Setup project directory
-          mkdir -p /home/deploy/CareerCanvas.Api
+          sudo mkdir -p /home/deploy/CareerCanvas.Api
+          sudo chown deploy:deploy /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
           
           # Configure git
