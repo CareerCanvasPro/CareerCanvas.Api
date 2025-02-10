@@ -51,17 +51,15 @@ jobs:
           REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
           AWSREGION_PRODUCTION=${{ secrets.AWSREGION_PRODUCTION }}
           CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}
-          NODE_ENV=production
         script: |
+          # Set environment variables
+          export AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
+          export CLIENT_SECRET="${CLIENT_SECRET}"
+          
           # Install Node.js using NVM
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm use 18 || nvm install 18
-          
-          # Set environment variables
-          export AWSREGION_PRODUCTION=${AWSREGION_PRODUCTION}
-          export CLIENT_SECRET=${CLIENT_SECRET}
-          export NODE_ENV=${NODE_ENV}
           
           # Install global packages
           npm install -g lerna pm2
