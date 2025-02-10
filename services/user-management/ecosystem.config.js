@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      args: "run server",
+      args: "run start",
       // Number of instances (use 'max' for all CPU cores)
       autorestart: true,
       exec_mode: "fork",
