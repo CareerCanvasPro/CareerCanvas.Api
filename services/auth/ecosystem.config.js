@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "Auth Service",
       script: "npm",
-      args: "run start",
+      args: "run deploy",
       exec_mode: "fork",
       instances: 1,
       autorestart: true,
