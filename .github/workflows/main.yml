@@ -42,6 +42,9 @@ jobs:
         
     - name: Deploy to EC2
       uses: appleboy/ssh-action@master
+      env:
+        AWSREGION_PRODUCTION: ${{ secrets.AWSREGION_PRODUCTION }}
+        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
       with:
         host: ${{ secrets.EC2_HOST }}
         username: deploy
@@ -49,12 +52,13 @@ jobs:
         port: 22
         envs: |
           REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
-          AWSREGION_PRODUCTION=${{ secrets.AWSREGION_PRODUCTION }}
-          CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}
+          AWSREGION_PRODUCTION
+          CLIENT_SECRET
         script: |
-          # Set environment variables
-          export AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
-          export CLIENT_SECRET="${CLIENT_SECRET}"
+          # Set environment variables explicitly
+          echo "export AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.bashrc
+          echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
+          source ~/.bashrc
           
           # Install Node.js using NVM
           export NVM_DIR="$HOME/.nvm"
