@@ -41,6 +41,13 @@ if [[ ${#ecosystem_files[@]} -eq 0 ]]; then
     exit 1
 fi
 
+# Add environment variables check
+echo -e "${PURPLE}[Deploy.sh]:${NC} Checking environment variables..."
+if [ -z "$AWSREGION_PRODUCTION" ] || [ -z "$CLIENT_SECRET" ]; then
+    echo -e "${ERROR}[Deploy.sh]: Required environment variables not set!${NC}"
+    exit 1
+fi
+
 # Print ecosystem files found in the project
 echo -e "${PURPLE}[Deploy.sh]:${NC} Found ${#ecosystem_files[@]} ecosystem files:"
 rows=()
@@ -55,9 +62,9 @@ done
 printf "%s\n" "${rows[@]}" | column -t -s '|'
 echo ""
 
-# Step 4: Build the project using Lerna
+# Step 4: Build the project using Lerna with increased timeout
 echo -e "${PURPLE}[Deploy.sh]:${NC} Building project using Lerna..."
-if ! npx lerna run tsc; then
+if ! NODE_OPTIONS="--max-old-space-size=4096" npx lerna run tsc --concurrency 1; then
     echo -e "${ERROR}[Deploy.sh]: Build failed!${NC}"
     exit 1
 fi
@@ -71,14 +78,15 @@ for file in "${ecosystem_files[@]}"; do
         continue
     fi
 
+    # Pass environment variables to PM2
     if pm2 list | grep -q "$app_name"; then
         echo -e "${PURPLE}[Deploy.sh]:${NC} Restarting $app_name..."
-        pm2 restart "$file" || {
+        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" pm2 restart "$file" || {
             echo -e "${ERROR}[Deploy.sh]: Failed to restart $app_name${NC}"
         }
     else
         echo -e "${PURPLE}[Deploy.sh]:${NC} Starting $app_name..."
-        pm2 start "$file" || {
+        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" pm2 start "$file" || {
             echo -e "${ERROR}[Deploy.sh]: Failed to start $app_name${NC}"
         }
     fi
