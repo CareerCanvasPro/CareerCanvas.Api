@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "Personality Test Service",
       script: "npm",
-      args: "run start",  // Changed from "run server" to "run start"
+      args: "run server",
       instances: 1,
       exec_mode: "fork",
       watch: false,
