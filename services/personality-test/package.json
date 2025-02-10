@@ -1,7 +1,7 @@
 {
-  "name": "@cms-api/personality-test",
+  "name": "@careercanvas-api/personality-test",
   "version": "0.0.0",
-  "description": "> TODO: description",
+  "description": "Personality test service for Career Canvas API",
   "author": "Dynamic IT FZ LLC",
   "homepage": "",
   "license": "ISC",
@@ -18,13 +18,13 @@
     "access": "public"
   },
   "scripts": {
-    "deploy": "node lib/services/personality-test/src/server",
+    "deploy": "node lib/server",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc",
-    "watch-deploy": "node --watch lib/services/personality-test/src/server",
-    "dev": "node --watch lib/services/personality-test/src/server",
+    "watch-deploy": "node --watch lib/server",
+    "dev": "node --watch lib/server",
     "watch-tsc": "tsc --watch"
   },
   "dependencies": {

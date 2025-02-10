@@ -1,7 +1,7 @@
 {
-  "name": "@cms-api/user-management",
+  "name": "@careercanvas-api/user-management",
   "version": "0.0.0",
-  "description": "> TODO: description",
+  "description": "User management service for Career Canvas API",
   "author": "Dynamic IT FZ LLC",
   "homepage": "",
   "license": "ISC",
@@ -23,7 +23,9 @@
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc",
-    "watch-deploy": "node --watch lib/server"
+    "watch-deploy": "node --watch lib/server",
+    "dev": "node --watch lib/server",
+    "watch-tsc": "tsc --watch"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.485.0",
