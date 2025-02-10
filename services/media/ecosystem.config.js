@@ -10,7 +10,9 @@ module.exports = {
       watch: false,
       max_memory_restart: "500M",
       env: {
-        NODE_ENV: "production"
+        NODE_ENV: "production",
+        AWSREGION_PRODUCTION: process.env.AWSREGION_PRODUCTION,
+        CLIENTSECRET_PRODUCTION: process.env.CLIENT_SECRET
       }
     },
   ],
