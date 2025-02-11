@@ -55,11 +55,17 @@ jobs:
           CLIENT_SECRET
         script: |
           # Set environment variables
-          echo "export AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.profile
-          echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.profile
-          echo "export PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.profile
-          echo "export PM2_CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.profile
-          source ~/.profile
+          cat << EOF > ~/.env
+          AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
+          CLIENT_SECRET='${CLIENT_SECRET}'
+          PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
+          PM2_CLIENT_SECRET='${CLIENT_SECRET}'
+          EOF
+          
+          # Source environment variables
+          set -a
+          source ~/.env
+          set +a
           
           # Install Node.js and NVM
           export NVM_DIR="$HOME/.nvm"
@@ -74,20 +80,17 @@ jobs:
           git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
           
+          # Copy environment file
+          cp ~/.env .env
+          
           # Install and build
           if [ -f "package.json" ]; then
               npm install
               npm install -ws
               npm run build
               
-              # Export variables for current session
-              export AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
-              export CLIENT_SECRET="${CLIENT_SECRET}"
-              export PM2_AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
-              export PM2_CLIENT_SECRET="${CLIENT_SECRET}"
-              
-              # Deploy services
-              bash deployment/scripts/deploy.sh
+              # Deploy services with environment file
+              PM2_HOME=/home/deploy/.pm2 bash deployment/scripts/deploy.sh
           else
               echo "Error: package.json not found"
               exit 1
