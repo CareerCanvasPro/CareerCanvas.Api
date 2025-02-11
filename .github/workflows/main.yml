@@ -60,26 +60,31 @@ jobs:
           source ~/.bashrc
           
           # Install Node.js and NVM
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm install 18
-          nvm use 18
+          nvm use 18 || nvm install 18
+          
+          # Install global packages
+          npm install -g lerna pm2
           
           # Clean up existing directory
           rm -rf /home/deploy/CareerCanvas.Api || true
           mkdir -p /home/deploy/CareerCanvas.Api
           
-          # Clone repository with token
+          # Clone and setup repository
           git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
-          git config --global --add safe.directory /home/deploy/CareerCanvas.Api
           
-          # Install project dependencies
+          # Install and build
           if [ -f "package.json" ]; then
+              # Set PM2 environment variables
+              echo "export PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.bashrc
+              echo "export PM2_CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
+              source ~/.bashrc
+              
               npm install
               npm install -ws
-              lerna run build
+              npm run build
               
               # Deploy services
               bash deployment/scripts/deploy.sh
