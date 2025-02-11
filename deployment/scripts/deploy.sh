@@ -63,9 +63,6 @@ for cmd in git node pm2 npx; do
     fi
 done
 
-# Copy environment file
-cp ~/.env "$DEPLOY_DIR/.env"
-
 cd "$DEPLOY_DIR"
 
 if [ -f "package.json" ]; then
