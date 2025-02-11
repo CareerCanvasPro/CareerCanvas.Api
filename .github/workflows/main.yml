@@ -41,6 +41,7 @@ jobs:
       env:
         AWSREGION_PRODUCTION: ${{ secrets.AWSREGION_PRODUCTION }}
         CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
       with:
         host: ${{ secrets.EC2_HOST }}
         username: deploy
@@ -49,7 +50,7 @@ jobs:
         command_timeout: "30m"
         script_stop: true
         envs: |
-          REPO_ACCESS_TOKEN=${{ secrets.REPO_ACCESS_TOKEN }}
+          GH_TOKEN
           AWSREGION_PRODUCTION
           CLIENT_SECRET
         script: |
@@ -58,24 +59,9 @@ jobs:
           echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
           source ~/.bashrc
           
-          # Install Node.js using NVM
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm use 18 || nvm install 18
-          
-          # Install global packages
-          npm install -g lerna pm2
-          
-          # Stop existing PM2 processes
-          pm2 kill || true
-          
-          # Setup project directory
-          rm -rf /home/deploy/CareerCanvas.Api
-          mkdir -p /home/deploy/CareerCanvas.Api
-          cd /home/deploy/CareerCanvas.Api
-          
           # Clone repository with token
-          git clone "https://oauth2:${REPO_ACCESS_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" .
+          git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
+          cd /home/deploy/CareerCanvas.Api
           git config --global --add safe.directory /home/deploy/CareerCanvas.Api
           
           # Install project dependencies
