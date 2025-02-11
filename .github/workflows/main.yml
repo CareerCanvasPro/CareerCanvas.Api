@@ -54,10 +54,12 @@ jobs:
           AWSREGION_PRODUCTION
           CLIENT_SECRET
         script: |
-          # Set environment variables explicitly
-          echo "export AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.bashrc
-          echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
-          source ~/.bashrc
+          # Set environment variables
+          echo "export AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.profile
+          echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.profile
+          echo "export PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.profile
+          echo "export PM2_CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.profile
+          source ~/.profile
           
           # Install Node.js and NVM
           export NVM_DIR="$HOME/.nvm"
@@ -67,24 +69,22 @@ jobs:
           # Install global packages
           npm install -g lerna pm2
           
-          # Clean up existing directory
-          rm -rf /home/deploy/CareerCanvas.Api || true
-          mkdir -p /home/deploy/CareerCanvas.Api
-          
           # Clone and setup repository
+          rm -rf /home/deploy/CareerCanvas.Api || true
           git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
           cd /home/deploy/CareerCanvas.Api
           
           # Install and build
           if [ -f "package.json" ]; then
-              # Set PM2 environment variables
-              echo "export PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" >> ~/.bashrc
-              echo "export PM2_CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
-              source ~/.bashrc
-              
               npm install
               npm install -ws
               npm run build
+              
+              # Export variables for current session
+              export AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
+              export CLIENT_SECRET="${CLIENT_SECRET}"
+              export PM2_AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
+              export PM2_CLIENT_SECRET="${CLIENT_SECRET}"
               
               # Deploy services
               bash deployment/scripts/deploy.sh
