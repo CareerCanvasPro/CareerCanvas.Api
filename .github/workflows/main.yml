@@ -59,8 +59,9 @@ jobs:
           echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
           source ~/.bashrc
           
-          # Clean up existing directory with sudo
-          sudo rm -rf /home/deploy/CareerCanvas.Api
+          # Clean up existing directory (without sudo)
+          rm -rf /home/deploy/CareerCanvas.Api || true
+          mkdir -p /home/deploy/CareerCanvas.Api
           
           # Clone repository with token
           git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
