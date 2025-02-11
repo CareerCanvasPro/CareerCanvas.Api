@@ -21,11 +21,9 @@ installNodeJs(){
   # Check if npm is installed, if not install it
   if ! command -v npm &> /dev/null; then
     echo -e "${PURPLE}[Deploy.sh]:${NC} ${WARNING}NodeJs is not installed. Installing NodeJs 18.x${NC}"
-    sudo apt update
-    curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
-    sudo bash nodesource_setup.sh
-    sudo apt install nodejs || { echo -e "${PURPLE}[Deploy.sh]:${NC} Failed to install npm"; exit 1; }
-    rm nodesource_setup.sh
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm use 18 || nvm install 18
   else
     echo -e "${PURPLE}[Deploy.sh]:${NC} ${SUCCESS}NodeJs already installed.${NC}"
   fi

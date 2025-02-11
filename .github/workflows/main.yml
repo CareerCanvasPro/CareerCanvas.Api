@@ -103,4 +103,4 @@ jobs:
 
                 cd CareerCanvas.Api || { echo -e "Failed to enter cloned repository!"; exit 1; }
             fi
-            PM2_HOME=/home/deploy/.pm2 bash /home/deploy/CareerCanvas.Api/deployment/scripts/deploy.sh
+            bash /home/deploy/CareerCanvas.Api/deployment/scripts/deploy.sh
