@@ -59,7 +59,14 @@ jobs:
           echo "export CLIENT_SECRET='${CLIENT_SECRET}'" >> ~/.bashrc
           source ~/.bashrc
           
-          # Clean up existing directory (without sudo)
+          # Install Node.js and NVM
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install 18
+          nvm use 18
+          
+          # Clean up existing directory
           rm -rf /home/deploy/CareerCanvas.Api || true
           mkdir -p /home/deploy/CareerCanvas.Api
           
