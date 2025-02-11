@@ -58,12 +58,10 @@ jobs:
             export CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}"
 
             # Set environment variables
-            bash -c 'cat << EOF > ~/.env
-            AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
-            CLIENT_SECRET="${CLIENT_SECRET}"
-            PM2_AWSREGION_PRODUCTION="${AWSREGION_PRODUCTION}"
-            PM2_CLIENT_SECRET="${CLIENT_SECRET}"
-            EOF'
+            echo "AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" | tee -a ~/.env
+            echo "CLIENT_SECRET='${CLIENT_SECRET}'" | tee -a ~/.env
+            echo "PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" | tee -a ~/.env
+            echo "PM2_CLIENT_SECRET='${CLIENT_SECRET}'" | tee -a ~/.env
 
             # Source environment variables
             set -a
