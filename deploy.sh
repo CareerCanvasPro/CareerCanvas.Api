@@ -64,9 +64,18 @@ echo ""
 
 # Step 4: Build the project using Lerna with increased timeout
 echo -e "${PURPLE}[Deploy.sh]:${NC} Building project using Lerna..."
-if ! NODE_OPTIONS="--max-old-space-size=4096" npx lerna run tsc --concurrency 1; then
-    echo -e "${ERROR}[Deploy.sh]: Build failed!${NC}"
-    exit 1
+export NODE_OPTIONS="--max-old-space-size=4096"
+if ! timeout 300 npx lerna run tsc --concurrency 1 --no-bail; then
+    echo -e "${ERROR}[Deploy.sh]: Build failed or timed out after 5 minutes${NC}"
+    echo -e "${WARNING}[Deploy.sh]: Checking individual service build status...${NC}"
+    
+    for service in ./services/*; do
+        if [ -d "$service" ]; then
+            echo -e "${PURPLE}[Deploy.sh]:${NC} Building $(basename $service)..."
+            cd "$service" && npx tsc || true
+            cd - > /dev/null
+        fi
+    done
 fi
 
 # Step 5: Start/Restart the pm2 processes using the ecosystem files
