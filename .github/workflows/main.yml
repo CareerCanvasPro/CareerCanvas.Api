@@ -72,8 +72,12 @@ jobs:
             set -a
             source ~/.env
             set +a
+
             REPO_URL="https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git"
             DEPLOY_DIR="/home/deploy/CareerCanvas.Api"
+
+            # Copy environment file
+            cp ~/.env "$DEPLOY_DIR/.env"
 
             echo -e "Checking deployment directory..."
 
