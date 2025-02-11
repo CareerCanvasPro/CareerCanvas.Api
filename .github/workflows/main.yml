@@ -85,16 +85,13 @@ jobs:
           
           # Install project dependencies
           if [ -f "package.json" ]; then
-            npm install
-            npm install -ws
-            lerna run build
-            
-            # Setup Nginx configuration
-            sudo bash deployment/scripts/setup-nginx.sh
-            
-            # Deploy services
-            bash deployment/scripts/deploy.sh
+              npm install
+              npm install -ws
+              lerna run build
+              
+              # Deploy services
+              bash deployment/scripts/deploy.sh
           else
-            echo "Error: package.json not found"
-            exit 1
+              echo "Error: package.json not found"
+              exit 1
           fi
