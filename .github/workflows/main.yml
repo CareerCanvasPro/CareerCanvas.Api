@@ -37,7 +37,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
-    
     steps:
       - uses: actions/checkout@v4
 
@@ -61,6 +60,7 @@ jobs:
           script: |
             export AWSREGION_PRODUCTION="${{ secrets.AWSREGION_PRODUCTION }}"
             export CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}"
+            export GH_TOKEN="${{ secrets.REPO_ACCESS_TOKEN }}"
 
             # Set environment variables
             echo "AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'" | tee -a ~/.env
@@ -72,32 +72,35 @@ jobs:
             set -a
             source ~/.env
             set +a
+            REPO_URL="https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git"
+            DEPLOY_DIR="/home/deploy/CareerCanvas.Api"
 
-            # Install Node.js and NVM
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 18 || nvm install 18
+            echo -e "Checking deployment directory..."
 
-            # Install global packages
-            npm install -g lerna pm2
+            # Check if the directory exists and is a valid Git repository
+            if [ -d "$DEPLOY_DIR" ] && [ -d "$DEPLOY_DIR/.git" ]; then
+                echo -e "Directory exists and is a Git repository. Pulling latest changes..."
+                cd "$DEPLOY_DIR" || { echo -e "Failed to enter directory!"; exit 1; }
 
-            # Clone and setup repository
-            rm -rf /home/deploy/CareerCanvas.Api || true
-            git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
-            cd /home/deploy/CareerCanvas.Api
+                # Ensure the correct remote URL is set
+                git remote set-url origin "$REPO_URL"
 
-            # Copy environment file
-            cp ~/.env .env
-
-            # Install and build
-            if [ -f "package.json" ]; then
-                npm install
-                npm install -ws
-                npm run build
-                
-                # Deploy services with environment file
-                PM2_HOME=/home/deploy/.pm2 bash deployment/scripts/deploy.sh
+                # Pull latest changes
+                if ! git pull origin "$(git rev-parse --abbrev-ref HEAD)"; then
+                    echo -e "Git pull failed!"
+                    exit 1
+                fi
             else
-                echo "Error: package.json not found"
-                exit 1
+                echo -e "Directory does not exist or is not a Git repository. Cloning repository..."
+                cd /home/deploy || { echo -e "Failed to enter deploy directory!"; exit 1; }
+                rm -rf CareerCanvas.Api # Remove any corrupted or non-git directory
+
+                # Clone repository
+                if ! git clone "$REPO_URL"; then
+                    echo -e "Git clone failed!"
+                    exit 1
+                fi
+
+                cd CareerCanvas.Api || { echo -e "Failed to enter cloned repository!"; exit 1; }
             fi
+            PM2_HOME=/home/deploy/.pm2 bash /home/deploy/CareerCanvas.Api/deployment/scripts/deploy.sh

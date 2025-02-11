@@ -17,6 +17,45 @@ error_handler() {
 }
 trap 'error_handler $LINENO' ERR
 
+installNodeJs(){
+  # Check if npm is installed, if not install it
+  if ! command -v npm &> /dev/null; then
+    echo -e "${PURPLE}[Deploy.sh]:${NC} ${WARNING}NodeJs is not installed. Installing NodeJs 18.x${NC}"
+    sudo apt update
+    curl -sL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
+    sudo bash nodesource_setup.sh
+    sudo apt install nodejs || { echo -e "${PURPLE}[Deploy.sh]:${NC} Failed to install npm"; exit 1; }
+    rm nodesource_setup.sh
+  else
+    echo -e "${PURPLE}[Deploy.sh]:${NC} ${SUCCESS}NodeJs already installed.${NC}"
+  fi
+}
+
+installPm2(){
+  # Check if package.json exists
+  if [[ ! -f "package.json" ]]; then
+    echo -e "${PURPLE}[Deploy.sh]:${NC} package.json does not exist. Skipping pm2 install..."
+    return
+  fi
+
+  installNodeJs
+
+  # Check if PM2 is installed, if not install it
+  if ! command -v pm2 &> /dev/null; then
+    echo -e "${PURPLE}[Deploy.sh]:${NC} PM2 is not installed. Installing PM2..."
+    npm install pm2@latest -g || { echo -e "${PURPLE}[Deploy.sh]:${NC} Failed to install PM2"; exit 1; }
+    
+    # Run PM2 startup command with current username
+    CURRENT_USER=$(whoami)
+    echo -e "${PURPLE}[Deploy.sh]:${NC} Setting up PM2 to run on startup..."
+    sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u "$CURRENT_USER" --hp /home/"$CURRENT_USER"
+  else
+    echo -e "${PURPLE}[Deploy.sh]:${NC} pm2 already installed..."
+  fi
+}
+
+installPm2
+
 # Step 1: Ensure necessary commands are available
 echo -e "${PURPLE}[Deploy.sh]:${NC} Checking required dependencies..."
 for cmd in git node pm2 npx; do
@@ -26,10 +65,18 @@ for cmd in git node pm2 npx; do
     fi
 done
 
-# Step 2: Pull the latest code from the repository
-echo -e "${PURPLE}[Deploy.sh]:${NC} Pulling latest code..."
-if ! git pull origin "$(git rev-parse --abbrev-ref HEAD)"; then
-    echo -e "${ERROR}[Deploy.sh]: Git pull failed!${NC}"
+# Copy environment file
+cp ~/.env "$DEPLOY_DIR/.env"
+
+cd "$DEPLOY_DIR"
+
+if [ -f "package.json" ]; then
+    npm install
+    npm install -ws
+    npm run build
+else
+    echo "Error: package.json not found"
+    exit 1
 fi
 
 # Step 3: Find all ecosystem.config.js files in subdirectories of ./services/
@@ -68,7 +115,6 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 if ! timeout 300 npx lerna run tsc --concurrency 1 --no-bail; then
     echo -e "${ERROR}[Deploy.sh]: Build failed or timed out after 5 minutes${NC}"
     echo -e "${WARNING}[Deploy.sh]: Checking individual service build status...${NC}"
-    
     for service in ./services/*; do
         if [ -d "$service" ]; then
             echo -e "${PURPLE}[Deploy.sh]:${NC} Building $(basename $service)..."
