@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18.x'
     
@@ -80,16 +80,17 @@ jobs:
           git clone "https://oauth2:${REPO_ACCESS_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" .
           git config --global --add safe.directory /home/deploy/CareerCanvas.Api
           
-          # Verify clone and directory contents
-          ls -la
-          cat package.json || echo "package.json not found"
-          
-          # Install project dependencies only if package.json exists
+          # Install project dependencies
           if [ -f "package.json" ]; then
             npm install
             npm install -ws
             lerna run build
-            bash deploy.sh
+            
+            # Setup Nginx configuration
+            sudo bash deployment/scripts/setup-nginx.sh
+            
+            # Deploy services
+            bash deployment/scripts/deploy.sh
           else
             echo "Error: package.json not found"
             exit 1
