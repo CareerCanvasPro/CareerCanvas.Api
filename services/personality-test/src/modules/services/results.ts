@@ -9,7 +9,7 @@ import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { config } from "../../config";
 
 interface IResult {
-  answer: string;
+  answer: number;
   questionID: string;
 }
 
