@@ -2,96 +2,99 @@ name: CareerCanvas API CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18.x'
-    
-    - name: Install Dependencies
-      run: |
-        npm install
-        npm install -g lerna
-        npm install -ws
-    
-    - name: Build
-      run: lerna run build
-    
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm install -g lerna
+          npm install -ws
+
+      - name: Build
+        run: lerna run build
+
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Deploy to EC2
-      uses: appleboy/ssh-action@v1.0.0
-      env:
-        AWSREGION_PRODUCTION: ${{ secrets.AWSREGION_PRODUCTION }}
-        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-        GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: deploy
-        key: ${{ secrets.DEPLOY_SSH_KEY }}
-        port: 22
-        command_timeout: "30m"
-        script_stop: true
-        envs: |
-          GH_TOKEN
-          AWSREGION_PRODUCTION
-          CLIENT_SECRET
-        script: |
-          # Set environment variables
-          cat << EOF > ~/.env
-          AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
-          CLIENT_SECRET='${CLIENT_SECRET}'
-          PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
-          PM2_CLIENT_SECRET='${CLIENT_SECRET}'
-          EOF
-          
-          # Source environment variables
-          set -a
-          source ~/.env
-          set +a
-          
-          # Install Node.js and NVM
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm use 18 || nvm install 18
-          
-          # Install global packages
-          npm install -g lerna pm2
-          
-          # Clone and setup repository
-          rm -rf /home/deploy/CareerCanvas.Api || true
-          git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
-          cd /home/deploy/CareerCanvas.Api
-          
-          # Copy environment file
-          cp ~/.env .env
-          
-          # Install and build
-          if [ -f "package.json" ]; then
-              npm install
-              npm install -ws
-              npm run build
-              
-              # Deploy services with environment file
-              PM2_HOME=/home/deploy/.pm2 bash deployment/scripts/deploy.sh
-          else
-              echo "Error: package.json not found"
-              exit 1
-          fi
+      - uses: actions/checkout@v4
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          AWSREGION_PRODUCTION: ${{ secrets.AWSREGION_PRODUCTION }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: deploy
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          command_timeout: "30m"
+          script_stop: true
+          envs: |
+            GH_TOKEN
+            AWSREGION_PRODUCTION
+            CLIENT_SECRET
+          script: |
+            export AWSREGION_PRODUCTION="${{ secrets.AWSREGION_PRODUCTION }}"
+            export CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}"
+
+            # Set environment variables
+            cat << EOF > ~/.env
+            AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
+            CLIENT_SECRET='${CLIENT_SECRET}'
+            PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
+            PM2_CLIENT_SECRET='${CLIENT_SECRET}'
+            EOF
+
+            # Source environment variables
+            set -a
+            source ~/.env
+            set +a
+
+            # Install Node.js and NVM
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 18 || nvm install 18
+
+            # Install global packages
+            npm install -g lerna pm2
+
+            # Clone and setup repository
+            rm -rf /home/deploy/CareerCanvas.Api || true
+            git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
+            cd /home/deploy/CareerCanvas.Api
+
+            # Copy environment file
+            cp ~/.env .env
+
+            # Install and build
+            if [ -f "package.json" ]; then
+                npm install
+                npm install -ws
+                npm run build
+                
+                # Deploy services with environment file
+                PM2_HOME=/home/deploy/.pm2 bash deployment/scripts/deploy.sh
+            else
+                echo "Error: package.json not found"
+                exit 1
+            fi
