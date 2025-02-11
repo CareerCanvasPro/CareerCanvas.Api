@@ -127,7 +127,7 @@ export class AuthController {
                   res
                     .status(301)
                     .redirect(
-                      `careercanvas://auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
+                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
                     );
                 }
               }
