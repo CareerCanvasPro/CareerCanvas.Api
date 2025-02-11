@@ -19,7 +19,7 @@ const envVarsSchema = Joi.object()
       .valid("production", "development", "staging")
       .required(),
 
-    PORT: Joi.number().default(3000),
+    PORT: Joi.number().default(8002),
   })
   // Enforce at least one key from each pair (AWSREGION, CLIENTID, etc.)
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
