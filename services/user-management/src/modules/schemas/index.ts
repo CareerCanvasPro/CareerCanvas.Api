@@ -5,13 +5,13 @@ export const createProfileSchema = joi
   .keys({
     address: joi.string().trim(),
     contact: joi.string().trim(),
-    dateOfBirth: joi.string(),
+    dateOfBirth: joi.number(),
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
         certificate: joi.string().uri({ scheme: ["https"] }),
         field: joi.string().trim(),
-        graduationDate: joi.string(),
+        graduationDate: joi.number(),
         institute: joi.string().trim(),
         isCurrent: joi.boolean().default(false),
       })
@@ -21,10 +21,10 @@ export const createProfileSchema = joi
     occupation: joi.array().items(
       joi.object().keys({
         designation: joi.string().trim(),
-        from: joi.string(),
+        from: joi.number(),
         isCurrent: joi.boolean().default(false),
         organization: joi.string().trim(),
-        to: joi.string(),
+        to: joi.number(),
       })
     ),
     phone: joi.string(), // add regex for phone number
@@ -43,44 +43,43 @@ export const updateProfileSchema = joi
     address: joi.string().trim(),
     appreciations: joi.array().items(
       joi.object().keys({
-        date: joi.string(),
+        date: joi.number(),
         name: joi.string().trim(),
         organization: joi.string().trim(),
       })
     ),
     contact: joi.string().trim(),
-    dateOfBirth: joi.string(),
+    dateOfBirth: joi.number(),
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
         certificate: joi.string().uri({ scheme: ["https"] }),
         field: joi.string().trim(),
-        graduationDate: joi.string(),
+        graduationDate: joi.number(),
         institute: joi.string().trim(),
         isCurrent: joi.boolean().default(false),
       })
     ),
-    followers: joi.number(),
-    following: joi.number(),
+    fcmToken: joi.string(),
+    interests: joi.array().items(joi.string()),
     languages: joi.array().items(joi.string().trim()),
     name: joi.string().trim(),
     occupation: joi.array().items(
       joi.object().keys({
         designation: joi.string().trim(),
-        from: joi.string(),
+        from: joi.number(),
         isCurrent: joi.boolean().default(false),
         organization: joi.string().trim(),
-        to: joi.string(),
+        to: joi.number(),
       })
     ),
-    points: joi.number(),
     profilePicture: joi.string().uri({ scheme: ["https"] }),
     resumes: joi.array().items(
       joi.object().keys({
         name: joi.string(),
         size: joi.number(),
         type: joi.string(),
-        uploadedAt: joi.string(),
+        uploadedAt: joi.number(),
         url: joi.string().uri({
           scheme: ["https"],
         }),

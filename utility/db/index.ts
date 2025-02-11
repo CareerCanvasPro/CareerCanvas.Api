@@ -19,6 +19,10 @@ interface IKey {
   value: string;
 }
 
+interface BuildUpdateExpressionParams {
+  attributes: IAttribute[];
+}
+
 interface GetItemParams {
   key: IKey;
   tableName: string;
@@ -41,7 +45,7 @@ interface ScanItemsParams {
 }
 
 interface UpdateItemParams {
-  attribute: IAttribute;
+  attributes: IAttribute[];
   key: IKey;
   tableName: string;
 }
@@ -50,6 +54,40 @@ export class DB {
   private readonly dynamoDBClient = new DynamoDBClient({
     region: config.aws.region,
   });
+
+  private buildUpdateExpression = ({
+    attributes,
+  }: BuildUpdateExpressionParams): {
+    expressionAttributeNames: Record<string, string>;
+    expressionAttributeValues: Record<string, unknown>;
+    updateExpression: string;
+  } => {
+    const expressionAttributeNames: Record<string, string> = {};
+
+    const expressionAttributeValues: Record<string, unknown> = {};
+
+    const updateExpressions: string[] = [];
+
+    attributes.forEach((attribute, index) => {
+      const placeholderName = `#field${index}`;
+
+      const placeholderValue = `:value${index}`;
+
+      expressionAttributeNames[placeholderName] = attribute.name;
+
+      expressionAttributeValues[placeholderValue] = attribute.value;
+
+      updateExpressions.push(`${placeholderName} = ${placeholderValue}`);
+    });
+
+    const updateExpression = `SET ${updateExpressions.join(", ")}`;
+
+    return {
+      expressionAttributeNames,
+      expressionAttributeValues,
+      updateExpression,
+    };
+  };
 
   public async getItem({ key, tableName }: GetItemParams): Promise<{
     httpStatusCode: number;
@@ -150,38 +188,43 @@ export class DB {
     return { httpStatusCode, items };
   }
 
-  public async updateItem({
-    attribute,
+  public updateItem = async ({
+    attributes,
     key,
     tableName,
   }: UpdateItemParams): Promise<{
     httpStatusCode: number;
     updatedItem: Record<string, unknown>;
-  }> {
+  }> => {
+    attributes.push({
+      name: "updatedAt",
+      value: Date.now(),
+    });
+
+    const {
+      expressionAttributeNames,
+      expressionAttributeValues,
+      updateExpression,
+    } = this.buildUpdateExpression({ attributes });
+
     const {
       $metadata: { httpStatusCode },
       Attributes,
     } = await this.dynamoDBClient.send(
       new UpdateItemCommand({
-        ExpressionAttributeNames: {
-          "#field": attribute.name,
-        },
-        ExpressionAttributeValues: {
-          ":value": marshall({ value: attribute.value }).value,
-        },
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: marshall(expressionAttributeValues),
         Key: {
-          [key.name]: {
-            S: key.value,
-          },
+          [key.name]: { S: key.value },
         },
         ReturnValues: "ALL_NEW",
         TableName: tableName,
-        UpdateExpression: "SET #field = :value",
+        UpdateExpression: updateExpression,
       })
     );
 
     const updatedItem = Attributes ? unmarshall(Attributes) : null;
 
     return { httpStatusCode, updatedItem };
-  }
+  };
 }

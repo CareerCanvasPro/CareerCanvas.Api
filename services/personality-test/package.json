@@ -1,5 +1,5 @@
 {
-  "name": "@cms-api/user-management",
+  "name": "@cms-api/personality-test",
   "version": "0.0.0",
   "description": "> TODO: description",
   "author": "Dynamic IT FZ LLC",
@@ -18,12 +18,14 @@
     "access": "public"
   },
   "scripts": {
-    "deploy": "node lib/server",
+    "deploy": "node lib/services/personality-test/src/server",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc",
-    "watch-deploy": "node --watch lib/server"
+    "watch-deploy": "node --watch lib/services/personality-test/src/server",
+    "dev": "node --watch lib/services/personality-test/src/server",
+    "watch-tsc": "tsc --watch"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.485.0",

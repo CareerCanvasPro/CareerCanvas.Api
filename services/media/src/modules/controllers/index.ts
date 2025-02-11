@@ -10,10 +10,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { certificate } = req.query;
+      const { index, userID } = req.query;
 
       const { httpStatusCode } = await this.s3.deleteFile({
-        key: certificate as string,
+        key: `${userID}-certificate-${index}`,
       });
 
       if (httpStatusCode === 204) {
@@ -40,10 +40,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { profilePicture } = req.query;
+      const { userID } = req.query;
 
       const { httpStatusCode } = await this.s3.deleteFile({
-        key: profilePicture as string,
+        key: `${userID}-profile-picture`,
       });
 
       if (httpStatusCode === 204) {
@@ -70,10 +70,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { resume } = req.query;
+      const { index, userID } = req.query;
 
       const { httpStatusCode } = await this.s3.deleteFile({
-        key: resume as string,
+        key: `${userID}-resume-${index}`,
       });
 
       if (httpStatusCode === 204) {
@@ -271,7 +271,7 @@ export class MediaController {
               name: key,
               size,
               type: mimetype,
-              uploadedAt: new Date().toISOString(),
+              uploadedAt: Date.now(),
               url,
             },
           },
