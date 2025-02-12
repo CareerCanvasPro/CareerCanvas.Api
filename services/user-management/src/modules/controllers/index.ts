@@ -12,6 +12,12 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
+      const {
+        auth: { email, userID },
+      } = req.body;
+
+      delete req.body.auth;
+
       const { error, value } = createProfileSchema.validate(req.body, {
         abortEarly: false,
       });
@@ -23,8 +29,6 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { userID } = value;
-
         const { user } = await this.usersDB.getUser({
           keyValue: userID,
         });
@@ -35,13 +39,11 @@ export class UserManagementController {
             .json({ data: null, message: "Profile already exists" });
         } else {
           const { httpStatusCode } = await this.usersDB.putUser({
-            user: value,
+            user: { ...value, email },
           });
 
-          delete value.userID;
-
           res.status(httpStatusCode).json({
-            data: value,
+            data: null,
             message: "New profile created successfully",
           });
         }

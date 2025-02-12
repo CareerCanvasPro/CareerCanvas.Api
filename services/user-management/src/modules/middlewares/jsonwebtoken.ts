@@ -31,7 +31,7 @@ export const handleVerifyAccessToken = (
           if (error) {
             throw error;
           } else {
-            req.body = { ...req.body, ...decoded };
+            req.body = { ...req.body, auth: decoded };
 
             next();
           }
