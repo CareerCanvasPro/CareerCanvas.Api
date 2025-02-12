@@ -28,5 +28,8 @@
     "watch-tsc": "tsc --watch",
     "watch-deploy": "node --watch lib/server",
     "test": "jest"
+  },
+  "dependencies": {
+    "rimraf": "^5.0.5"
   }
 }
