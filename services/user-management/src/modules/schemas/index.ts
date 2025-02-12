@@ -16,7 +16,6 @@ export const createProfileSchema = joi
         isCurrent: joi.boolean().default(false),
       })
     ),
-    email: joi.string().email(),
     name: joi.string().trim(),
     occupation: joi.array().items(
       joi.object().keys({
@@ -30,10 +29,8 @@ export const createProfileSchema = joi
     phone: joi.string(), // add regex for phone number
     profilePicture: joi.string().uri({ scheme: ["https"] }),
     skills: joi.array().items(joi.string().trim()),
-    userID: joi.string().required(),
     username: joi.string(),
   })
-  .or("email", "phone")
   .unknown(false);
 
 export const updateProfileSchema = joi

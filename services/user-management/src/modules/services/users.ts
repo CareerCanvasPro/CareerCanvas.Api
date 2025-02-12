@@ -106,14 +106,6 @@ export class UsersDB {
 
     const deletedUser = Attributes ? unmarshall(Attributes) : null;
 
-    if (deletedUser) {
-      delete deletedUser.createdAt;
-
-      delete deletedUser.userID;
-
-      delete deletedUser.updatedAt;
-    }
-
     return { deletedUser, httpStatusCode };
   };
 
@@ -138,14 +130,6 @@ export class UsersDB {
     );
 
     const user = Item ? unmarshall(Item) : null;
-
-    if (user) {
-      delete user.createdAt;
-
-      delete user.userID;
-
-      delete user.updatedAt;
-    }
 
     return { httpStatusCode, user };
   };
@@ -231,14 +215,6 @@ export class UsersDB {
     );
 
     const updatedUser = Attributes ? unmarshall(Attributes) : null;
-
-    if (updatedUser) {
-      delete updatedUser.createdAt;
-
-      delete updatedUser.userID;
-
-      delete updatedUser.updatedAt;
-    }
 
     return { httpStatusCode, updatedUser };
   };

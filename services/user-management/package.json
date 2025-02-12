@@ -27,7 +27,9 @@
     "dev": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "watch-tsc": "tsc --watch",
     "watch-deploy": "node --watch lib/server",
-    "test": "jest"
+    "test": "jest",
+    "abc": "tsc --watch",
+    "def": "node --watch lib/server"
   },
   "dependencies": {
     "rimraf": "^5.0.5"
