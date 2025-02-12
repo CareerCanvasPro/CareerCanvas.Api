@@ -128,16 +128,27 @@ for file in "${ecosystem_files[@]}"; do
         continue
     fi
 
-    # Pass environment variables to PM2
-    if pm2 list | grep -q "$app_name"; then
+    # Extract directory from the file path
+    file_dir=$(dirname "$file")
+    file_name=$(basename "$file")
+
+    # Navigate to the file's directory
+    cd "$file_dir" || { echo -e "${ERROR}[Deploy.sh]: Failed to change directory to $file_dir${NC}"; exit 1; }
+
+    # Check if the app is already running
+    if pm2 describe "$app_name" >/dev/null 2>&1; then
         echo -e "${PURPLE}[Deploy.sh]:${NC} Restarting $app_name..."
-        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" pm2 restart "$file" || {
+        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" \
+        pm2 restart "$file_name" --update-env || {
             echo -e "${ERROR}[Deploy.sh]: Failed to restart $app_name${NC}"
+            exit 1
         }
     else
         echo -e "${PURPLE}[Deploy.sh]:${NC} Starting $app_name..."
-        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" pm2 start "$file" || {
+        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" \
+        pm2 start "$file_name" --name "$app_name" --update-env || {
             echo -e "${ERROR}[Deploy.sh]: Failed to start $app_name${NC}"
+            exit 1
         }
     fi
 done
