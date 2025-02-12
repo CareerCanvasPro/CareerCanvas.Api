@@ -1,8 +1,8 @@
 {
-  "name": "@cms-api/course-management",
+  "name": "@careercanvas-api/course-management",
   "version": "0.0.0",
   "description": "> TODO: description",
-  "author": "Dynamic IT FZ LLC",
+  "author": "CareerCanvas Team <support@careercanvas.pro>",
   "homepage": "",
   "license": "ISC",
   "main": "lib/index.js",
