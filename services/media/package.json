@@ -20,7 +20,7 @@
   "scripts": {
     "prebuild": "rimraf lib",
     "build": "tsc",
-    "postbuild": "cp ecosystem.config.js lib/",
+    "postbuild": "cp ecosystem.config.js lib/ || true",
     "predeploy": "npm run build",
     "deploy": "node lib/server",
     "start": "npm run deploy",
@@ -28,5 +28,8 @@
     "watch-tsc": "tsc --watch",
     "watch-deploy": "node --watch lib/server",
     "test": "jest"
+  },
+  "dependencies": {
+    "rimraf": "^5.0.5"
   }
 }
