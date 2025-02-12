@@ -67,12 +67,12 @@ export class AuthController {
                   text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
                 },
                 destination: [email as string],
-                source: "sadiaiffatjahan@gmail.com",
+                source: "smtp@careercanvas.pro",
                 subject: "Magic Link to Career Canvas",
               });
 
               res.status(httpStatusCode).json({
-                data: { email, token }, // TODO: Remove after testing
+                data: { token }, // TODO: Remove after testing
                 message: "Magic link sent to given email successfully",
               });
             }
@@ -124,11 +124,14 @@ export class AuthController {
                 if (error) {
                   throw error;
                 } else {
-                  res
-                    .status(301)
-                    .redirect(
-                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
-                    );
+                  // res
+                  //   .status(301)
+                  //   .redirect(
+                  //     `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
+                  //   );
+                  res.status(200).json({
+                    data: { accessToken }, // TODO: Remove after testing
+                  });
                 }
               }
             );
