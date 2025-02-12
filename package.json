@@ -40,7 +40,7 @@
     "read-excel-file": "^5.7.1",
     "rimraf": "^5.0.5",
     "typescript": "5.3.3",
-    "uuid": "^10.0.0",
+    "uuid": "^11.0.5",
     "winston": "^3.17.0",
     "winston-cloudwatch": "^6.3.0"
   },
