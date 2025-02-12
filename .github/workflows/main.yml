@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -17,31 +16,43 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18.x"
+          cache: 'npm'
 
       - name: Install Dependencies
         run: |
-          npm install
-          npm install -g lerna
+          npm ci
+          npm install -g lerna rimraf
           npm install -ws
 
       - name: Build
-        run: lerna run build
+        run: |
+          lerna bootstrap
+          lerna run build
+
+      - name: Cache Build
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/lib
+            **/node_modules
+          key: ${{ runner.os }}-build-${{ github.sha }}
 
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         env:
-          AWSREGION_PRODUCTION: ${{ secrets.AWSREGION_PRODUCTION }}
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+          DEPLOY_ENV: |
+            AWSREGION_PRODUCTION='${{ secrets.AWSREGION_PRODUCTION }}'
+            CLIENT_SECRET='${{ secrets.CLIENT_SECRET }}'
+            PM2_AWSREGION_PRODUCTION='${{ secrets.AWSREGION_PRODUCTION }}'
+            PM2_CLIENT_SECRET='${{ secrets.CLIENT_SECRET }}'
         with:
           host: ${{ secrets.EC2_HOST }}
           username: deploy
@@ -49,52 +60,44 @@ jobs:
           port: 22
           command_timeout: "30m"
           script_stop: true
-          envs: |
-            GH_TOKEN
-            AWSREGION_PRODUCTION
-            CLIENT_SECRET
           script: |
-            export AWSREGION_PRODUCTION="${{ secrets.AWSREGION_PRODUCTION }}"
-            export CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}"
+            DEPLOY_DIR="/home/deploy/CareerCanvas.Api"
+            REPO_URL="https://oauth2:${{ secrets.REPO_ACCESS_TOKEN }}@github.com/CareerCanvasPro/CareerCanvas.Api.git"
 
-            # Set environment variables
-            cat << EOF > ~/.env
-            AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
-            CLIENT_SECRET='${CLIENT_SECRET}'
-            PM2_AWSREGION_PRODUCTION='${AWSREGION_PRODUCTION}'
-            PM2_CLIENT_SECRET='${CLIENT_SECRET}'
-            EOF
+            # Update environment file
+            echo "$DEPLOY_ENV" > ~/.env
+            set -a; source ~/.env; set +a
 
-            # Source environment variables
-            set -a
-            source ~/.env
-            set +a
-
-            # Install Node.js and NVM
+            # Setup Node.js
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use 18 || nvm install 18
 
             # Install global packages
-            npm install -g lerna pm2
+            npm install -g lerna pm2 rimraf
 
-            # Clone and setup repository
-            rm -rf /home/deploy/CareerCanvas.Api || true
-            git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git" /home/deploy/CareerCanvas.Api
-            cd /home/deploy/CareerCanvas.Api
+            # Stop existing services
+            pm2 delete all || true
+
+            # Setup or update repository
+            if [ -d "$DEPLOY_DIR/.git" ]; then
+              cd "$DEPLOY_DIR" && git pull origin main || exit 1
+            else
+              rm -rf "$DEPLOY_DIR"
+              git clone "$REPO_URL" "$DEPLOY_DIR" || exit 1
+              cd "$DEPLOY_DIR" || exit 1
+            fi
 
             # Copy environment file
             cp ~/.env .env
 
-            # Install and build
-            if [ -f "package.json" ]; then
-                npm install
-                npm install -ws
-                npm run build
-                
-                # Deploy services with environment file
-                PM2_HOME=/home/deploy/.pm2 bash deployment/scripts/deploy.sh
-            else
-                echo "Error: package.json not found"
-                exit 1
-            fi
+            # Clean and rebuild
+            npm ci
+            npm install -ws
+            lerna clean -y --yes
+            lerna bootstrap
+            lerna run build
+
+            # Set PM2_HOME and deploy
+            export PM2_HOME=/home/deploy/.pm2
+            bash deployment/scripts/deploy.sh
