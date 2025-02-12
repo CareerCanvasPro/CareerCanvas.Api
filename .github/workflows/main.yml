@@ -79,14 +79,13 @@ jobs:
             # Stop existing services
             pm2 delete all || true
 
-            # Setup or update repository
-            if [ -d "$DEPLOY_DIR/.git" ]; then
-              cd "$DEPLOY_DIR" && git pull origin main || exit 1
-            else
-              rm -rf "$DEPLOY_DIR"
-              git clone "$REPO_URL" "$DEPLOY_DIR" || exit 1
-              cd "$DEPLOY_DIR" || exit 1
-            fi
+            # Clean up existing directory with force
+            cd /home/deploy
+            rm -rf CareerCanvas.Api
+            
+            # Clone fresh repository
+            git clone "https://oauth2:${GH_TOKEN}@github.com/CareerCanvasPro/CareerCanvas.Api.git"
+            cd CareerCanvas.Api
 
             # Copy environment file
             cp ~/.env .env
