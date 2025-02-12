@@ -5,11 +5,16 @@
     "services/*"
   ],
   "scripts": {
-    "build": "lerna run tsc",
+    "prebuild": "lerna clean --yes",
+    "build": "lerna run build",
+    "postbuild": "lerna run postbuild",
+    "predeploy": "npm run build",
     "deploy": "bash deployment/scripts/deploy.sh",
     "dev": "lerna run dev",
     "test": "jest",
-    "setup:nginx": "sudo bash deployment/scripts/setup-nginx.sh"
+    "setup:nginx": "sudo bash deployment/scripts/setup-nginx.sh",
+    "clean": "lerna clean --yes && rm -rf node_modules",
+    "setup": "npm install && lerna bootstrap"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.470.0",
@@ -33,6 +38,7 @@
     "morgan": "1.10.0",
     "multer": "^1.4.5-lts.1",
     "read-excel-file": "^5.7.1",
+    "rimraf": "^5.0.5",
     "typescript": "5.3.3",
     "uuid": "^10.0.0",
     "winston": "^3.17.0",

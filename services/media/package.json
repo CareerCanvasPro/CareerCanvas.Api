@@ -18,25 +18,15 @@
     "access": "public"
   },
   "scripts": {
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "postbuild": "cp ecosystem.config.js lib/",
+    "predeploy": "npm run build",
     "deploy": "node lib/server",
-    "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc",
+    "dev": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
+    "watch-tsc": "tsc --watch",
     "watch-deploy": "node --watch lib/server",
-    "dev": "node --watch lib/server",
-    "watch-tsc": "tsc --watch"
-  },
-  "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.485.0",
-    "@aws-sdk/lib-dynamodb": "3.485.0",
-    "@aws-sdk/client-s3": "^3.525.0",
-    "@aws-sdk/s3-request-presigner": "^3.525.0",
-    "@aws-sdk/util-create-request": "^3.525.0",
-    "date-fns": "^3.6.0",
-    "dynamodb-toolbox": "0.9.2",
-    "multer": "^1.4.5-lts.1",
-    "sharp": "^0.33.2",
-    "cm-authenticator": "file:../../packages/auth-middleware/cm-authenticator-1.0.0.tgz"
+    "test": "jest"
   }
 }
