@@ -18,13 +18,13 @@
     "access": "public"
   },
   "scripts": {
-    "deploy": "node lib/server",
+    "deploy": "node lib/services/auth/src/server",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc",
-    "watch-deploy": "node --watch lib/server",
-    "dev": "node --watch lib/server",
+    "watch-deploy": "node --watch lib/services/auth/src/server",
+    "dev": "node --watch lib/services/auth/src/server",
     "watch-tsc": "tsc --watch"
   },
   "dependencies": {
