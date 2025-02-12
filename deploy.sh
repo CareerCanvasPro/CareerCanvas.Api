@@ -56,6 +56,12 @@ printf "%s\n" "${rows[@]}" | column -t -s '|'
 echo ""
 
 # Step 4: Build the project using Lerna
+echo -e "${PURPLE}[Deploy.sh]:${NC} Installing dependency packages..."
+if ! npx lerna bootstrap; then
+    echo -e "${ERROR}[Deploy.sh]: Install failed!${NC}"
+    exit 1
+fi
+
 echo -e "${PURPLE}[Deploy.sh]:${NC} Building project using Lerna..."
 if ! npx lerna run tsc; then
     echo -e "${ERROR}[Deploy.sh]: Build failed!${NC}"
