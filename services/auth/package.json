@@ -2,7 +2,7 @@
   "name": "@careercanvas-api/auth",
   "version": "0.0.0",
   "description": "Authentication service for Career Canvas API",
-  "author": "Dynamic IT FZ LLC",
+  "author": "CareerCanvas Team <support@careercanvas.pro>",
   "homepage": "",
   "license": "ISC",
   "main": "lib/index.js",
