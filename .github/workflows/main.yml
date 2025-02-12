@@ -25,9 +25,7 @@ jobs:
           npm shrinkwrap
 
       - name: Build
-        run: |
-          lerna bootstrap
-          lerna run build
+        run: lerna run build --no-private
 
       - name: Cache Build
         uses: actions/cache@v3
