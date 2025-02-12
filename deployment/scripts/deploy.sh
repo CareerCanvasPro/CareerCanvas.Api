@@ -119,6 +119,25 @@ if ! timeout 300 npx lerna run tsc --concurrency 1 --no-bail; then
     done
 fi
 
+# Add these functions before the service loop
+setupEnvironment() {
+    echo -e "${PURPLE}[Deploy.sh]:${NC} Setting up environment..."
+    export PM2_HOME=/home/deploy/.pm2
+    set -a
+    source ~/.env
+    set +a
+}
+
+cleanup() {
+    echo -e "${PURPLE}[Deploy.sh]:${NC} Cleaning up old processes..."
+    pm2 delete all || true
+    rm -rf ~/.pm2/dump.pm2 || true
+}
+
+# Call these once before the service loop
+setupEnvironment
+cleanup
+
 # Step 5: Start/Restart the pm2 processes using the ecosystem files
 echo -e "${PURPLE}[Deploy.sh]:${NC} Deploying services..."
 for file in "${ecosystem_files[@]}"; do
