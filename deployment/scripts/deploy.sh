@@ -136,21 +136,53 @@ for file in "${ecosystem_files[@]}"; do
     cd "$file_dir" || { echo -e "${ERROR}[Deploy.sh]: Failed to change directory to $file_dir${NC}"; exit 1; }
 
     # Check if the app is already running
-    if pm2 describe "$app_name" >/dev/null 2>&1; then
-        echo -e "${PURPLE}[Deploy.sh]:${NC} Restarting $app_name..."
-        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" \
-        pm2 restart "$file_name" --update-env || {
-            echo -e "${ERROR}[Deploy.sh]: Failed to restart $app_name${NC}"
-            exit 1
-        }
-    else
-        echo -e "${PURPLE}[Deploy.sh]:${NC} Starting $app_name..."
-        AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" CLIENT_SECRET="$CLIENT_SECRET" \
-        pm2 start "$file_name" --name "$app_name" --update-env || {
-            echo -e "${ERROR}[Deploy.sh]: Failed to start $app_name${NC}"
-            exit 1
-        }
-    fi
+    # Add environment setup function
+    setupEnvironment() {
+        echo -e "${PURPLE}[Deploy.sh]:${NC} Setting up environment..."
+        # Ensure PM2_HOME is set
+        export PM2_HOME=/home/deploy/.pm2
+        
+        # Load environment variables
+        set -a
+        source ~/.env
+        set +a
+    }
+    
+    # Add cleanup function
+    cleanup() {
+        echo -e "${PURPLE}[Deploy.sh]:${NC} Cleaning up old processes..."
+        pm2 delete all || true
+        rm -rf ~/.pm2/dump.pm2 || true
+    }
+    
+    # Add these lines after installPm2
+    setupEnvironment
+    
+    # Add before finding ecosystem files
+    cleanup
+    
+    # Modify the PM2 start/restart section
+        if pm2 describe "$app_name" >/dev/null 2>&1; then
+            echo -e "${PURPLE}[Deploy.sh]:${NC} Restarting $app_name..."
+            pm2 delete "$app_name" || true
+            PM2_AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" PM2_CLIENT_SECRET="$CLIENT_SECRET" \
+            pm2 start "$file_name" --name "$app_name" --update-env || {
+                echo -e "${ERROR}[Deploy.sh]: Failed to restart $app_name${NC}"
+                exit 1
+            }
+        else
+            echo -e "${PURPLE}[Deploy.sh]:${NC} Starting $app_name..."
+            PM2_AWSREGION_PRODUCTION="$AWSREGION_PRODUCTION" PM2_CLIENT_SECRET="$CLIENT_SECRET" \
+            pm2 start "$file_name" --name "$app_name" --update-env || {
+                echo -e "${ERROR}[Deploy.sh]: Failed to start $app_name${NC}"
+                exit 1
+            }
+        fi
+    
+    # Add after saving PM2 process list
+    echo -e "${PURPLE}[Deploy.sh]:${NC} Setting up PM2 startup script..."
+    pm2 startup systemd -u deploy --hp /home/deploy || true
+    sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u deploy --hp /home/deploy || true
 done
 
 # Save the processes list
