@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      args: "run server",
+      args: "run deploy",
       // Number of instances (use 'max' for all CPU cores)
       autorestart: true,
       exec_mode: "fork",
@@ -12,6 +12,11 @@ module.exports = {
       name: "Course Management Service",
       script: "npm",
       watch: false,
+      env: {
+        NODE_ENV: "production",
+        AWSREGION_PRODUCTION: process.env.AWSREGION_PRODUCTION,
+        CLIENTSECRET_PRODUCTION: process.env.CLIENT_SECRET
+      }
     },
   ],
 };
