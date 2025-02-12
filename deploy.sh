@@ -34,7 +34,7 @@ fi
 
 # Step 3: Find all ecosystem.config.js files in subdirectories of ./services/
 echo -e "${PURPLE}[Deploy.sh]:${NC} Searching for ecosystem.config.js files..."
-mapfile -t ecosystem_files < <(find ./services -mindepth 2 -type f -name "ecosystem.config.js")
+mapfile -t ecosystem_files < <(find ./services -mindepth 2 -maxdepth 2 -type f -name "ecosystem.config.js")
 
 if [[ ${#ecosystem_files[@]} -eq 0 ]]; then
     echo -e "${ERROR}[Deploy.sh]: No ecosystem.config.js files found!${NC}"
