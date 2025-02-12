@@ -18,16 +18,12 @@
     "access": "public"
   },
   "scripts": {
-    "prebuild": "rimraf lib",
-    "build": "tsc",
-    "postbuild": "cp ecosystem.config.js lib/",
-    "predeploy": "npm run build",
-    "deploy": "node lib/server",
+    "deploy": "node lib/services/job-management/src/server",
+    "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "dev": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
-    "watch-tsc": "tsc --watch",
-    "watch-deploy": "node --watch lib/server",
-    "test": "jest"
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "tsc": "tsc",
+    "watch-deploy": "node --watch lib/services/job-management/src/server"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.485.0",
