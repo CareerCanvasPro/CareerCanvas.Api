@@ -12,11 +12,15 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const {
-        auth: { email, userID },
-      } = req.body;
+      const { email, userID } = req.body;
 
-      delete req.body.auth;
+      delete req.body.email;
+
+      delete req.body.exp;
+
+      delete req.body.iat;
+
+      delete req.body.userID;
 
       const { error, value } = createProfileSchema.validate(req.body, {
         abortEarly: false,
@@ -39,7 +43,7 @@ export class UserManagementController {
             .json({ data: null, message: "Profile already exists" });
         } else {
           const { httpStatusCode } = await this.usersDB.putUser({
-            user: { ...value, email },
+            user: { ...value, email, userID },
           });
 
           res.status(httpStatusCode).json({
@@ -66,7 +70,7 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.query;
+      const { userID } = req.body;
 
       const { deletedUser, httpStatusCode } = await this.usersDB.deleteUser({
         keyValue: userID as string,
@@ -75,7 +79,7 @@ export class UserManagementController {
       if (deletedUser) {
         res
           .status(httpStatusCode)
-          .json({ data: { userID }, message: "Profile deleted successfully" });
+          .json({ data: null, message: "Profile deleted successfully" });
       } else {
         res.status(404).json({ data: null, message: "Profile not found" });
       }
@@ -97,7 +101,7 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.query;
+      const { userID } = req.body;
 
       const { httpStatusCode, user } = await this.usersDB.getUser({
         keyValue: userID as string,
@@ -108,7 +112,7 @@ export class UserManagementController {
           .status(httpStatusCode)
           .json({ data: user, message: "Profile retrieved successfully" });
       } else {
-        res.status(404).json({ data: user, message: "Profile not found" });
+        res.status(404).json({ data: null, message: "Profile not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -128,7 +132,15 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.query;
+      const { userID } = req.body;
+
+      delete req.body.email;
+
+      delete req.body.exp;
+
+      delete req.body.iat;
+
+      delete req.body.userID;
 
       const { error, value } = updateProfileSchema.validate(req.body, {
         abortEarly: false,
@@ -153,15 +165,13 @@ export class UserManagementController {
             value,
           }));
 
-          const { httpStatusCode, updatedUser } = await this.usersDB.updateUser(
-            {
-              attributes,
-              keyValue: userID as string,
-            }
-          );
+          const { httpStatusCode } = await this.usersDB.updateUser({
+            attributes,
+            keyValue: userID as string,
+          });
 
           res.status(httpStatusCode).json({
-            data: updatedUser,
+            data: null,
             message: "Profile updated successfully",
           });
         }

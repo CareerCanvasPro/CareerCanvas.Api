@@ -1,5 +1,2 @@
-export function cleanMessage(message: string): string {
-  const cleanedMessage = message.split('"').join("");
-
-  return cleanedMessage[0].toUpperCase() + cleanedMessage.slice(1);
-}
+export const cleanMessage = (message: string): string =>
+  message.split('"').join("");

@@ -17,7 +17,7 @@ const envVarsSchema = joi
       .valid("development", "production", "staging")
       .required(),
 
-    PORT: joi.number().default(5000),
+    PORT: joi.number().default(8001),
   })
   // Enforce at least one key from each pair (AWSREGION, CLIENTID, etc.)
   .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
@@ -35,32 +35,18 @@ if (error) {
 // Dynamic selection of values based on NODE_ENV
 export const config = {
   aws: {
-    cognito: {
-      clientId:
-        envVars.NODE_ENV === "production"
-          ? envVars.CLIENTID_PRODUCTION
-          : envVars.NODE_ENV === "staging"
-          ? envVars.CLIENTID_STAGING
-          : envVars.CLIENTID,
-      clientSecret:
-        envVars.NODE_ENV === "production"
-          ? envVars.CLIENTSECRET_PRODUCTION
-          : envVars.NODE_ENV === "staging"
-          ? envVars.CLIENTSECRET_STAGING
-          : envVars.CLIENTSECRET,
-      region:
-        envVars.NODE_ENV === "production"
-          ? envVars.AWSREGION_PRODUCTION
-          : envVars.NODE_ENV === "staging"
-          ? envVars.AWSREGION_STAGING
-          : envVars.AWSREGION,
-      userPoolId:
-        envVars.NODE_ENV === "production"
-          ? envVars.USERPOOLID_PRODUCTION
-          : envVars.NODE_ENV === "staging"
-          ? envVars.USERPOOLID_STAGING
-          : envVars.USERPOOLID,
-    },
+    clientSecret:
+      envVars.NODE_ENV === "production"
+        ? envVars.CLIENTSECRET_PRODUCTION
+        : envVars.NODE_ENV === "staging"
+        ? envVars.CLIENTSECRET_STAGING
+        : envVars.CLIENTSECRET,
+    region:
+      envVars.NODE_ENV === "production"
+        ? envVars.AWSREGION_PRODUCTION
+        : envVars.NODE_ENV === "staging"
+        ? envVars.AWSREGION_STAGING
+        : envVars.AWSREGION,
   },
   env: envVars.NODE_ENV,
   port: envVars.PORT,

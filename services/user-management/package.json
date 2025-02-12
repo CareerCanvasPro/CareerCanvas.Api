@@ -1,8 +1,8 @@
 {
-  "name": "@cms-api/user-management",
+  "name": "@careercanvas-api/user-management",
   "version": "0.0.0",
-  "description": "> TODO: description",
-  "author": "Dynamic IT FZ LLC",
+  "description": "User management service for Career Canvas API",
+  "author": "CareerCanvas Team <support@careercanvas.pro>",
   "homepage": "",
   "license": "ISC",
   "main": "lib/index.js",
@@ -18,18 +18,18 @@
     "access": "public"
   },
   "scripts": {
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "postbuild": "cp ecosystem.config.js lib/",
+    "predeploy": "npm run build",
     "deploy": "node lib/server",
-    "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc",
-    "watch-deploy": "node --watch lib/server"
+    "dev": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
+    "watch-tsc": "tsc --watch",
+    "watch-deploy": "node --watch lib/server",
+    "test": "jest"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "3.485.0",
-    "@aws-sdk/lib-dynamodb": "3.485.0",
-    "date-fns": "^3.6.0",
-    "dynamodb-toolbox": "0.9.2",
-    "cm-authenticator": "file:../../packages/auth-middleware/cm-authenticator-1.0.0.tgz"
+    "rimraf": "^5.0.5"
   }
 }

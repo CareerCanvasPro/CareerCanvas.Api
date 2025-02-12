@@ -58,7 +58,6 @@ export const updateProfileSchema = joi
       })
     ),
     fcmToken: joi.string(),
-    goals: joi.array().items(joi.string().trim()),
     interests: joi.array().items(joi.string()),
     languages: joi.array().items(joi.string().trim()),
     name: joi.string().trim(),

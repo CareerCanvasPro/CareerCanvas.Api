@@ -1,10 +1,12 @@
 {
-  "author": "CMS",
-  "dependencies": {
-    "@types/maxmind": "^2.0.5",
-    "maxmind": "^4.3.18"
-  },
-  "description": "> TODO: description",
+  "name": "@careercanvas-api/auth",
+  "version": "0.0.0",
+  "description": "Authentication service for Career Canvas API",
+  "author": "CareerCanvas Team <support@careercanvas.pro>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -12,21 +14,19 @@
   "files": [
     "lib"
   ],
-  "homepage": "",
-  "license": "ISC",
-  "main": "lib/index.js",
-  "name": "@cms-api/auth",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "deploy": "node lib/services/auth/src/server",
-    "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "postbuild": "cp ecosystem.config.js lib/",
+    "predeploy": "npm run build",
+    "deploy": "node lib/server",
     "start": "npm run deploy",
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc",
-    "watch-deploy": "node --watch lib/services/auth/src/server"
-  },
-  "typings": "lib/index.d.ts",
-  "version": "0.0.0"
+    "dev": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
+    "watch-tsc": "tsc --watch",
+    "watch-deploy": "node --watch lib/server",
+    "test": "jest"
+  }
 }

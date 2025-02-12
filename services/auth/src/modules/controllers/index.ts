@@ -35,15 +35,15 @@ export class AuthController {
 
         sign(
           { email },
-          config.aws.cognito.clientSecret,
+          config.aws.clientSecret,
           {
-            expiresIn: "1d", // TODO: Change after testing
+            expiresIn: "15m",
           },
           async (error, token) => {
             if (error) {
               throw error;
             } else {
-              const magicLink = `http://13.229.30.167:5000/auth/confirm?token=${token}`;
+              const magicLink = `https://auth.api.careercanvas.pro/auth/confirm?token=${token}`;
 
               const {
                 $metadata: { httpStatusCode },
@@ -67,12 +67,12 @@ export class AuthController {
                   text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
                 },
                 destination: [email as string],
-                source: "sadiaiffatjahan@gmail.com",
+                source: "smtp@careercanvas.pro",
                 subject: "Magic Link to Career Canvas",
               });
 
               res.status(httpStatusCode).json({
-                data: { email, token }, // TODO: Remove after testing
+                data: null,
                 message: "Magic link sent to given email successfully",
               });
             }
@@ -100,7 +100,7 @@ export class AuthController {
 
       verify(
         token as string,
-        config.aws.cognito.clientSecret,
+        config.aws.clientSecret,
         async (error: unknown, { email }: ITokenPayload) => {
           if (error) {
             throw error;
@@ -116,9 +116,9 @@ export class AuthController {
 
             sign(
               { email, userID },
-              config.aws.cognito.clientSecret,
+              config.aws.clientSecret,
               {
-                expiresIn: "1d", // TODO: Change to 15m if refresh token is not required
+                expiresIn: "1d",
               },
               (error, accessToken) => {
                 if (error) {

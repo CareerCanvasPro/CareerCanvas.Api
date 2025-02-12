@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "postbuild": "cp ecosystem.config.js lib/",
+    "predeploy": "npm run build",
+    "deploy": "node lib/server",
+    "start": "npm run deploy",
+    "dev": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
+    "watch-tsc": "tsc --watch",
+    "watch-deploy": "node --watch lib/server",
+    "test": "jest"
+  }
+}
