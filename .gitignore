@@ -6,4 +6,5 @@ package-lock.json
 .env
 .vscode
 .vscode/settings.json
-eslint.config.mjspackages/auth-middleware/*.tgz
+eslint.config.mjs
+packages/auth-middleware/*.tgz
