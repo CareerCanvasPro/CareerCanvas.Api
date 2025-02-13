@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 
 import { MediaController } from "../controllers";
-// import { handleVerifyAccessToken } from "../middlewares";
+import { handleVerifyAccessToken } from "../middlewares";
 
 export class MediaRoute {
   private readonly allowedContentTypes = [
@@ -31,6 +31,7 @@ export class MediaRoute {
           }
         },
       }).single("file"),
+      handleVerifyAccessToken,
     ]);
 
     this.initRoutes();

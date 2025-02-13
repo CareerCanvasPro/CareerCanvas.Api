@@ -10,7 +10,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { index, userID } = req.query;
+      const {
+        body: { userID },
+        query: { index },
+      } = req;
 
       const { httpStatusCode } = await this.s3.deleteFile({
         key: `${userID}-certificate-${index}`,
@@ -40,7 +43,7 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.query;
+      const { userID } = req.body;
 
       const { httpStatusCode } = await this.s3.deleteFile({
         key: `${userID}-profile-picture`,
@@ -70,7 +73,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { index, userID } = req.query;
+      const {
+        body: { userID },
+        query: { index },
+      } = req;
 
       const { httpStatusCode } = await this.s3.deleteFile({
         key: `${userID}-resume-${index}`,
@@ -157,8 +163,9 @@ export class MediaController {
   ): Promise<void> => {
     try {
       const {
-        body: { error, index, userID },
+        body: { error, userID },
         file,
+        query: { index },
       } = req;
 
       if (error) {
@@ -245,8 +252,9 @@ export class MediaController {
   ): Promise<void> => {
     try {
       const {
-        body: { error, index, userID },
+        body: { error, userID },
         file,
+        query: { index },
       } = req;
 
       if (error) {
