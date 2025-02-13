@@ -27,7 +27,7 @@ export class PersonalityTestController {
           userID,
         });
 
-        const { updatedItem: updatedUser } = await this.db.updateItem({
+        await this.db.updateItem({
           attributes: [
             { name: "personalityTestResult", value: "" },
             { name: "personalityTestStatus", value: "pending" },
@@ -36,10 +36,8 @@ export class PersonalityTestController {
           tableName: "userprofiles",
         });
 
-        const { personalityTestStatus } = updatedUser;
-
         res.status(httpStatusCode).json({
-          data: { personalityTestStatus },
+          data: null,
           message: "Result entered successfully",
         });
       }
@@ -85,37 +83,6 @@ export class PersonalityTestController {
     }
   };
 
-  public handleRetrieveResult = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { userID } = req.query;
-
-      const { httpStatusCode, result } = await this.resultsDB.getResult({
-        userID: userID as string,
-      });
-
-      if (result) {
-        res
-          .status(httpStatusCode)
-          .json({ data: result, message: "Result retrieved successfully" });
-      } else {
-        res.status(404).json({ data: null, message: "Result not found" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
   public handleUpdateResult = async (
     req: Request,
     res: Response
@@ -131,7 +98,7 @@ export class PersonalityTestController {
           userID,
         });
 
-        const { updatedItem: updatedUser } = await this.db.updateItem({
+        await this.db.updateItem({
           attributes: [
             { name: "personalityTestResult", value: "" },
             { name: "personalityTestStatus", value: "pending" },
@@ -140,10 +107,8 @@ export class PersonalityTestController {
           tableName: "userprofiles",
         });
 
-        const { personalityTestStatus } = updatedUser;
-
         res.status(httpStatusCode).json({
-          data: { personalityTestStatus },
+          data: null,
           message: "Result updated successfully",
         });
       } else {

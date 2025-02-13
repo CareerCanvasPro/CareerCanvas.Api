@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { PersonalityTestController } from "../controllers";
-// import { handleVerifyAccessToken } from "../middlewares";
+import { handleVerifyAccessToken } from "../middlewares";
 
 export class PersonalityTestRoute {
   private readonly personalityTestController = new PersonalityTestController();
@@ -11,6 +11,8 @@ export class PersonalityTestRoute {
   public readonly router = Router();
 
   constructor() {
+    this.initMiddlewares([handleVerifyAccessToken]);
+
     this.initRoutes();
   }
 
@@ -27,7 +29,6 @@ export class PersonalityTestRoute {
     this.router
       .route("/result")
       .post(this.personalityTestController.handleEnterResult)
-      .get(this.personalityTestController.handleRetrieveResult)
       .put(this.personalityTestController.handleUpdateResult);
   };
 }
