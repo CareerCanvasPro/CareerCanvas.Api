@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { JobManagementController } from "../controllers";
-// import { handleVerifyAccessToken } from "../middlewares";
+import { handleVerifyAccessToken } from "../middlewares";
 
 export class JobManagementRoute {
   private readonly jobManagementController = new JobManagementController();
@@ -20,12 +20,16 @@ export class JobManagementRoute {
   };
 
   private initRoutes = (): void => {
-    // this.router
-    //   .route("/recommendation")
-    //   .get(this.courseManagementController.handleRetrieveRecommendedCourses);
-    // this.router
-    //   .route("/search")
-    //   .get(this.courseManagementController.handleSearchCourses);
     this.router.route("/post").post(this.jobManagementController.handlePostJob);
+
+    this.initMiddlewares([handleVerifyAccessToken]);
+
+    this.router
+      .route("/recommendation")
+      .get(this.jobManagementController.handleRetrieveRecommendedCourses);
+
+    this.router
+      .route("/search")
+      .get(this.jobManagementController.handleSearchCourses);
   };
 }

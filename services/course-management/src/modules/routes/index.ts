@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { CourseManagementController } from "../controllers";
-// import { handleVerifyAccessToken } from "../middlewares";
+import { handleVerifyAccessToken } from "../middlewares";
 
 export class CourseManagementRoute {
   private readonly courseManagementController =
@@ -21,6 +21,12 @@ export class CourseManagementRoute {
   };
 
   private initRoutes = (): void => {
+    this.router
+      .route("/post")
+      .post(this.courseManagementController.handlePostCourse);
+
+    this.initMiddlewares([handleVerifyAccessToken]);
+
     this.router
       .route("/recommendation")
       .get(this.courseManagementController.handleRetrieveRecommendedCourses);

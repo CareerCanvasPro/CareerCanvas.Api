@@ -1,23 +1,26 @@
 import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
+import { cleanMessage } from "../../utils";
+import { postJobSchema } from "../schemas";
 import { JobsDB } from "../services";
 
-type Level = "beginner" | "intermediate" | "expert";
-
-interface ExtractDurationParams {
-  duration: string | string[];
+interface FilterJobsForRecommendationParams {
+  goals: string[] | undefined;
+  interests: string[] | undefined;
+  jobs: Record<string, unknown>[];
+  personalityTestResult: string | undefined;
+  skills: string[] | undefined;
 }
 
-interface FilterCoursesParams {
-  courses: Record<string, unknown>[];
-  duration: string | string[] | undefined;
+interface FilterJobsForSearchParams {
+  jobs: Record<string, unknown>[];
   keyword: string | undefined;
-  level: Level | Level[] | undefined;
 }
 
-interface ShuffleCoursesParams {
-  courses: Record<string, unknown>[];
+interface ShuffleJobsParams {
+  jobs: Record<string, unknown>[];
 }
 
 export class JobManagementController {
@@ -25,91 +28,120 @@ export class JobManagementController {
 
   private readonly jobsDB = new JobsDB();
 
-  private extractDuration = ({ duration }: ExtractDurationParams): string[][] =>
-    Array.isArray(duration)
-      ? duration.map((value) =>
-          value.includes("+") ? [value.slice(0, -1), ""] : value.split("-")
-        )
-      : duration.includes("+")
-      ? [[duration.slice(0, -1), ""]]
-      : [duration.split("-")];
-
-  private filterCourses = ({
-    courses,
-    duration,
-    keyword,
-    level,
-  }: FilterCoursesParams): {
-    filteredCourses: Record<string, unknown>[];
+  private filterJobsForRecommendation = ({
+    goals,
+    interests,
+    jobs,
+    personalityTestResult,
+    skills,
+  }: FilterJobsForRecommendationParams): {
+    filteredJobs: Record<string, unknown>[];
   } => {
-    const filteredCourses = courses.filter((course) => {
+    const filteredJobs = jobs.filter((job) => {
       const flags: boolean[] = [];
 
-      if (duration) {
-        const extractedDuration = this.extractDuration({ duration });
-
+      if (goals && goals.length) {
         flags.push(
-          extractedDuration.some(
-            (value) =>
-              (course.duration as number) >= parseFloat(value[0]) &&
-              (course.duration as number) <= parseFloat(value[1])
+          goals.some((goal) =>
+            goal.toLowerCase().includes((job.goal as string).toLowerCase())
           )
         );
       }
 
-      if (keyword) {
+      if (interests && interests.length) {
         flags.push(
-          (course.name as string).toLowerCase().includes(keyword) ||
-            (course.topic as string).toLowerCase().includes(keyword) ||
-            (course.creators as string[]).some((creator) =>
-              creator.toLowerCase().includes(keyword)
-            )
+          interests.some((interest) =>
+            interest
+              .toLowerCase()
+              .includes((job.interest as string).toLowerCase())
+          )
         );
       }
 
-      if (level) {
+      if (personalityTestResult) {
+        flags.push(personalityTestResult === job.personality);
+      }
+
+      if (skills && skills.length) {
         flags.push(
-          Array.isArray(level)
-            ? level.some((value) => course.level === value)
-            : course.level === level
+          skills.some((skill) =>
+            skill.toLowerCase().includes((job.skill as string).toLowerCase())
+          )
         );
       }
 
       return flags.every((flag) => flag === true);
     });
 
-    return { filteredCourses };
+    return { filteredJobs };
   };
 
-  private shuffleCourses = ({
-    courses,
-  }: ShuffleCoursesParams): { shuffledCourses: Record<string, unknown>[] } => {
-    const shuffledCourses = [...courses];
+  private filterJobsForSearch = ({
+    jobs,
+    keyword,
+  }: FilterJobsForSearchParams): {
+    filteredJobs: Record<string, unknown>[];
+  } => {
+    const filteredJobs = jobs.filter((job) => {
+      const flags: boolean[] = [];
 
-    for (let i = shuffledCourses.length - 1; i > 0; i--) {
+      if (keyword) {
+        flags.push(
+          (job.goal as string).toLowerCase().includes(keyword) ||
+            (job.interest as string).toLowerCase().includes(keyword) ||
+            (job.location as string).toLowerCase().includes(keyword) ||
+            (job.organization as string).toLowerCase().includes(keyword) ||
+            (job.position as string).toLowerCase().includes(keyword) ||
+            (job.type as string).toLowerCase().includes(keyword)
+        );
+      }
+
+      return flags.every((flag) => flag === true);
+    });
+
+    return { filteredJobs };
+  };
+
+  private shuffleJobs = ({
+    jobs,
+  }: ShuffleJobsParams): { shuffledJobs: Record<string, unknown>[] } => {
+    const shuffledJobs = [...jobs];
+
+    for (let i = shuffledJobs.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
 
-      [shuffledCourses[i], shuffledCourses[j]] = [
-        shuffledCourses[j],
-        shuffledCourses[i],
-      ];
+      [shuffledJobs[i], shuffledJobs[j]] = [shuffledJobs[j], shuffledJobs[i]];
     }
 
-    return { shuffledCourses };
+    return { shuffledJobs };
   };
 
   public handlePostJob = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { job } = req.body;
+      delete req.body.exp;
 
-      const { httpStatusCode } = await this.jobsDB.putJob({
-        job,
+      delete req.body.iat;
+
+      const { error, value } = postJobSchema.validate(req.body, {
+        abortEarly: false,
       });
 
-      res.status(httpStatusCode).json({
-        data: null,
-        message: "New job posted successfully",
-      });
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        const { httpStatusCode } = await this.jobsDB.putJob({
+          job: { ...value, jobID: uuidv4() },
+        });
+
+        res.status(httpStatusCode).json({
+          data: null,
+          message: "New job posted successfully",
+        });
+      }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res
@@ -123,12 +155,12 @@ export class JobManagementController {
     }
   };
 
-  public handleRetrieveRecommendedCourses = async (
+  public handleRetrieveRecommendedJobs = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.query;
+      const { userID } = req.body;
 
       const { item: user } = await this.db.getItem({
         key: { name: "userID", value: userID as string },
@@ -136,42 +168,30 @@ export class JobManagementController {
       });
 
       if (user) {
-        const { interests } = user;
+        const { goals, interests, personalityTestResult, skills } = user;
 
-        if (!interests || !(interests as string[]).length) {
-          const { courses, httpStatusCode } = await this.jobsDB.getAllCourses();
+        const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
 
-          const { shuffledCourses } = this.shuffleCourses({ courses });
+        const { filteredJobs } = this.filterJobsForRecommendation({
+          goals: goals as string[] | undefined,
+          interests: interests as string[] | undefined,
+          jobs,
+          personalityTestResult: personalityTestResult as string | undefined,
+          skills: skills as string[] | undefined,
+        });
 
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
-        } else {
-          const { courses, httpStatusCode } = await this.jobsDB.scanCourses({
-            attributes: [{ name: "topic", value: interests as string[] }],
+        const { shuffledJobs } = this.shuffleJobs({ jobs: filteredJobs });
+
+        if (shuffledJobs.length > 10) {
+          res.status(httpStatusCode).json({
+            data: { jobs: shuffledJobs.slice(0, 10) },
+            message: "Recommended jobs retrieved successfully",
           });
-
-          const { shuffledCourses } = this.shuffleCourses({ courses });
-
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
+        } else {
+          res.status(httpStatusCode).json({
+            data: { jobs: shuffledJobs },
+            message: "Recommended jobs retrieved successfully",
+          });
         }
       } else {
         res.status(404).json({ data: user, message: "Profile not found" });
@@ -189,24 +209,22 @@ export class JobManagementController {
     }
   };
 
-  public handleSearchCourses = async (
+  public handleSearchJobs = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { duration, keyword, level } = req.query;
+      const { keyword } = req.query;
 
-      const { courses, httpStatusCode } = await this.jobsDB.getAllCourses();
+      const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
 
-      const { filteredCourses } = this.filterCourses({
-        courses,
-        duration: duration as string | string[] | undefined,
+      const { filteredJobs } = this.filterJobsForSearch({
+        jobs,
         keyword: keyword as string | undefined,
-        level: level as Level | Level[] | undefined,
       });
 
       res.status(httpStatusCode).json({
-        data: { courses: filteredCourses },
+        data: { jobs: filteredJobs },
         message: "Search results retrieved successfully",
       });
     } catch (error) {

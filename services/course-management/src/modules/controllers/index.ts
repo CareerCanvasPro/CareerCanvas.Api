@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
+import { cleanMessage } from "../../utils";
+import { postCourseSchema } from "../schemas";
 import { CoursesDB } from "../services";
 
 type Level = "beginner" | "intermediate" | "expert";
@@ -96,6 +99,48 @@ export class CourseManagementController {
     }
 
     return { shuffledCourses };
+  };
+
+  public handlePostCourse = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      delete req.body.exp;
+
+      delete req.body.iat;
+
+      const { error, value } = postCourseSchema.validate(req.body, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        const { httpStatusCode } = await this.coursesDB.putCourse({
+          course: { ...value, courseID: uuidv4() },
+        });
+
+        res.status(httpStatusCode).json({
+          data: null,
+          message: "New course posted successfully",
+        });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
   };
 
   public handleRetrieveRecommendedCourses = async (

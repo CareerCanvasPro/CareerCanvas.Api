@@ -20,7 +20,7 @@ interface PutJobParams {
   job: Record<string, unknown>;
 }
 
-interface ScanCoursesParams {
+interface ScanJobsParams {
   attributes: IAttribute[];
 }
 
@@ -79,22 +79,22 @@ export class JobsDB {
     };
   };
 
-  public getAllCourses = async (): Promise<{
-    courses: Record<string, unknown>[];
+  public getAllJobs = async (): Promise<{
     httpStatusCode: number;
+    jobs: Record<string, unknown>[];
   }> => {
     const {
       $metadata: { httpStatusCode },
-      Items: Courses,
+      Items: Jobs,
     } = await this.dynamoDBClient.send(
       new ScanCommand({
         TableName: this.tableName,
       })
     );
 
-    const courses = Courses.map((course) => unmarshall(course));
+    const jobs = Jobs.map((job) => unmarshall(job));
 
-    return { courses, httpStatusCode };
+    return { httpStatusCode, jobs };
   };
 
   public putJob = async ({
@@ -112,11 +112,11 @@ export class JobsDB {
     return { httpStatusCode };
   };
 
-  public scanCourses = async ({
+  public scanJobs = async ({
     attributes,
-  }: ScanCoursesParams): Promise<{
-    courses: Record<string, unknown>[];
+  }: ScanJobsParams): Promise<{
     httpStatusCode: number;
+    jobs: Record<string, unknown>[];
   }> => {
     const {
       expressionAttributeNames,
@@ -126,7 +126,7 @@ export class JobsDB {
 
     const {
       $metadata: { httpStatusCode },
-      Items: Courses,
+      Items: Jobs,
     } = await this.dynamoDBClient.send(
       new ScanCommand({
         ExpressionAttributeNames: expressionAttributeNames,
@@ -136,8 +136,8 @@ export class JobsDB {
       })
     );
 
-    const courses = Courses.map((course) => unmarshall(course));
+    const jobs = Jobs.map((job) => unmarshall(job));
 
-    return { courses, httpStatusCode };
+    return { httpStatusCode, jobs };
   };
 }

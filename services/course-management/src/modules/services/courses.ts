@@ -1,4 +1,8 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  ScanCommand,
+} from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 import { config } from "../../config";
@@ -10,6 +14,10 @@ interface IAttribute {
 
 interface BuildFilterExpressionParams {
   attributes: IAttribute[];
+}
+
+interface PutCourseParams {
+  course: Record<string, unknown>;
 }
 
 interface ScanCoursesParams {
@@ -87,6 +95,21 @@ export class CoursesDB {
     const courses = Courses.map((course) => unmarshall(course));
 
     return { courses, httpStatusCode };
+  };
+
+  public putCourse = async ({
+    course,
+  }: PutCourseParams): Promise<{ httpStatusCode: number }> => {
+    const {
+      $metadata: { httpStatusCode },
+    } = await this.dynamoDBClient.send(
+      new PutItemCommand({
+        Item: marshall(course),
+        TableName: this.tableName,
+      })
+    );
+
+    return { httpStatusCode };
   };
 
   public scanCourses = async ({
