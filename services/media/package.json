@@ -22,7 +22,7 @@
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "tsc": "tsc",
+    "build": "tsc",
     "watch-deploy": "node --watch lib/server"
   },
   "dependencies": {
