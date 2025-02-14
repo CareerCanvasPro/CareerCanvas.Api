@@ -1,7 +1,7 @@
 {
-  "name": "@careercanvas-api/media",
+  "name": "@careercanvas-api/user-management",
   "version": "0.0.0",
-  "description": "Media upload service for Career Canvas API",
+  "description": "User management service for Career Canvas API",
   "author": "CareerCanvas Team <support@careercanvas.pro>",
   "homepage": "",
   "license": "ISC",
@@ -22,11 +22,7 @@
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
-<<<<<<< HEAD
-    "build": "npx tsc",
-=======
     "build": "tsc",
->>>>>>> dev
     "watch-deploy": "node --watch lib/server"
   },
   "dependencies": {

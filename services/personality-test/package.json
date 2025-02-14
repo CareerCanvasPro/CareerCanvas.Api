@@ -1,7 +1,7 @@
 {
-  "name": "@careercanvas-api/media",
+  "name": "@careercanvas-api/personality-test",
   "version": "0.0.0",
-  "description": "Media upload service for Career Canvas API",
+  "description": "Personality test service for Career Canvas API",
   "author": "CareerCanvas Team <support@careercanvas.pro>",
   "homepage": "",
   "license": "ISC",
@@ -18,16 +18,12 @@
     "access": "public"
   },
   "scripts": {
-    "deploy": "node lib/server",
+    "deploy": "node lib/services/personality-test/src/server",
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
-<<<<<<< HEAD
-    "build": "npx tsc",
-=======
-    "build": "tsc",
->>>>>>> dev
-    "watch-deploy": "node --watch lib/server"
+    "tsc": "tsc",
+    "watch-deploy": "node --watch lib/services/personality-test/src/server"
   },
   "dependencies": {
     "rimraf": "^5.0.5"
