@@ -1,0 +1,20 @@
+// export default interface UserProfile {
+//   username?: string;
+//   profilePicture?:string;
+//   premiumStatus?:any;
+//   email?: string;
+//   firstName?: string;
+//   lastName?: string;
+//   gender?: string;
+//   dateOfBirth?: string;
+//   phone?: string;
+//   country?: string;
+//   stateProvince?: string;
+//   profileCompleteness?:string;
+//   profileCompleteBreak?:any;
+//   onlineStatus?:any;
+//   status?:any;
+//   password?:any;
+//   createdAt?:string;
+//   updatedAt?:string;
+// };
