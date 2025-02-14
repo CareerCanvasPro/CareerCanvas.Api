@@ -1,10 +1,18 @@
+# Dependencies
 node_modules
-dist
-lib
-uploads
 package-lock.json
+
+# Environment
 .env
+.env.*
+!.env.example
+
+# IDE
 .vscode
 .vscode/settings.json
-eslint.config.mjs.env
-.env*
+eslint.config.mjs
+
+# Build
+dist/
+build/
+*.tsbuildinfo
