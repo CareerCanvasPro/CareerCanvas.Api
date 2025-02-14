@@ -1,9 +1,0 @@
-node_modules
-dist
-lib
-uploads
-package-lock.json
-.env
-.vscode
-.vscode/settings.json
-eslint.config.mjspackages/auth-middleware/*.tgz
