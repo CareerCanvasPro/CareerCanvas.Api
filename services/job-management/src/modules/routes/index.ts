@@ -25,11 +25,15 @@ export class JobManagementRoute {
     this.initMiddlewares([handleVerifyAccessToken]);
 
     this.router
+      .route("/career-trends")
+      .get(this.jobManagementController.handleRetrieveCareerTrends);
+
+    this.router
       .route("/recommendation")
-      .get(this.jobManagementController.handleRetrieveRecommendedCourses);
+      .get(this.jobManagementController.handleRetrieveRecommendedJobs);
 
     this.router
       .route("/search")
-      .get(this.jobManagementController.handleSearchCourses);
+      .get(this.jobManagementController.handleSearchJobs);
   };
 }

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { DB } from "../../../../../utility/db";
 import { cleanMessage } from "../../utils";
 import { postJobSchema } from "../schemas";
-import { JobsDB } from "../services";
+import { CareerTrendsDB, JobsDB } from "../services";
 
 interface FilterJobsForRecommendationParams {
   goals: string[] | undefined;
@@ -25,6 +25,8 @@ interface ShuffleJobsParams {
 
 export class JobManagementController {
   private readonly db = new DB();
+
+  private readonly careerTrendsDB = new CareerTrendsDB();
 
   private readonly jobsDB = new JobsDB();
 
@@ -141,6 +143,37 @@ export class JobManagementController {
           data: null,
           message: "New job posted successfully",
         });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleRetrieveCareerTrends = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { careers, httpStatusCode } =
+        await this.careerTrendsDB.getCareerTrends();
+
+      if (careers) {
+        res.status(httpStatusCode).json({
+          data: { careers },
+          message: "Career trends retrieved successfully",
+        });
+      } else {
+        res
+          .status(404)
+          .json({ data: null, message: "Career trends not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

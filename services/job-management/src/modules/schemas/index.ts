@@ -4,8 +4,7 @@ export const postJobSchema = joi
   .object()
   .keys({
     deadline: joi.number().min(0).required(),
-    goal: joi.string().required().trim(),
-    interest: joi
+    field: joi
       .string()
       .valid(
         "Artificial Intelligence",
@@ -16,6 +15,7 @@ export const postJobSchema = joi
         "Software Development"
       )
       .required(),
+    goal: joi.string().required().trim(),
     location: joi.string().required().trim(),
     organization: joi.string().required().trim(),
     personality: joi
