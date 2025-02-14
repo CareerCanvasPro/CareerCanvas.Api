@@ -1,13 +1,8 @@
 {
-  "name": "careercanvas-api",
-  "version": "1.0.0",
+  "name": "cms-api",
   "private": true,
   "workspaces": [
     "services/*"
-<<<<<<< HEAD
-  ]
-}
-=======
   ],
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.470.0",
@@ -71,4 +66,3 @@
     "typescript-eslint": "^8.21.0"
   }
 }
->>>>>>> dev
