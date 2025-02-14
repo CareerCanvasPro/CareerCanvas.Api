@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CareerCanvas Auth API Monitoring Dashboard'
+
+Resources:
+  PerformanceDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub ${AWS::StackName}-auth-performance
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["CareerCanvas/AuthAPI/Performance", "ResponseTime", "Endpoint", "/auth/login"],
+                  [".", ".", ".", "/auth/register"],
+                  [".", ".", ".", "/auth/magic-link"],
+                  [".", ".", ".", "/auth/otp"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "API Response Times"
+              }
+            },
+            {
+              "type": "metric",
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["CareerCanvas/AuthAPI/Performance", "PerformanceAlert", "Severity", "critical"],
+                  [".", ".", ".", "warning"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "${AWS::Region}",
+                "title": "Performance Alerts"
+              }
+            },
+            {
+              "type": "metric",
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["CareerCanvas/AuthAPI/Performance", "SuccessRate", "Endpoint", "/auth/login"],
+                  [".", ".", ".", "/auth/register"],
+                  [".", ".", ".", "/auth/magic-link"],
+                  [".", ".", ".", "/auth/otp"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "${AWS::Region}",
+                "title": "API Success Rates"
+              }
+            }
+          ]
+        }
+
+  PerformanceAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-critical-performance
+      AlarmDescription: Triggers when critical performance issues are detected
+      MetricName: PerformanceAlert
+      Namespace: CareerCanvas/AuthAPI/Performance
+      Dimensions:
+        - Name: Severity
+          Value: critical
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlertTopic
+
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Auth API Performance Alerts

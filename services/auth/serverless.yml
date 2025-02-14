@@ -1,0 +1,242 @@
+service: careercanvas-auth
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  stage: ${env:STAGE, 'prod'}
+  memorySize: 256    # Reduce from default if not needed
+  timeout: 10        # Adjust based on actual needs
+  environment:
+    # Add cache settings
+    DYNAMODB_TTL_CACHE: 300
+    AUTH_JWT_SECRET: ${env:AUTH_JWT_SECRET}
+    AUTH_TOKEN_EXPIRY: ${env:AUTH_TOKEN_EXPIRY}
+    USERS_TABLE: ${self:service}-users-${self:provider.stage}
+    OTP_TABLE: ${self:service}-otp-${self:provider.stage}
+    MAGIC_LINKS_TABLE: ${self:service}-magic-links-${self:provider.stage}
+    EMAIL_FROM: ${env:EMAIL_FROM}
+    WEB_URL: ${env:WEB_URL}
+    MOBILE_APP_SCHEME: ${env:MOBILE_APP_SCHEME, 'careercanvas'}
+    ANDROID_PACKAGE_NAME: ${env:ANDROID_PACKAGE_NAME}
+    IOS_BUNDLE_ID: ${env:IOS_BUNDLE_ID}
+    DEEP_LINK_DOMAIN: ${env:DEEP_LINK_DOMAIN}
+    TWILIO_ACCOUNT_SID: ${env:TWILIO_ACCOUNT_SID}
+    TWILIO_AUTH_TOKEN: ${env:TWILIO_AUTH_TOKEN}
+    TWILIO_PHONE_NUMBER: ${env:TWILIO_PHONE_NUMBER}
+    TWILIO_WHATSAPP_NUMBER: ${env:TWILIO_WHATSAPP_NUMBER}
+    SMS_PROVIDER: ${env:SMS_PROVIDER, 'twilio'}
+    WHATSAPP_PROVIDER: ${env:WHATSAPP_PROVIDER, 'twilio'}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - !GetAtt UsersTable.Arn
+            - !GetAtt OTPTable.Arn
+            - !GetAtt MagicLinksTable.Arn
+            - !Join ['/', [!GetAtt OTPTable.Arn, 'index/*']]
+            - !Join ['/', [!GetAtt MagicLinksTable.Arn, 'index/*']]
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - sns:Publish
+            - sns:SetSMSAttributes
+            - sns:CheckIfPhoneNumberIsOptedOut
+            - sns:OptInPhoneNumber
+          Resource: "*"
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.USERS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: email
+            AttributeType: S
+          - AttributeName: phone
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: email-index
+            KeySchema:
+              - AttributeName: email
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: phone-index
+            KeySchema:
+              - AttributeName: phone
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    OTPTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.OTP_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: phoneNumber
+            AttributeType: S
+          - AttributeName: code
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: phone-code-index
+            KeySchema:
+              - AttributeName: phoneNumber
+                KeyType: HASH
+              - AttributeName: code
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: expires
+          Enabled: true    # Ensures automatic deletion of expired OTPs
+        ProvisionedThroughput:    # Instead of PAY_PER_REQUEST for predictable traffic
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+
+    MagicLinksTable:
+      Properties:
+        # Similar TTL and provisioned throughput settings
+        TableName: ${self:provider.environment.MAGIC_LINKS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: token
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: token-index
+            KeySchema:
+              - AttributeName: token
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: expires
+          Enabled: true
+
+custom:
+  serverless-offline:
+    httpPort: 8003
+    noPrependStageInUrl: true
+functions:
+  login:
+    handler: src/functions/auth/handler.login
+    events:
+      - http:
+          path: /auth/login
+          method: post
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  register:
+    handler: src/functions/auth/handler.register
+    events:
+      - http:
+          path: /auth/register
+          method: post
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  me:
+    handler: src/functions/auth/handler.me
+    events:
+      - http:
+          path: /auth/me
+          method: get
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  sendMagicLink:
+    handler: src/functions/auth/handler.sendMagicLink
+    events:
+      - http:
+          path: /auth/magic-link
+          method: post
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  verifyMagicLink:
+    handler: src/functions/auth/handler.verifyMagicLink
+    events:
+      - http:
+          path: /auth/verify-magic-link
+          method: post
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  sendOTP:
+    handler: src/functions/auth/handler.sendOTP
+    events:
+      - http:
+          path: /auth/otp
+          method: post
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
+
+  verifyOTP:
+    handler: src/functions/auth/handler.verifyOTP
+    events:
+      - http:
+          path: /auth/verify-otp
+          method: post
+          cors:
+            origin: ${env:CORS_ORIGIN, '*'}
+            headers:
+              - Content-Type
+              - Authorization
+            allowCredentials: true
