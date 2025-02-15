@@ -20,7 +20,9 @@ export class JobManagementRoute {
   };
 
   private initRoutes = (): void => {
-    this.router.route("/post").post(this.jobManagementController.handlePostJob);
+    this.router
+      .route("/post")
+      .post(this.jobManagementController.handlePostJobs);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 

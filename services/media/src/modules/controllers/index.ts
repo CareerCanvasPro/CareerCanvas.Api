@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { v4 as uuidv4 } from "uuid";
 
 import { S3 } from "../services";
 
@@ -187,6 +188,50 @@ export class MediaController {
         res.status(httpStatusCode).json({
           data: { url },
           message: "Certificate uploaded successfully",
+        });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUploadImage = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { error },
+        file,
+      } = req;
+
+      if (error) {
+        res.status(400).json(error);
+      } else if (!file) {
+        res.status(400).json({ data: null, message: "No file uploaded" });
+      } else {
+        const { buffer, mimetype } = file;
+
+        const { httpStatusCode, key } = await this.s3.putFile({
+          acl: "public-read",
+          body: buffer,
+          contentType: mimetype,
+          key: uuidv4(),
+        });
+
+        const { url } = this.s3.getUrl({ key });
+
+        res.status(httpStatusCode).json({
+          data: { url },
+          message: "Profile picture uploaded successfully",
         });
       }
     } catch (error) {

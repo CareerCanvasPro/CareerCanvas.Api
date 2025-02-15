@@ -31,7 +31,6 @@ export class MediaRoute {
           }
         },
       }).single("file"),
-      handleVerifyAccessToken,
     ]);
 
     this.initRoutes();
@@ -43,6 +42,12 @@ export class MediaRoute {
   };
 
   public initRoutes = (): void => {
+    this.router
+      .route("/image")
+      .post(this.mediaController.handleUploadCertificate);
+
+    this.initMiddlewares([handleVerifyAccessToken]);
+
     this.router
       .route("/certificate")
       .delete(this.mediaController.handleRemoveCertificate)

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
 import { cleanMessage } from "../../utils";
-import { postJobSchema } from "../schemas";
+import { postJobsSchema } from "../schemas";
 import { CareerTrendsDB, JobsDB } from "../services";
 
 interface FilterJobsForRecommendationParams {
@@ -11,7 +11,6 @@ interface FilterJobsForRecommendationParams {
   interests: string[] | undefined;
   jobs: Record<string, unknown>[];
   personalityTestResult: string | undefined;
-  skills: string[] | undefined;
 }
 
 interface FilterJobsForSearchParams {
@@ -35,40 +34,31 @@ export class JobManagementController {
     interests,
     jobs,
     personalityTestResult,
-    skills,
   }: FilterJobsForRecommendationParams): {
     filteredJobs: Record<string, unknown>[];
   } => {
     const filteredJobs = jobs.filter((job) => {
       const flags: boolean[] = [];
 
+      flags.push((job.deadline as number) >= Date.now());
+
       if (goals && goals.length) {
         flags.push(
-          goals.some((goal) =>
-            goal.toLowerCase().includes((job.goal as string).toLowerCase())
-          )
+          goals.some((goal) => (job.goals as string[]).includes(goal))
         );
       }
 
       if (interests && interests.length) {
         flags.push(
           interests.some((interest) =>
-            interest
-              .toLowerCase()
-              .includes((job.interest as string).toLowerCase())
+            (job.fields as string[]).includes(interest)
           )
         );
       }
 
       if (personalityTestResult) {
-        flags.push(personalityTestResult === job.personality);
-      }
-
-      if (skills && skills.length) {
         flags.push(
-          skills.some((skill) =>
-            skill.toLowerCase().includes((job.skill as string).toLowerCase())
-          )
+          (job.personalityTypes as string[]).includes(personalityTestResult)
         );
       }
 
@@ -87,14 +77,29 @@ export class JobManagementController {
     const filteredJobs = jobs.filter((job) => {
       const flags: boolean[] = [];
 
+      flags.push((job.deadline as number) >= Date.now());
+
       if (keyword) {
         flags.push(
-          (job.goal as string).toLowerCase().includes(keyword) ||
-            (job.interest as string).toLowerCase().includes(keyword) ||
-            (job.location as string).toLowerCase().includes(keyword) ||
-            (job.organization as string).toLowerCase().includes(keyword) ||
-            (job.position as string).toLowerCase().includes(keyword) ||
-            (job.type as string).toLowerCase().includes(keyword)
+          (job.fields as string[]).some((field) =>
+            field.toLowerCase().includes(keyword.toLowerCase())
+          ) ||
+            (job.goals as string[]).some((goal) =>
+              goal.toLowerCase().includes(keyword.toLowerCase())
+            ) ||
+            (job.location as string)
+              .toLowerCase()
+              .includes(keyword.toLowerCase()) ||
+            (job.locationType as string)
+              .toLowerCase()
+              .includes(keyword.toLowerCase()) ||
+            (job.organization as string)
+              .toLowerCase()
+              .includes(keyword.toLowerCase()) ||
+            (job.position as string)
+              .toLowerCase()
+              .includes(keyword.toLowerCase()) ||
+            (job.type as string).toLowerCase().includes(keyword.toLowerCase())
         );
       }
 
@@ -118,13 +123,16 @@ export class JobManagementController {
     return { shuffledJobs };
   };
 
-  public handlePostJob = async (req: Request, res: Response): Promise<void> => {
+  public handlePostJobs = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
       delete req.body.exp;
 
       delete req.body.iat;
 
-      const { error, value } = postJobSchema.validate(req.body, {
+      const { error, value } = postJobsSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -135,13 +143,16 @@ export class JobManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { httpStatusCode } = await this.jobsDB.putJob({
-          job: { ...value, jobID: uuidv4() },
-        });
+        (value as Record<string, unknown>[]).forEach(
+          async (value) =>
+            await this.jobsDB.putJob({
+              job: { ...value, jobID: uuidv4() },
+            })
+        );
 
-        res.status(httpStatusCode).json({
+        res.status(200).json({
           data: null,
-          message: "New job posted successfully",
+          message: "New jobs posted successfully",
         });
       }
     } catch (error) {
@@ -201,7 +212,7 @@ export class JobManagementController {
       });
 
       if (user) {
-        const { goals, interests, personalityTestResult, skills } = user;
+        const { goals, interests, personalityTestResult } = user;
 
         const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
 
@@ -210,7 +221,6 @@ export class JobManagementController {
           interests: interests as string[] | undefined,
           jobs,
           personalityTestResult: personalityTestResult as string | undefined,
-          skills: skills as string[] | undefined,
         });
 
         const { shuffledJobs } = this.shuffleJobs({ jobs: filteredJobs });
@@ -257,7 +267,7 @@ export class JobManagementController {
       });
 
       res.status(httpStatusCode).json({
-        data: { jobs: filteredJobs },
+        data: { filteredJobs },
         message: "Search results retrieved successfully",
       });
     } catch (error) {
