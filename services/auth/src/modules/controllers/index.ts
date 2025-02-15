@@ -3,6 +3,7 @@ import { join } from "path";
 import { renderFile } from "ejs";
 import { Request, Response } from "express";
 import { sign, verify } from "jsonwebtoken";
+import otpGenerator from "otp-generator";
 import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
@@ -78,6 +79,74 @@ export class AuthController {
             }
           }
         );
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  }
+
+  public async handleAuthOTP(req: Request, res: Response): Promise<void> {
+    try {
+      const ses = new SES();
+
+      const { error, value } = authSchema.validate(req.body, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        const { email } = value;
+
+        const otp = otpGenerator.generate(6, {
+          digits: true,
+          lowerCaseAlphabets: false,
+          specialChars: false,
+          upperCaseAlphabets: false,
+        });
+
+        const {
+          $metadata: { httpStatusCode },
+        } = await ses.sendEmail({
+          body: {
+            html: await renderFile(
+              join(
+                __dirname,
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "..",
+                "src",
+                "views",
+                "email-otp.ejs"
+              ),
+              { otp }
+            ),
+            text: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}.`,
+          },
+          destination: [email as string],
+          source: "smtp@careercanvas.pro",
+          subject: "OTP for Career Canvas Account Verification",
+        });
+
+        res.status(httpStatusCode).json({
+          data: null,
+          message: "OTP sent to given email successfully",
+        });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

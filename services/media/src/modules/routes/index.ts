@@ -42,9 +42,7 @@ export class MediaRoute {
   };
 
   public initRoutes = (): void => {
-    this.router
-      .route("/image")
-      .post(this.mediaController.handleUploadCertificate);
+    this.router.route("/image").post(this.mediaController.handleUploadImage);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 
