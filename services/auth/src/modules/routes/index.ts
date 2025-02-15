@@ -16,8 +16,13 @@ export class AuthRoute {
   private initRoutes(): void {
     this.router.post("/auth", this.authController.handleAuth);
 
-    this.router.post("/auth-otp", this.authController.handleAuthOTP);
+    this.router.post("/auth-otp", this.authController.handleAuthOtp);
 
     this.router.get("/auth/confirm", this.authController.handleConfirmAuth);
+
+    this.router.get(
+      "/auth-otp/confirm",
+      this.authController.handleConfirmAuthOtp
+    );
   }
 }

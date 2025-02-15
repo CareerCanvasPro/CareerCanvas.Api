@@ -11,16 +11,21 @@ import { SES } from "../../../../../utility/ses";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
 import { authSchema } from "../schemas";
+import { OtpsDB } from "../services";
 
 interface ITokenPayload {
   email: string;
 }
 
 export class AuthController {
-  public async handleAuth(req: Request, res: Response): Promise<void> {
-    try {
-      const ses = new SES();
+  private readonly db = new DB();
 
+  private readonly ses = new SES();
+
+  private readonly otpsDB = new OtpsDB();
+
+  public handleAuth = async (req: Request, res: Response): Promise<void> => {
+    try {
       const { error, value } = authSchema.validate(req.body, {
         abortEarly: false,
       });
@@ -48,7 +53,7 @@ export class AuthController {
 
               const {
                 $metadata: { httpStatusCode },
-              } = await ses.sendEmail({
+              } = await this.ses.sendEmail({
                 body: {
                   html: await renderFile(
                     join(
@@ -91,12 +96,10 @@ export class AuthController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
-  public async handleAuthOTP(req: Request, res: Response): Promise<void> {
+  public handleAuthOtp = async (req: Request, res: Response): Promise<void> => {
     try {
-      const ses = new SES();
-
       const { error, value } = authSchema.validate(req.body, {
         abortEarly: false,
       });
@@ -119,7 +122,7 @@ export class AuthController {
 
         const {
           $metadata: { httpStatusCode },
-        } = await ses.sendEmail({
+        } = await this.ses.sendEmail({
           body: {
             html: await renderFile(
               join(
@@ -143,6 +146,8 @@ export class AuthController {
           subject: "OTP for Career Canvas Account Verification",
         });
 
+        await this.otpsDB.putOtp({ email, otp });
+
         res.status(httpStatusCode).json({
           data: null,
           message: "OTP sent to given email successfully",
@@ -159,12 +164,13 @@ export class AuthController {
           .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
-  }
+  };
 
-  public async handleConfirmAuth(req: Request, res: Response): Promise<void> {
+  public handleConfirmAuth = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const db = new DB();
-
       const { token } = req.query;
 
       verify(
@@ -174,7 +180,7 @@ export class AuthController {
           if (error) {
             throw error;
           } else {
-            const { items: users } = await db.scanItems({
+            const { items: users } = await this.db.scanItems({
               attribute: { name: "email", value: email },
               tableName: "userprofiles",
             });
@@ -222,7 +228,76 @@ export class AuthController {
         });
       }
     }
-  }
+  };
+
+  public handleConfirmAuthOtp = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { otp } = req.query;
+
+      const { otps } = await this.otpsDB.scanOtps({
+        attribute: { name: "otp", value: otp },
+      });
+
+      const [userOtp] = otps;
+
+      if (userOtp.otp === otp) {
+        if ((userOtp.expiryTime as number) >= Date.now()) {
+          await this.otpsDB.deleteOtp({ keyValue: userOtp.userID as string });
+          const { items: users } = await this.db.scanItems({
+            attribute: { name: "email", value: userOtp.email },
+            tableName: "userprofiles",
+          });
+
+          const isNewUser = !users.length;
+
+          const userID = isNewUser ? uuidv4() : users[0].userID;
+
+          sign(
+            { email: userOtp.email, userID },
+            config.aws.clientSecret,
+            {
+              expiresIn: "1d",
+            },
+            (error, accessToken) => {
+              if (error) {
+                throw error;
+              } else {
+                res
+                  .status(301)
+                  .redirect(
+                    `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${userOtp.email}`
+                  );
+              }
+            }
+          );
+        } else {
+          res.status(401).json({ data: null, message: "OTP has expired" });
+        }
+      } else {
+        res.status(401).json({ data: null, message: "Invalid OTP" });
+      }
+    } catch (error) {
+      if (error.name === "JsonWebTokenError") {
+        res.status(401).render("error", {
+          message: "401 Unauthorized | Invalid link",
+          title: "401 Unauthorized",
+        });
+      } else if (error.name === "TokenExpiredError") {
+        res.status(401).render("error", {
+          message: "401 Unauthorized | Link has expired",
+          title: "401 Unauthorized",
+        });
+      } else {
+        res.status(500).render("error", {
+          message: "500 Internal Server Error",
+          title: "500 Internal Server Error",
+        });
+      }
+    }
+  };
 
   // Signup new user without initial signin
   // public async handleSignUp(req: Request, res: Response): Promise<void> {
