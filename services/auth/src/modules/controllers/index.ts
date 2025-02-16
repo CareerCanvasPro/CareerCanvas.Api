@@ -266,10 +266,14 @@ export class AuthController {
                 throw error;
               } else {
                 res
-                  .status(301)
-                  .redirect(
-                    `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${userOtp.email}`
-                  );
+                  .status(200)
+                  .json({
+                    data: {
+                      accessToken, isNewUser,
+                      email: userOtp.email,
+                    },
+                    message: "OTP verified successfully",
+                  });
               }
             }
           );
