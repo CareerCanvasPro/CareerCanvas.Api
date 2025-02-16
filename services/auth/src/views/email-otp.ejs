@@ -15,10 +15,42 @@
     />
   </head>
 
-  <body>
-    <p>
-      Your One-Time Password (OTP) for Career Canvas account verification is <%=
-      otp %>.
-    </p>
+  <body
+    style="
+      align-items: center;
+      background-color: #f4f4f4;
+      display: flex;
+      font-family: 'Open Sans', sans-serif;
+      height: calc(100vh - 40px);
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    "
+  >
+    <div
+      style="
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        margin: auto;
+        max-width: 600px;
+        padding: 20px 60px;
+      "
+    >
+      <img
+        alt="Career Canvas App Logo"
+        src="https://drive.usercontent.google.com/download?id=1U2psTHJsi7cL3eqyHfXMG19RAaL2t5hx"
+        style="margin-bottom: 4px; max-width: 150px"
+      />
+      <h2>Welcome to Career Canvas!</h2>
+      <p>
+        Your One-Time Password (OTP) for Career Canvas account verification is
+        <%= otp %>.
+      </p>
+      <p style="color: #777; font-size: 12px; margin-top: 20px">
+        &copy; 2025 Career Canvas. All rights reserved.
+      </p>
+    </div>
   </body>
 </html>
