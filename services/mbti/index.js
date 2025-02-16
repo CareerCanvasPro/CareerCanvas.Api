@@ -24,46 +24,83 @@ const retrieveQuestions = async () => {
 
 const computeMBTI = ({ questions, result }) => {
   const mbti = {
-    EI: 0,
-    JP: 0,
-    SN: 0,
-    TF: 0,
+    E: 0,
+    F: 0,
+    I: 0,
+    J: 0,
+    N: 0,
+    P: 0,
+    S: 0,
+    T: 0,
   };
 
   for (const { answer, questionID } of result) {
     for (const question of questions) {
       if (question.questionID === questionID) {
+        const score = answer * question.score;
+
         switch (question.category) {
           case "EI":
-            mbti.EI += answer * question.score;
+            if (score >= 0) {
+              mbti.E += score;
+            } else {
+              mbti.I -= score;
+            }
+
             break;
           case "SN":
-            mbti.SN += answer * question.score;
+            if (score >= 0) {
+              mbti.S += score;
+            } else {
+              mbti.N -= score;
+            }
+
             break;
           case "TF":
-            mbti.TF += answer * question.score;
+            if (score >= 0) {
+              mbti.T += score;
+            } else {
+              mbti.F -= score;
+            }
+
             break;
           case "JP":
-            mbti.JP += answer * question.score;
+            if (score >= 0) {
+              mbti.J += score;
+            } else {
+              mbti.P -= score;
+            }
+
             break;
         }
       }
     }
   }
 
-  const EI = mbti.EI >= 0 ? "E" : "I";
-  const SN = mbti.SN >= 0 ? "S" : "N";
-  const TF = mbti.TF >= 0 ? "T" : "F";
-  const JP = mbti.JP >= 0 ? "J" : "P";
+  const personalityTestResult = {
+    EI: mbti.E / (mbti.E + mbti.I),
+    JP: mbti.J / (mbti.J + mbti.P),
+    SN: mbti.S / (mbti.S + mbti.N),
+    TF: mbti.T / (mbti.T + mbti.F),
+  };
 
-  const personalityTestResult = `${EI}${SN}${TF}${JP}`;
+  const EI = mbti.E >= mbti.I ? "E" : "I";
 
-  return { personalityTestResult };
+  const SN = mbti.S >= mbti.N ? "S" : "N";
+
+  const TF = mbti.T >= mbti.F ? "T" : "F";
+
+  const JP = mbti.J >= mbti.P ? "J" : "P";
+
+  const personalityType = `${EI}${SN}${TF}${JP}`;
+
+  return { personalityTestResult, personalityType };
 };
 
 const updateUser = async ({
   personalityTestResult,
   personalityTestStatus,
+  personalityType,
   userID,
 }) => {
   const dynamoDBClient = new DynamoDBClient();
@@ -73,10 +110,12 @@ const updateUser = async ({
       ExpressionAttributeNames: {
         "#field1": "personalityTestResult",
         "#field2": "personalityTestStatus",
+        "#field3": "personalityType",
       },
       ExpressionAttributeValues: {
         ":value1": { S: personalityTestResult },
         ":value2": { S: personalityTestStatus },
+        ":value3": { S: personalityType },
       },
       Key: {
         userID: {
@@ -85,7 +124,8 @@ const updateUser = async ({
       },
       ReturnValues: "ALL_NEW",
       TableName: "userprofiles",
-      UpdateExpression: "SET #field1 = :value1, #field2 = :value2",
+      UpdateExpression:
+        "SET #field1 = :value1, #field2 = :value2, #field3 = :value3",
     })
   );
 
@@ -113,7 +153,7 @@ exports.handler = async (event) => {
           try {
             const { result, userID } = unmarshall(record.dynamodb.NewImage);
 
-            const { personalityTestResult } = computeMBTI({
+            const { personalityTestResult, personalityType } = computeMBTI({
               questions,
               result,
             });
@@ -121,6 +161,7 @@ exports.handler = async (event) => {
             await updateUser({
               personalityTestResult,
               personalityTestStatus: "complete",
+              personalityType,
               userID,
             });
           } catch (error) {

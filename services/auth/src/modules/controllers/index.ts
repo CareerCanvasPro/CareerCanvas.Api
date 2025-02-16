@@ -246,6 +246,7 @@ export class AuthController {
       if (userOtp.otp === otp) {
         if ((userOtp.expiryTime as number) >= Date.now()) {
           await this.otpsDB.deleteOtp({ keyValue: userOtp.userID as string });
+
           const { items: users } = await this.db.scanItems({
             attribute: { name: "email", value: userOtp.email },
             tableName: "userprofiles",
@@ -265,15 +266,14 @@ export class AuthController {
               if (error) {
                 throw error;
               } else {
-                res
-                  .status(200)
-                  .json({
-                    data: {
-                      accessToken, isNewUser,
-                      email: userOtp.email,
-                    },
-                    message: "OTP verified successfully",
-                  });
+                res.status(200).json({
+                  data: {
+                    accessToken,
+                    email: userOtp.email,
+                    isNewUser,
+                  },
+                  message: "OTP verified successfully",
+                });
               }
             }
           );
@@ -284,21 +284,14 @@ export class AuthController {
         res.status(401).json({ data: null, message: "Invalid OTP" });
       }
     } catch (error) {
-      if (error.name === "JsonWebTokenError") {
-        res.status(401).render("error", {
-          message: "401 Unauthorized | Invalid link",
-          title: "401 Unauthorized",
-        });
-      } else if (error.name === "TokenExpiredError") {
-        res.status(401).render("error", {
-          message: "401 Unauthorized | Link has expired",
-          title: "401 Unauthorized",
-        });
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
       } else {
-        res.status(500).render("error", {
-          message: "500 Internal Server Error",
-          title: "500 Internal Server Error",
-        });
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
   };
