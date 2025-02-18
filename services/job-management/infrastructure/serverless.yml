@@ -1,0 +1,112 @@
+service: careercanvas-job-management
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    NODE_ENV: ${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/*"
+
+functions:
+  createJob:
+    handler: src/handlers/job.create
+    events:
+      - http:
+          path: /jobs
+          method: post
+          cors: true
+          authorizer: aws_iam
+
+  getJob:
+    handler: src/handlers/job.get
+    events:
+      - http:
+          path: /jobs/{id}
+          method: get
+          cors: true
+
+  listJobs:
+    handler: src/handlers/job.list
+    events:
+      - http:
+          path: /jobs
+          method: get
+          cors: true
+
+  updateJob:
+    handler: src/handlers/job.update
+    events:
+      - http:
+          path: /jobs/{id}
+          method: put
+          cors: true
+          authorizer: aws_iam
+
+  deleteJob:
+    handler: src/handlers/job.delete
+    events:
+      - http:
+          path: /jobs/{id}
+          method: delete
+          cors: true
+          authorizer: aws_iam
+
+  searchJobs:
+    handler: src/handlers/job.search
+    events:
+      - http:
+          path: /jobs/search
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    JobsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.stage}-jobs
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: employerId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: employerId-index
+            KeySchema:
+              - AttributeName: employerId
+                KeyType: HASH
+              - AttributeName: status
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+package:
+  patterns:
+    - '!node_modules/.prisma/**'
+    - '!node_modules/@prisma/**'
+    - '!tests/**'
+    - '!coverage/**'
+    - '!.env*'
+    - '!tsconfig.json'
+    - '!README.md'

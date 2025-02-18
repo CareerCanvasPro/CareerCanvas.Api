@@ -1,0 +1,108 @@
+service: careercanvas-media
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    NODE_ENV: ${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/*"
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource: "arn:aws:s3:::${self:provider.stage}-media/*"
+
+functions:
+  uploadMedia:
+    handler: src/handlers/media.upload
+    events:
+      - http:
+          path: /media/upload
+          method: post
+          cors: true
+          authorizer: aws_iam
+
+  getMedia:
+    handler: src/handlers/media.get
+    events:
+      - http:
+          path: /media/{id}
+          method: get
+          cors: true
+
+  listMedia:
+    handler: src/handlers/media.list
+    events:
+      - http:
+          path: /media
+          method: get
+          cors: true
+
+  deleteMedia:
+    handler: src/handlers/media.delete
+    events:
+      - http:
+          path: /media/{id}
+          method: delete
+          cors: true
+          authorizer: aws_iam
+
+resources:
+  Resources:
+    MediaTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.stage}-media
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: ownerId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ownerId-index
+            KeySchema:
+              - AttributeName: ownerId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    MediaBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.stage}-media
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ['*']
+              AllowedMethods: [GET, PUT, POST, DELETE]
+              AllowedOrigins: ['*']
+              MaxAge: 3000
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+package:
+  patterns:
+    - '!node_modules/.prisma/**'
+    - '!node_modules/@prisma/**'
+    - '!tests/**'
+    - '!coverage/**'
+    - '!.env*'
+    - '!tsconfig.json'
+    - '!README.md'
