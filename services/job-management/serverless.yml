@@ -1,0 +1,142 @@
+service: careercanvas-job-management
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  stage: ${env:STAGE, 'prod'}
+  memorySize: 256
+  timeout: 10
+  environment:
+    DYNAMODB_TTL_CACHE: 300
+    JOBS_TABLE: ${self:service}-jobs-${self:provider.stage}
+    APPLICATIONS_TABLE: ${self:service}-applications-${self:provider.stage}
+    SAVED_JOBS_TABLE: ${self:service}-saved-jobs-${self:provider.stage}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - !GetAtt JobsTable.Arn
+            - !GetAtt ApplicationsTable.Arn
+            - !GetAtt SavedJobsTable.Arn
+            - !Join ['/', [!GetAtt JobsTable.Arn, 'index/*']]
+            - !Join ['/', [!GetAtt ApplicationsTable.Arn, 'index/*']]
+            - !Join ['/', [!GetAtt SavedJobsTable.Arn, 'index/*']]
+
+resources:
+  Resources:
+    JobsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.JOBS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: employerId
+            AttributeType: S
+          - AttributeName: category
+            AttributeType: S
+          - AttributeName: location
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: employer-index
+            KeySchema:
+              - AttributeName: employerId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: category-index
+            KeySchema:
+              - AttributeName: category
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: location-index
+            KeySchema:
+              - AttributeName: location
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    ApplicationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.APPLICATIONS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: jobId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: job-index
+            KeySchema:
+              - AttributeName: jobId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: user-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: status-index
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    SavedJobsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.SAVED_JOBS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: jobId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: user-saved-jobs-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: job-saved-index
+            KeySchema:
+              - AttributeName: jobId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST

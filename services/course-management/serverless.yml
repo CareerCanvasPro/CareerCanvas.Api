@@ -1,0 +1,126 @@
+service: careercanvas-course-management
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  stage: ${env:STAGE, 'prod'}
+  memorySize: 256
+  timeout: 10
+  environment:
+    DYNAMODB_TTL_CACHE: 300
+    COURSES_TABLE: ${self:service}-courses-${self:provider.stage}
+    ENROLLMENTS_TABLE: ${self:service}-enrollments-${self:provider.stage}
+    PROGRESS_TABLE: ${self:service}-progress-${self:provider.stage}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - !GetAtt CoursesTable.Arn
+            - !GetAtt EnrollmentsTable.Arn
+            - !GetAtt ProgressTable.Arn
+            - !Join ['/', [!GetAtt CoursesTable.Arn, 'index/*']]
+            - !Join ['/', [!GetAtt EnrollmentsTable.Arn, 'index/*']]
+            - !Join ['/', [!GetAtt ProgressTable.Arn, 'index/*']]
+
+resources:
+  Resources:
+    CoursesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.COURSES_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: instructorId
+            AttributeType: S
+          - AttributeName: category
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: instructor-index
+            KeySchema:
+              - AttributeName: instructorId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: category-index
+            KeySchema:
+              - AttributeName: category
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    EnrollmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ENROLLMENTS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: courseId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: user-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: course-index
+            KeySchema:
+              - AttributeName: courseId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    ProgressTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PROGRESS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: courseId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: user-progress-index
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: course-progress-index
+            KeySchema:
+              - AttributeName: courseId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
