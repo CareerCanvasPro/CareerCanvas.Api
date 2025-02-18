@@ -73,7 +73,7 @@ export class AuthController {
                   text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
                 },
                 destination: [email as string],
-                source: "smtp@careercanvas.pro",
+                source: "Career Canvas <noreply@careercanvas.pro>",
                 subject: "Magic Link to Career Canvas",
               });
 
@@ -142,7 +142,7 @@ export class AuthController {
             text: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}.`,
           },
           destination: [email as string],
-          source: "smtp@careercanvas.pro",
+          source: "Career Canvas <noreply@careercanvas.pro>",
           subject: "OTP for Career Canvas Account Verification",
         });
 
