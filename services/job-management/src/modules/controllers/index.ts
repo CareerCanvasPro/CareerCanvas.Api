@@ -10,7 +10,7 @@ interface FilterJobsForRecommendationParams {
   goals: string[] | undefined;
   interests: string[] | undefined;
   jobs: Record<string, unknown>[];
-  personalityTestResult: string | undefined;
+  personalityType: string | undefined;
 }
 
 interface FilterJobsForSearchParams {
@@ -33,7 +33,7 @@ export class JobManagementController {
     goals,
     interests,
     jobs,
-    personalityTestResult,
+    personalityType,
   }: FilterJobsForRecommendationParams): {
     filteredJobs: Record<string, unknown>[];
   } => {
@@ -56,9 +56,9 @@ export class JobManagementController {
         );
       }
 
-      if (personalityTestResult) {
+      if (personalityType) {
         flags.push(
-          (job.personalityTypes as string[]).includes(personalityTestResult)
+          (job.personalityTypes as string[]).includes(personalityType)
         );
       }
 
@@ -212,7 +212,7 @@ export class JobManagementController {
       });
 
       if (user) {
-        const { goals, interests, personalityTestResult } = user;
+        const { goals, interests, personalityType } = user;
 
         const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
 
@@ -220,7 +220,7 @@ export class JobManagementController {
           goals: goals as string[] | undefined,
           interests: interests as string[] | undefined,
           jobs,
-          personalityTestResult: personalityTestResult as string | undefined,
+          personalityType: personalityType as string | undefined,
         });
 
         const { shuffledJobs } = this.shuffleJobs({ jobs: filteredJobs });
