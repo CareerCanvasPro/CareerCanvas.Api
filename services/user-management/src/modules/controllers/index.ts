@@ -12,7 +12,7 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { email, userID } = req.body;
+      const { userID } = req.body;
 
       delete req.body.email;
 
@@ -43,7 +43,7 @@ export class UserManagementController {
             .json({ data: null, message: "Profile already exists" });
         } else {
           const { httpStatusCode } = await this.usersDB.putUser({
-            user: { ...value, email, userID },
+            user: { ...value, userID },
           });
 
           res.status(httpStatusCode).json({

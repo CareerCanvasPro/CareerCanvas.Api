@@ -9,13 +9,16 @@ export const createProfileSchema = joi
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
-        certificate: joi.string().uri({ scheme: ["https"] }),
+        certificate: joi.string().uri({
+          scheme: ["https"],
+        }),
         field: joi.string().trim(),
         graduationDate: joi.number(),
         institute: joi.string().trim(),
         isCurrent: joi.boolean().default(false),
       })
     ),
+    email: joi.string().email(),
     name: joi.string().trim(),
     occupation: joi.array().items(
       joi.object().keys({
@@ -26,11 +29,14 @@ export const createProfileSchema = joi
         to: joi.number(),
       })
     ),
-    phone: joi.string(), // add regex for phone number
-    profilePicture: joi.string().uri({ scheme: ["https"] }),
+    phone: joi.string(),
+    profilePicture: joi.string().uri({
+      scheme: ["https"],
+    }),
     skills: joi.array().items(joi.string().trim()),
     username: joi.string(),
   })
+  .or("email", "phone")
   .unknown(false);
 
 export const updateProfileSchema = joi
