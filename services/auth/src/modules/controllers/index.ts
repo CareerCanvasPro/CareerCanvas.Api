@@ -241,12 +241,10 @@ export class AuthController {
         attribute: { name: "otp", value: otp },
       });
 
-      const [userOtp] = otps;
+      if (otps.length) {
+        const [userOtp] = otps;
 
-      if (userOtp.otp === otp) {
-        if ((userOtp.expiryTime as number) >= Date.now()) {
-          await this.otpsDB.deleteOtp({ keyValue: userOtp.userID as string });
-
+        if ((userOtp.expiresAt as number) >= Math.floor(Date.now() / 1000)) {
           const { items: users } = await this.db.scanItems({
             attribute: { name: "email", value: userOtp.email },
             tableName: "userprofiles",

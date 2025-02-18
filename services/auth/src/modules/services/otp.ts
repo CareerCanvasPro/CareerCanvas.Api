@@ -1,5 +1,4 @@
 import {
-  DeleteItemCommand,
   DynamoDBClient,
   PutItemCommand,
   ScanCommand,
@@ -12,10 +11,6 @@ import { config } from "../../config";
 interface IAttribute {
   name: string;
   value: unknown;
-}
-
-interface DeleteOtpParams {
-  keyValue: string;
 }
 
 interface PutOtpParams {
@@ -36,39 +31,13 @@ export class OtpsDB {
 
   private readonly tableName = "OTP";
 
-  public deleteOtp = async ({
-    keyValue,
-  }: DeleteOtpParams): Promise<{
-    deletedOtp: Record<string, unknown>;
-    httpStatusCode: number;
-  }> => {
-    const {
-      $metadata: { httpStatusCode },
-      Attributes,
-    } = await this.dynamoDBClient.send(
-      new DeleteItemCommand({
-        Key: {
-          [this.keyName]: {
-            S: keyValue,
-          },
-        },
-        ReturnValues: "ALL_OLD",
-        TableName: this.tableName,
-      })
-    );
-
-    const deletedOtp = Attributes ? unmarshall(Attributes) : null;
-
-    return { deletedOtp, httpStatusCode };
-  };
-
   public putOtp = async ({
     email,
     otp,
   }: PutOtpParams): Promise<{ httpStatusCode: number }> => {
     const user = {
       email,
-      expiryTime: Date.now() + 900000,
+      expiresAt: Math.floor(Date.now() / 1000) + 900,
       otp,
       userID: uuidv4(),
     };
