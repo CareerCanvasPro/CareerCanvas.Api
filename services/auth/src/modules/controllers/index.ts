@@ -264,7 +264,9 @@ export class AuthController {
                   res
                     .status(301)
                     .redirect(
-                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}`
+                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}&expiresAt=${
+                        Date.now() + 604800000
+                      }`
                     );
                 }
               }
@@ -330,6 +332,7 @@ export class AuthController {
                   data: {
                     accessToken,
                     email: userOtp.email,
+                    expiresAt: Date.now() + 604800000,
                     isNewUser,
                   },
                   message: "OTP verified successfully",
