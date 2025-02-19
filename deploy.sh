@@ -19,12 +19,20 @@ trap 'error_handler $LINENO' ERR
 
 # Step 1: Ensure necessary commands are available
 echo -e "${PURPLE}[Deploy.sh]:${NC} Checking required dependencies..."
-for cmd in git node pm2 npx; do
+# Add npm to required dependencies
+for cmd in git node pm2 npx npm; do
     if ! command -v "$cmd" &> /dev/null; then
         echo -e "${ERROR}[Deploy.sh]: Error - Required command '$cmd' not found!${NC}"
         exit 1
     fi
 done
+
+# Add package installation step
+echo -e "${PURPLE}[Deploy.sh]:${NC} Installing dependencies..."
+if ! npm install; then
+    echo -e "${ERROR}[Deploy.sh]: npm install failed!${NC}"
+    exit 1
+fi
 
 # Step 2: Pull the latest code from the repository
 echo -e "${PURPLE}[Deploy.sh]:${NC} Pulling latest code..."
@@ -64,7 +72,19 @@ fi
 
 # Step 5: Start/Restart the pm2 processes using the ecosystem files
 echo -e "${PURPLE}[Deploy.sh]:${NC} Deploying services..."
+# Enhance ecosystem file validation
 for file in "${ecosystem_files[@]}"; do
+    if [ ! -f "$file" ]; then
+        echo -e "${ERROR}[Deploy.sh]: Ecosystem file not found: $file${NC}"
+        continue
+    fi
+    
+    # Validate ecosystem file structure
+    if ! node -e "require('$file').apps" &>/dev/null; then
+        echo -e "${ERROR}[Deploy.sh]: Invalid ecosystem file structure: $file${NC}"
+        continue
+    fi
+    
     app_name=$(node -pe "require('$file').apps[0].name" 2>/dev/null || echo "Unknown App")
     if [[ "$app_name" == "Unknown App" ]]; then
         echo -e "${ERROR}[Deploy.sh]: Skipping invalid ecosystem file: $file${NC}"
