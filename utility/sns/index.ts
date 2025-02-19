@@ -117,35 +117,35 @@ export class SNS {
     return { httpStatusCode, messageId };
   }
 
-  async ensurePlatformEndpoint(
-    deviceToken: string,
-    platformApplicationArn: string,
-    userId: string
-  ): Promise<string> {
-    try {
-      const existingEndpointArn = await this.findEndpointByToken(
-        deviceToken,
-        platformApplicationArn
-      );
+  // async ensurePlatformEndpoint(
+  //   deviceToken: string,
+  //   platformApplicationArn: string,
+  //   userId: string
+  // ): Promise<string> {
+  //   try {
+  //     const existingEndpointArn = await this.findEndpointByToken(
+  //       deviceToken,
+  //       platformApplicationArn
+  //     );
 
-      if (existingEndpointArn) {
-        await this.updatePlatformEndpoint(
-          deviceToken,
-          existingEndpointArn,
-          userId
-        );
-        return existingEndpointArn;
-      } else {
-        return await this.createPlatformEndpoint(
-          deviceToken,
-          platformApplicationArn
-        );
-      }
-    } catch (error) {
-      console.error("Error ensuring platform endpoint:", error);
-      throw new Error(`Failed to ensure platform endpoint: ${error.message}`);
-    }
-  }
+  //     if (existingEndpointArn) {
+  //       await this.updatePlatformEndpoint(
+  //         deviceToken,
+  //         existingEndpointArn,
+  //         userId
+  //       );
+  //       return existingEndpointArn;
+  //     } else {
+  //       return await this.createPlatformEndpoint(
+  //         deviceToken,
+  //         platformApplicationArn
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Error ensuring platform endpoint:", error);
+  //     throw new Error(`Failed to ensure platform endpoint: ${error.message}`);
+  //   }
+  // }
 
   public async createPlatformEndpoint(
     deviceToken: string,
