@@ -11,13 +11,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const {
-        body: { userID },
-        query: { index },
-      } = req;
+      const { key } = req.query;
 
       const { httpStatusCode } = await this.s3.deleteFile({
-        key: `${userID}-certificate-${index}`,
+        key: key as string,
       });
 
       if (httpStatusCode === 204) {
@@ -74,13 +71,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const {
-        body: { userID },
-        query: { index },
-      } = req;
+      const { key } = req.query;
 
       const { httpStatusCode } = await this.s3.deleteFile({
-        key: `${userID}-resume-${index}`,
+        key: key as string,
       });
 
       if (httpStatusCode === 204) {
@@ -166,7 +160,6 @@ export class MediaController {
       const {
         body: { error, userID },
         file,
-        query: { index },
       } = req;
 
       if (error) {
@@ -174,19 +167,27 @@ export class MediaController {
       } else if (!file) {
         res.status(400).json({ data: null, message: "No file uploaded" });
       } else {
-        const { buffer, mimetype } = file;
+        const { buffer, mimetype, size } = file;
 
         const { httpStatusCode, key } = await this.s3.putFile({
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
-          key: `${userID}-certificate-${index}`,
+          key: `${userID}-certificate-${Date.now()}`,
         });
 
         const { url } = this.s3.getUrl({ key });
 
         res.status(httpStatusCode).json({
-          data: { url },
+          data: {
+            file: {
+              name: key,
+              size,
+              type: mimetype,
+              uploadedAt: Date.now(),
+              url,
+            },
+          },
           message: "Certificate uploaded successfully",
         });
       }
@@ -299,7 +300,6 @@ export class MediaController {
       const {
         body: { error, userID },
         file,
-        query: { index },
       } = req;
 
       if (error) {
@@ -313,7 +313,7 @@ export class MediaController {
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
-          key: `${userID}-resume-${index}`,
+          key: `${userID}-resume-${Date.now()}`,
         });
 
         const { url } = this.s3.getUrl({ key });
