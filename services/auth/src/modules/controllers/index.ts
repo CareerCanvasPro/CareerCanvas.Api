@@ -7,7 +7,7 @@ import otpGenerator from "otp-generator";
 import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
-import { SES } from "../../../../../utility/ses";
+import { Nodemailer } from "../../../../../utility/nodemailer";
 import { SNS } from "../../../../../utility/sns";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
@@ -21,7 +21,7 @@ interface ITokenPayload {
 export class AuthController {
   private readonly db = new DB();
 
-  private readonly ses = new SES();
+  private readonly nodemailer = new Nodemailer();
 
   private readonly sns = new SNS();
 
@@ -57,33 +57,28 @@ export class AuthController {
             } else {
               const magicLink = `https://auth.api.careercanvas.pro/auth/confirm?token=${token}`;
 
-              const {
-                $metadata: { httpStatusCode },
-              } = await this.ses.sendEmail({
-                body: {
-                  html: await renderFile(
-                    join(
-                      __dirname,
-                      "..",
-                      "..",
-                      "..",
-                      "..",
-                      "..",
-                      "..",
-                      "src",
-                      "views",
-                      "email.ejs"
-                    ),
-                    { magicLink }
+              await this.nodemailer.sendMail({
+                html: await renderFile(
+                  join(
+                    __dirname,
+                    "..",
+                    "..",
+                    "..",
+                    "..",
+                    "..",
+                    "..",
+                    "src",
+                    "views",
+                    "email.ejs"
                   ),
-                  text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
-                },
-                destination: [email as string],
-                source: "Career Canvas <noreply@careercanvas.pro>",
+                  { magicLink }
+                ),
                 subject: "Magic Link to Career Canvas",
+                text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
+                to: email as string,
               });
 
-              res.status(httpStatusCode).json({
+              res.status(200).json({
                 data: null,
                 message: "Magic link sent to given email successfully",
               });
@@ -129,35 +124,30 @@ export class AuthController {
           upperCaseAlphabets: false,
         });
 
-        const {
-          $metadata: { httpStatusCode },
-        } = await this.ses.sendEmail({
-          body: {
-            html: await renderFile(
-              join(
-                __dirname,
-                "..",
-                "..",
-                "..",
-                "..",
-                "..",
-                "..",
-                "src",
-                "views",
-                "email-otp.ejs"
-              ),
-              { otp }
+        await this.nodemailer.sendMail({
+          html: await renderFile(
+            join(
+              __dirname,
+              "..",
+              "..",
+              "..",
+              "..",
+              "..",
+              "..",
+              "src",
+              "views",
+              "email-otp.ejs"
             ),
-            text: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}.`,
-          },
-          destination: [email as string],
-          source: "Career Canvas <noreply@careercanvas.pro>",
+            { otp }
+          ),
           subject: "OTP for Career Canvas Account Verification",
+          text: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}.`,
+          to: email as string,
         });
 
         await this.otpsDB.putEmailOtp({ email, otp });
 
-        res.status(httpStatusCode).json({
+        res.status(200).json({
           data: null,
           message: "OTP sent to given email successfully",
         });
