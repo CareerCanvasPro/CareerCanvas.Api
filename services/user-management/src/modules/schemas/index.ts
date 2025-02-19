@@ -9,8 +9,14 @@ export const createProfileSchema = joi
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
-        certificate: joi.string().uri({
-          scheme: ["https"],
+        certificate: joi.object().keys({
+          name: joi.string(),
+          size: joi.number(),
+          type: joi.string(),
+          uploadedAt: joi.number(),
+          url: joi.string().uri({
+            scheme: ["https"],
+          }),
         }),
         field: joi.string().trim(),
         graduationDate: joi.number(),
@@ -56,7 +62,15 @@ export const updateProfileSchema = joi
     education: joi.array().items(
       joi.object().keys({
         achievements: joi.string().trim(),
-        certificate: joi.string().uri({ scheme: ["https"] }),
+        certificate: joi.object().keys({
+          name: joi.string(),
+          size: joi.number(),
+          type: joi.string(),
+          uploadedAt: joi.number(),
+          url: joi.string().uri({
+            scheme: ["https"],
+          }),
+        }),
         field: joi.string().trim(),
         graduationDate: joi.number(),
         institute: joi.string().trim(),
