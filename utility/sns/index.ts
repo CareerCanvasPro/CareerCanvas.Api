@@ -21,6 +21,11 @@ interface IMessage {
   title: string;
 }
 
+interface SendSMSParams {
+  message: string;
+  phoneNumber: string;
+}
+
 export class SNS {
   private readonly dynamoDBClient = new DynamoDBClient({
     region: config.aws.region,
@@ -29,6 +34,22 @@ export class SNS {
   private readonly snsClient = new SNSClient({
     region: config.aws.region,
   });
+
+  public sendSMS = async ({
+    message,
+    phoneNumber,
+  }: SendSMSParams): Promise<{ httpStatusCode: number }> => {
+    const {
+      $metadata: { httpStatusCode },
+    } = await this.snsClient.send(
+      new PublishCommand({
+        Message: message,
+        PhoneNumber: phoneNumber,
+      })
+    );
+
+    return { httpStatusCode };
+  };
 
   public async sendNotificationTopic(
     message: IMessage,

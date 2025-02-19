@@ -8,9 +8,10 @@ import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
 import { SES } from "../../../../../utility/ses";
+import { SNS } from "../../../../../utility/sns";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import { authSchema } from "../schemas";
+import { emailSchema, phoneSchema } from "../schemas";
 import { OtpsDB } from "../services";
 
 interface ITokenPayload {
@@ -22,11 +23,16 @@ export class AuthController {
 
   private readonly ses = new SES();
 
+  private readonly sns = new SNS();
+
   private readonly otpsDB = new OtpsDB();
 
-  public handleAuth = async (req: Request, res: Response): Promise<void> => {
+  public handleRequestMagicLink = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const { error, value } = authSchema.validate(req.body, {
+      const { error, value } = emailSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -98,9 +104,12 @@ export class AuthController {
     }
   };
 
-  public handleAuthOtp = async (req: Request, res: Response): Promise<void> => {
+  public handleRequestEmailOtp = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const { error, value } = authSchema.validate(req.body, {
+      const { error, value } = emailSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -146,7 +155,7 @@ export class AuthController {
           subject: "OTP for Career Canvas Account Verification",
         });
 
-        await this.otpsDB.putOtp({ email, otp });
+        await this.otpsDB.putEmailOtp({ email, otp });
 
         res.status(httpStatusCode).json({
           data: null,
@@ -166,7 +175,60 @@ export class AuthController {
     }
   };
 
-  public handleConfirmAuth = async (
+  public handleRequestSmsOtp = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { error, value } = phoneSchema.validate(req.body, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        const { phone } = value;
+
+        const otp = otpGenerator.generate(6, {
+          digits: true,
+          lowerCaseAlphabets: false,
+          specialChars: false,
+          upperCaseAlphabets: false,
+        });
+
+        const { httpStatusCode } = await this.sns.sendSMS({
+          message: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}. Don't share this OTP with anyone. This is confidential information intended only for you. If you did not request this OTP, please contact our support team immediately at support@careercanvas.pro`,
+          phoneNumber: phone,
+        });
+
+        await this.otpsDB.putSmsOtp({
+          otp,
+          phone,
+        });
+
+        res.status(httpStatusCode).json({
+          data: null,
+          message: "OTP sent to given phone number successfully",
+        });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleVerifyMagicLink = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -230,7 +292,7 @@ export class AuthController {
     }
   };
 
-  public handleConfirmAuthOtp = async (
+  public handleVerifyEmailOtp = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -269,6 +331,70 @@ export class AuthController {
                     accessToken,
                     email: userOtp.email,
                     isNewUser,
+                  },
+                  message: "OTP verified successfully",
+                });
+              }
+            }
+          );
+        } else {
+          res.status(401).json({ data: null, message: "OTP has expired" });
+        }
+      } else {
+        res.status(401).json({ data: null, message: "Invalid OTP" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleVerifySmsOtp = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { otp } = req.query;
+
+      const { otps } = await this.otpsDB.scanOtps({
+        attribute: { name: "otp", value: otp },
+      });
+
+      if (otps.length) {
+        const [userOtp] = otps;
+
+        if ((userOtp.expiresAt as number) >= Math.floor(Date.now() / 1000)) {
+          const { items: users } = await this.db.scanItems({
+            attribute: { name: "phone", value: userOtp.phone },
+            tableName: "userprofiles",
+          });
+
+          const isNewUser = !users.length;
+
+          const userID = isNewUser ? uuidv4() : users[0].userID;
+
+          sign(
+            { phone: userOtp.phone, userID },
+            config.aws.clientSecret,
+            {
+              expiresIn: "1d",
+            },
+            (error, accessToken) => {
+              if (error) {
+                throw error;
+              } else {
+                res.status(200).json({
+                  data: {
+                    accessToken,
+                    isNewUser,
+                    phone: userOtp.phone,
                   },
                   message: "OTP verified successfully",
                 });

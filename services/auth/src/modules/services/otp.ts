@@ -13,9 +13,14 @@ interface IAttribute {
   value: unknown;
 }
 
-interface PutOtpParams {
+interface PutEmailOtpParams {
   email: string;
   otp: string;
+}
+
+interface PutSmsOtpParams {
+  otp: string;
+  phone: string;
 }
 
 interface ScanOtpsParams {
@@ -31,14 +36,37 @@ export class OtpsDB {
 
   private readonly tableName = "OTP";
 
-  public putOtp = async ({
+  public putEmailOtp = async ({
     email,
     otp,
-  }: PutOtpParams): Promise<{ httpStatusCode: number }> => {
+  }: PutEmailOtpParams): Promise<{ httpStatusCode: number }> => {
     const user = {
       email,
       expiresAt: Math.floor(Date.now() / 1000) + 900,
       otp,
+      userID: uuidv4(),
+    };
+
+    const {
+      $metadata: { httpStatusCode },
+    } = await this.dynamoDBClient.send(
+      new PutItemCommand({
+        Item: marshall(user),
+        TableName: this.tableName,
+      })
+    );
+
+    return { httpStatusCode };
+  };
+
+  public putSmsOtp = async ({
+    otp,
+    phone,
+  }: PutSmsOtpParams): Promise<{ httpStatusCode: number }> => {
+    const user = {
+      expiresAt: Math.floor(Date.now() / 1000) + 900,
+      otp,
+      phone,
       userID: uuidv4(),
     };
 

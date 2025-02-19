@@ -4,12 +4,17 @@ import joi from "joi";
 const envVarsSchema = joi
   .object()
   .keys({
-    AWSREGION: joi.string().required(),
+    AWSREGION: joi.string().optional(),
+    AWSREGION_PRODUCTION: joi.string().optional(),
+    AWSREGION_STAGING: joi.string().optional(),
+
     NODE_ENV: joi
       .string()
-      .valid("production", "development", "staging")
+      .valid("development", "production", "staging")
       .required(),
   })
+  // Ensure at least one of AWSREGION or AWSREGION_PRODUCTION is provided
+  .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -22,7 +27,12 @@ if (error) {
 
 export const config = {
   aws: {
-    region: envVars.AWSREGION,
+    region:
+      envVars.NODE_ENV === "production"
+        ? envVars.AWSREGION_PRODUCTION
+        : envVars.NODE_ENV === "staging"
+        ? envVars.AWSREGION_STAGING
+        : envVars.AWSREGION,
   },
   env: envVars.NODE_ENV,
 };

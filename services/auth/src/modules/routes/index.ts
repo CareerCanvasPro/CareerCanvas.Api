@@ -5,7 +5,7 @@ import { AuthController } from "../controllers";
 export class AuthRoute {
   private readonly authController = new AuthController();
 
-  public path = "/";
+  public path = "/auth";
 
   public router = Router();
 
@@ -14,15 +14,31 @@ export class AuthRoute {
   }
 
   private initRoutes(): void {
-    this.router.post("/auth", this.authController.handleAuth);
+    this.router.post(
+      "/magic-link/request",
+      this.authController.handleRequestMagicLink
+    );
 
-    this.router.post("/auth-otp", this.authController.handleAuthOtp);
+    this.router.post(
+      "/otp/email/request",
+      this.authController.handleRequestEmailOtp
+    );
 
-    this.router.get("/auth/confirm", this.authController.handleConfirmAuth);
+    this.router.post(
+      "/otp/sms/request",
+      this.authController.handleRequestSmsOtp
+    );
 
     this.router.get(
-      "/auth-otp/confirm",
-      this.authController.handleConfirmAuthOtp
+      "/magic-link/verify",
+      this.authController.handleVerifyMagicLink
     );
+
+    this.router.get(
+      "/otp/email/verify",
+      this.authController.handleVerifyEmailOtp
+    );
+
+    this.router.get("/otp/sms/verify", this.authController.handleVerifySmsOtp);
   }
 }
