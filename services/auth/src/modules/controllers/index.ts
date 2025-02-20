@@ -11,8 +11,8 @@ import { Nodemailer } from "../../../../../utility/nodemailer";
 import { SNS } from "../../../../../utility/sns";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import { emailSchema, phoneSchema } from "../schemas";
-import { OtpsDB } from "../services";
+import { authSchema } from "../schemas";
+import { OtpsDB, UsersDB } from "../services";
 
 interface ITokenPayload {
   email: string;
@@ -27,12 +27,14 @@ export class AuthController {
 
   private readonly otpsDB = new OtpsDB();
 
+  private readonly usersDB = new UsersDB();
+
   public handleRequestMagicLink = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { error, value } = emailSchema.validate(req.body, {
+      const { error, value } = authSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -55,7 +57,7 @@ export class AuthController {
             if (error) {
               throw error;
             } else {
-              const magicLink = `https://auth.api.careercanvas.pro/auth/confirm?token=${token}`;
+              const magicLink = `https://auth.api.careercanvas.pro/auth/magic-link/verify?token=${token}`;
 
               await this.nodemailer.sendMail({
                 html: await renderFile(
@@ -104,7 +106,7 @@ export class AuthController {
     res: Response
   ): Promise<void> => {
     try {
-      const { error, value } = emailSchema.validate(req.body, {
+      const { error, value } = authSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -145,7 +147,7 @@ export class AuthController {
           to: email as string,
         });
 
-        await this.otpsDB.putEmailOtp({ email, otp });
+        await this.otpsDB.putOtp({ otp, username: email });
 
         res.status(200).json({
           data: null,
@@ -170,7 +172,7 @@ export class AuthController {
     res: Response
   ): Promise<void> => {
     try {
-      const { error, value } = phoneSchema.validate(req.body, {
+      const { error, value } = authSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -195,9 +197,9 @@ export class AuthController {
           phoneNumber: phone,
         });
 
-        await this.otpsDB.putSmsOtp({
+        await this.otpsDB.putOtp({
           otp,
-          phone,
+          username: phone,
         });
 
         res.status(httpStatusCode).json({
@@ -284,7 +286,7 @@ export class AuthController {
     }
   };
 
-  public handleVerifyEmailOtp = async (
+  public handleVerifyOtp = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -299,9 +301,8 @@ export class AuthController {
         const [userOtp] = otps;
 
         if ((userOtp.expiresAt as number) >= Math.floor(Date.now() / 1000)) {
-          const { items: users } = await this.db.scanItems({
-            attribute: { name: "email", value: userOtp.email },
-            tableName: "userprofiles",
+          const { users } = await this.usersDB.scanUsers({
+            username: userOtp.username as string,
           });
 
           const isNewUser = !users.length;
@@ -309,72 +310,10 @@ export class AuthController {
           const userID = isNewUser ? uuidv4() : users[0].userID;
 
           sign(
-            { email: userOtp.email, userID },
-            config.aws.clientSecret,
             {
-              expiresIn: "1d",
+              userID,
+              username: userOtp.username,
             },
-            (error, accessToken) => {
-              if (error) {
-                throw error;
-              } else {
-                res.status(200).json({
-                  data: {
-                    accessToken,
-                    email: userOtp.email,
-                    expiresAt: Date.now() + 604800000,
-                    isNewUser,
-                  },
-                  message: "OTP verified successfully",
-                });
-              }
-            }
-          );
-        } else {
-          res.status(401).json({ data: null, message: "OTP has expired" });
-        }
-      } else {
-        res.status(401).json({ data: null, message: "Invalid OTP" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleVerifySmsOtp = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { otp } = req.query;
-
-      const { otps } = await this.otpsDB.scanOtps({
-        attribute: { name: "otp", value: otp },
-      });
-
-      if (otps.length) {
-        const [userOtp] = otps;
-
-        if ((userOtp.expiresAt as number) >= Math.floor(Date.now() / 1000)) {
-          const { items: users } = await this.db.scanItems({
-            attribute: { name: "phone", value: userOtp.phone },
-            tableName: "userprofiles",
-          });
-
-          const isNewUser = !users.length;
-
-          const userID = isNewUser ? uuidv4() : users[0].userID;
-
-          sign(
-            { phone: userOtp.phone, userID },
             config.aws.clientSecret,
             {
               expiresIn: "1d",
@@ -387,7 +326,7 @@ export class AuthController {
                   data: {
                     accessToken,
                     isNewUser,
-                    phone: userOtp.phone,
+                    username: userOtp.username,
                   },
                   message: "OTP verified successfully",
                 });

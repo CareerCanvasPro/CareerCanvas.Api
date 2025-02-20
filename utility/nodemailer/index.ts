@@ -28,7 +28,7 @@ export class Nodemailer {
     to,
   }: SendMailParams): Promise<SMTPTransport.SentMessageInfo> => {
     return await this.transporter.sendMail({
-      from: "Career Canvas <smtp@careercanvas.pro>",
+      from: "Career Canvas <noreply@careercanvas.pro>",
       html,
       subject,
       text,

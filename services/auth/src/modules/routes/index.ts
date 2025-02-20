@@ -20,12 +20,12 @@ export class AuthRoute {
     );
 
     this.router.post(
-      "/otp/email/request",
+      "/otp/request/email",
       this.authController.handleRequestEmailOtp
     );
 
     this.router.post(
-      "/otp/sms/request",
+      "/otp/request/sms",
       this.authController.handleRequestSmsOtp
     );
 
@@ -34,11 +34,6 @@ export class AuthRoute {
       this.authController.handleVerifyMagicLink
     );
 
-    this.router.get(
-      "/otp/email/verify",
-      this.authController.handleVerifyEmailOtp
-    );
-
-    this.router.get("/otp/sms/verify", this.authController.handleVerifySmsOtp);
+    this.router.get("/otp/verify", this.authController.handleVerifyOtp);
   }
 }
