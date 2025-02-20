@@ -247,7 +247,7 @@ export class AuthController {
               { email, userID },
               config.aws.clientSecret,
               {
-                expiresIn: "1d",
+                expiresIn: "7d",
               },
               (error, accessToken) => {
                 if (error) {
@@ -316,7 +316,7 @@ export class AuthController {
             },
             config.aws.clientSecret,
             {
-              expiresIn: "1d",
+              expiresIn: "7d",
             },
             (error, accessToken) => {
               if (error) {
@@ -325,6 +325,7 @@ export class AuthController {
                 res.status(200).json({
                   data: {
                     accessToken,
+                    expiresAt: Date.now() + 604800000,
                     isNewUser,
                     username: userOtp.username,
                   },
