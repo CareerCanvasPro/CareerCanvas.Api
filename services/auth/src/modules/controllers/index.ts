@@ -237,7 +237,7 @@ export class AuthController {
               tableName: "userprofiles",
             });
 
-            const isNewUser = !users.length; // Return coins if user is new
+            const isNewUser = !users.length;
 
             const userID = isNewUser ? uuidv4() : users[0].userID;
 
@@ -254,13 +254,25 @@ export class AuthController {
                 if (error) {
                   throw error;
                 } else {
-                  res
-                    .status(301)
-                    .redirect(
-                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&username=${username}&expiresAt=${
-                        Date.now() + 604800000
-                      }`
-                    );
+                  if (isNewUser) {
+                    const coins = 5;
+
+                    res
+                      .status(301)
+                      .redirect(
+                        `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&username=${username}&expiresAt=${
+                          Date.now() + 604800000
+                        }&coins=${coins}`
+                      );
+                  } else {
+                    res
+                      .status(301)
+                      .redirect(
+                        `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&username=${username}&expiresAt=${
+                          Date.now() + 604800000
+                        }`
+                      );
+                  }
                 }
               }
             );
@@ -307,7 +319,7 @@ export class AuthController {
             tableName: "userprofiles",
           });
 
-          const isNewUser = !users.length; // Return coins if user is new
+          const isNewUser = !users.length;
 
           const userID = isNewUser ? uuidv4() : users[0].userID;
 
@@ -324,15 +336,30 @@ export class AuthController {
               if (error) {
                 throw error;
               } else {
-                res.status(200).json({
-                  data: {
-                    accessToken,
-                    expiresAt: Date.now() + 604800000,
-                    isNewUser,
-                    username: userOtp.username,
-                  },
-                  message: "OTP verified successfully",
-                });
+                if (isNewUser) {
+                  const coins = 5;
+
+                  res.status(200).json({
+                    data: {
+                      accessToken,
+                      coins,
+                      expiresAt: Date.now() + 604800000,
+                      isNewUser,
+                      username: userOtp.username,
+                    },
+                    message: "OTP verified successfully",
+                  });
+                } else {
+                  res.status(200).json({
+                    data: {
+                      accessToken,
+                      expiresAt: Date.now() + 604800000,
+                      isNewUser,
+                      username: userOtp.username,
+                    },
+                    message: "OTP verified successfully",
+                  });
+                }
               }
             }
           );
