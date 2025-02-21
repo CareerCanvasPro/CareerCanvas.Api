@@ -27,7 +27,7 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { userID } = value;
+        const { email, name, phone, userID } = value;
 
         const { user } = await this.usersDB.getUser({
           keyValue: userID,
@@ -38,14 +38,29 @@ export class UserManagementController {
             .status(409)
             .json({ data: null, message: "Profile already exists" });
         } else {
-          const { httpStatusCode } = await this.usersDB.putUser({
-            user: value,
-          });
+          if (email && name && phone) {
+            const coins = 10;
 
-          res.status(httpStatusCode).json({
-            data: null,
-            message: "New profile created successfully",
-          });
+            const { httpStatusCode } = await this.usersDB.putUser({
+              user: { ...value, coins },
+            });
+
+            res.status(httpStatusCode).json({
+              data: { coins },
+              message: "New profile created successfully",
+            });
+          } else {
+            const coins = 5;
+
+            const { httpStatusCode } = await this.usersDB.putUser({
+              user: { ...value, coins },
+            });
+
+            res.status(httpStatusCode).json({
+              data: { coins },
+              message: "New profile created successfully",
+            });
+          }
         }
       }
     } catch (error) {
