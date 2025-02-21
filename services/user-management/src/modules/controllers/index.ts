@@ -12,15 +12,9 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
-
-      delete req.body.email;
-
       delete req.body.exp;
 
       delete req.body.iat;
-
-      delete req.body.userID;
 
       const { error, value } = createProfileSchema.validate(req.body, {
         abortEarly: false,
@@ -33,6 +27,8 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
+        const { userID } = value;
+
         const { user } = await this.usersDB.getUser({
           keyValue: userID,
         });
@@ -43,7 +39,7 @@ export class UserManagementController {
             .json({ data: null, message: "Profile already exists" });
         } else {
           const { httpStatusCode } = await this.usersDB.putUser({
-            user: { ...value, userID },
+            user: value,
           });
 
           res.status(httpStatusCode).json({
@@ -73,7 +69,7 @@ export class UserManagementController {
       const { userID } = req.body;
 
       const { deletedUser, httpStatusCode } = await this.usersDB.deleteUser({
-        keyValue: userID as string,
+        keyValue: userID,
       });
 
       if (deletedUser) {
@@ -104,7 +100,7 @@ export class UserManagementController {
       const { userID } = req.body;
 
       const { httpStatusCode, user } = await this.usersDB.getUser({
-        keyValue: userID as string,
+        keyValue: userID,
       });
 
       if (user) {
@@ -134,13 +130,13 @@ export class UserManagementController {
     try {
       const { userID } = req.body;
 
-      delete req.body.email;
-
       delete req.body.exp;
 
       delete req.body.iat;
 
       delete req.body.userID;
+
+      delete req.body.username;
 
       const { error, value } = updateProfileSchema.validate(req.body, {
         abortEarly: false,
@@ -154,7 +150,7 @@ export class UserManagementController {
         res.status(400).json({ data: null, message: validationErrors });
       } else {
         const { user } = await this.usersDB.getUser({
-          keyValue: userID as string,
+          keyValue: userID,
         });
 
         if (!user) {
@@ -167,7 +163,7 @@ export class UserManagementController {
 
           const { httpStatusCode } = await this.usersDB.updateUser({
             attributes,
-            keyValue: userID as string,
+            keyValue: userID,
           });
 
           res.status(httpStatusCode).json({

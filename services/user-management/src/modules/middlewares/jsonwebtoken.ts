@@ -4,8 +4,8 @@ import { verify } from "jsonwebtoken";
 import { config } from "../../config";
 
 interface IAccessTokenPayload {
-  email: string;
   userID: string;
+  username: string;
 }
 
 export const handleVerifyAccessToken = (

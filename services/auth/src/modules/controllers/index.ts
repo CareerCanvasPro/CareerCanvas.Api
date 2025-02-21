@@ -11,11 +11,11 @@ import { Nodemailer } from "../../../../../utility/nodemailer";
 import { SNS } from "../../../../../utility/sns";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import { authSchema } from "../schemas";
-import { OtpsDB, UsersDB } from "../services";
+import { emailSchema, phoneSchema } from "../schemas";
+import { OtpsDB } from "../services";
 
 interface ITokenPayload {
-  email: string;
+  username: string;
 }
 
 export class AuthController {
@@ -27,14 +27,12 @@ export class AuthController {
 
   private readonly otpsDB = new OtpsDB();
 
-  private readonly usersDB = new UsersDB();
-
   public handleRequestMagicLink = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { error, value } = authSchema.validate(req.body, {
+      const { error, value } = emailSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -48,7 +46,7 @@ export class AuthController {
         const { email } = value;
 
         sign(
-          { email },
+          { username: email },
           config.aws.clientSecret,
           {
             expiresIn: "15m",
@@ -77,7 +75,7 @@ export class AuthController {
                 ),
                 subject: "Magic Link to Career Canvas",
                 text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
-                to: email as string,
+                to: email,
               });
 
               res.status(200).json({
@@ -106,7 +104,7 @@ export class AuthController {
     res: Response
   ): Promise<void> => {
     try {
-      const { error, value } = authSchema.validate(req.body, {
+      const { error, value } = emailSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -144,7 +142,7 @@ export class AuthController {
           ),
           subject: "OTP for Career Canvas Account Verification",
           text: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}.`,
-          to: email as string,
+          to: email,
         });
 
         await this.otpsDB.putOtp({ otp, username: email });
@@ -172,7 +170,7 @@ export class AuthController {
     res: Response
   ): Promise<void> => {
     try {
-      const { error, value } = authSchema.validate(req.body, {
+      const { error, value } = phoneSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -230,21 +228,24 @@ export class AuthController {
       verify(
         token as string,
         config.aws.clientSecret,
-        async (error: unknown, { email }: ITokenPayload) => {
+        async (error: unknown, { username }: ITokenPayload) => {
           if (error) {
             throw error;
           } else {
             const { items: users } = await this.db.scanItems({
-              attribute: { name: "email", value: email },
+              attribute: { name: "username", value: username },
               tableName: "userprofiles",
             });
 
-            const isNewUser = !users.length;
+            const isNewUser = !users.length; // Return coins if user is new
 
             const userID = isNewUser ? uuidv4() : users[0].userID;
 
             sign(
-              { email, userID },
+              {
+                userID,
+                username,
+              },
               config.aws.clientSecret,
               {
                 expiresIn: "7d",
@@ -256,7 +257,7 @@ export class AuthController {
                   res
                     .status(301)
                     .redirect(
-                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&email=${email}&expiresAt=${
+                      `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&username=${username}&expiresAt=${
                         Date.now() + 604800000
                       }`
                     );
@@ -301,11 +302,12 @@ export class AuthController {
         const [userOtp] = otps;
 
         if ((userOtp.expiresAt as number) >= Math.floor(Date.now() / 1000)) {
-          const { users } = await this.usersDB.scanUsers({
-            username: userOtp.username as string,
+          const { items: users } = await this.db.scanItems({
+            attribute: { name: "username", value: userOtp.username },
+            tableName: "userprofiles",
           });
 
-          const isNewUser = !users.length;
+          const isNewUser = !users.length; // Return coins if user is new
 
           const userID = isNewUser ? uuidv4() : users[0].userID;
 

@@ -232,7 +232,7 @@ export class MediaController {
 
         res.status(httpStatusCode).json({
           data: { url },
-          message: "Profile picture uploaded successfully",
+          message: "Image uploaded successfully",
         });
       }
     } catch (error) {
