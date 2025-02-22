@@ -23,7 +23,7 @@ export class CourseManagementRoute {
   private initRoutes = (): void => {
     this.router
       .route("/post")
-      .post(this.courseManagementController.handlePostCourse);
+      .post(this.courseManagementController.handlePostCourses);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 

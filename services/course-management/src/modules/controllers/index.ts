@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { DB } from "../../../../../utility/db";
 import { cleanMessage } from "../../utils";
-import { postCourseSchema } from "../schemas";
+import { postCoursesSchema } from "../schemas";
 import { CoursesDB } from "../services";
 
 type Level = "beginner" | "intermediate" | "expert";
@@ -101,7 +101,7 @@ export class CourseManagementController {
     return { shuffledCourses };
   };
 
-  public handlePostCourse = async (
+  public handlePostCourses = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -110,7 +110,7 @@ export class CourseManagementController {
 
       delete req.body.iat;
 
-      const { error, value } = postCourseSchema.validate(req.body, {
+      const { error, value } = postCoursesSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -121,13 +121,16 @@ export class CourseManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { httpStatusCode } = await this.coursesDB.putCourse({
-          course: { ...value, courseID: uuidv4() },
-        });
+        (value as Record<string, unknown>[]).forEach(
+          async (value) =>
+            await this.coursesDB.putCourse({
+              course: { ...value, courseID: uuidv4() },
+            })
+        );
 
-        res.status(httpStatusCode).json({
+        res.status(200).json({
           data: null,
-          message: "New course posted successfully",
+          message: "New courses posted successfully",
         });
       }
     } catch (error) {

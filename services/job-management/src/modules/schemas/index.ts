@@ -6,6 +6,13 @@ export const postJobsSchema = joi
     joi
       .object()
       .keys({
+        companyLogo: joi
+          .string()
+          .uri({
+            scheme: ["https"],
+          })
+          .required(),
+        currency: joi.string().valid("BDT", "USD").required(),
         deadline: joi.number().min(0).required(),
         fields: joi
           .array()
@@ -68,10 +75,6 @@ export const postJobsSchema = joi
               .required()
           )
           .required(),
-        image: joi
-          .string()
-          .uri({ scheme: ["https"] })
-          .required(),
         location: joi.string().required().trim(),
         locationType: joi
           .string()
@@ -88,14 +91,9 @@ export const postJobsSchema = joi
           )
           .required(),
         position: joi.string().required().trim(),
-        salaryRange: joi
-          .string()
-          .regex(/^\d+-\d+[A-Z]{3}$/)
-          .required(),
-        timing: joi
-          .string()
-          .regex(/^(?:[01]\d|2[0-3]):[0-5]\d-(?:[01]\d|2[0-3]):[0-5]\d$/)
-          .required(),
+        salary: joi.number().min(0).required(),
+        salaryMax: joi.number().min(0),
+        salaryTime: joi.string().valid("Annum", "Month").required(),
         type: joi
           .string()
           .valid("Contractual", "Full-time", "Intern", "Part-time")
