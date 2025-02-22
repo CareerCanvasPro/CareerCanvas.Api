@@ -171,18 +171,58 @@ export class UserManagementController {
         if (!user) {
           res.status(404).json({ data: user, message: "Profile not found" });
         } else {
+          const { education, occupation, skills } = value;
+
           const attributes = Object.entries(value).map(([name, value]) => ({
             name,
             value,
           }));
+          // when deleting education, set education to empty array or null and isEducationDeleted to true
+          if (
+            education &&
+            education.length &&
+            !user.education && // education must not exist in db before
+            !user.isEducationDeleted // education must not have deleted status set to true
+          ) {
+            attributes.push({
+              name: "coins",
+              value: (user.coins as number) + 5,
+            });
+          }
+          // Similar to education
+          if (
+            occupation &&
+            occupation.length &&
+            !user.isOccupationDeleted &&
+            !user.occupation
+          ) {
+            attributes.push({
+              name: "coins",
+              value: (user.coins as number) + 5,
+            });
+          }
+          // Similar to education
+          if (
+            skills &&
+            skills.length &&
+            !user.isSkillsDeleted &&
+            !user.skills
+          ) {
+            attributes.push({
+              name: "coins",
+              value: (user.coins as number) + 5,
+            });
+          }
 
-          const { httpStatusCode } = await this.usersDB.updateUser({
-            attributes,
-            keyValue: userID,
-          });
+          const { httpStatusCode, updatedUser } = await this.usersDB.updateUser(
+            {
+              attributes,
+              keyValue: userID,
+            }
+          );
 
           res.status(httpStatusCode).json({
-            data: null,
+            data: { coins: updatedUser.coins },
             message: "Profile updated successfully",
           });
         }
