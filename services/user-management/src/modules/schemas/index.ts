@@ -101,6 +101,9 @@ export const updateProfileSchema = joi
       .allow(null),
     fcmToken: joi.string().allow(null),
     interests: joi.array().items(joi.string()).allow(null),
+    isEducationDeleted: joi.boolean(),
+    isOccupationDeleted: joi.boolean(),
+    isSkillsDeleted: joi.boolean(),
     languages: joi.array().items(joi.string()).allow(null),
     name: joi.string().trim().allow(null),
     occupation: joi
