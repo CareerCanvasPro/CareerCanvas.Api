@@ -27,7 +27,7 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { email, name, phone, userID } = value;
+        const { address, email, name, phone, profilePicture, userID } = value;
 
         const { user } = await this.usersDB.getUser({
           keyValue: userID,
@@ -38,7 +38,7 @@ export class UserManagementController {
             .status(409)
             .json({ data: null, message: "Profile already exists" });
         } else {
-          if (email && name && phone) {
+          if (address && email && name && phone && profilePicture) {
             const coins = 10;
 
             const { httpStatusCode } = await this.usersDB.putUser({
