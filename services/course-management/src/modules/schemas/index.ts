@@ -7,6 +7,7 @@ export const postCoursesSchema = joi
       .object()
       .keys({
         authors: joi.array().items(joi.string().required().trim()).required(),
+        currency: joi.string().valid("BDT", "USD").required(),
         duration: joi.number().min(0).required(),
         goals: joi
           .array()

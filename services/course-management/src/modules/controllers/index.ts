@@ -31,10 +31,12 @@ export class CourseManagementController {
   private extractDuration = ({ duration }: ExtractDurationParams): string[][] =>
     Array.isArray(duration)
       ? duration.map((value) =>
-          value.includes("+") ? [value.slice(0, -1), ""] : value.split("-")
+          value.includes("+")
+            ? [value.slice(0, -1), "Infinity"]
+            : value.split("-")
         )
       : duration.includes("+")
-      ? [[duration.slice(0, -1), ""]]
+      ? [[duration.slice(0, -1), "Infinity"]]
       : [duration.split("-")];
 
   private filterCourses = ({
@@ -62,10 +64,10 @@ export class CourseManagementController {
 
       if (keyword) {
         flags.push(
-          (course.name as string).toLowerCase().includes(keyword) ||
-            (course.topic as string).toLowerCase().includes(keyword) ||
-            (course.creators as string[]).some((creator) =>
-              creator.toLowerCase().includes(keyword)
+          (course.name as string).toLowerCase().includes(keyword.toLowerCase()) ||
+            (course.topic as string).toLowerCase().includes(keyword.toLowerCase()) ||
+            (course.authors as string[]).some((author) =>
+              author.toLowerCase().includes(keyword.toLowerCase())
             )
         );
       }
