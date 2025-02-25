@@ -6,7 +6,7 @@ import { cleanMessage } from "../../utils";
 import { postCoursesSchema } from "../schemas";
 import { CoursesDB } from "../services";
 
-type Level = "beginner" | "intermediate" | "expert";
+type Level = "Beginner" | "Intermediate" | "Expert";
 
 interface ExtractDurationParams {
   duration: string | string[];
@@ -30,13 +30,7 @@ export class CourseManagementController {
 
   private extractDuration = ({ duration }: ExtractDurationParams): string[][] =>
     Array.isArray(duration)
-      ? duration.map((value) =>
-          value.includes("+")
-            ? [value.slice(0, -1), "Infinity"]
-            : value.split("-")
-        )
-      : duration.includes("+")
-      ? [[duration.slice(0, -1), "Infinity"]]
+      ? duration.map((value) => value.split("-"))
       : [duration.split("-")];
 
   private filterCourses = ({
@@ -64,8 +58,12 @@ export class CourseManagementController {
 
       if (keyword) {
         flags.push(
-          (course.name as string).toLowerCase().includes(keyword.toLowerCase()) ||
-            (course.topic as string).toLowerCase().includes(keyword.toLowerCase()) ||
+          (course.name as string)
+            .toLowerCase()
+            .includes(keyword.toLowerCase()) ||
+            (course.topic as string)
+              .toLowerCase()
+              .includes(keyword.toLowerCase()) ||
             (course.authors as string[]).some((author) =>
               author.toLowerCase().includes(keyword.toLowerCase())
             )
@@ -153,7 +151,7 @@ export class CourseManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.query;
+      const { userID } = req.body;
 
       const { item: user } = await this.db.getItem({
         key: { name: "userID", value: userID as string },
@@ -181,9 +179,122 @@ export class CourseManagementController {
             });
           }
         } else {
-          const { courses, httpStatusCode } = await this.coursesDB.scanCourses({
-            attributes: [{ name: "topic", value: interests as string[] }],
-          });
+          const { courses, httpStatusCode } =
+            await this.coursesDB.searchCoursesBasedOnInterests({
+              interests: interests as string[],
+            });
+
+          const { shuffledCourses } = this.shuffleCourses({ courses });
+
+          if (shuffledCourses.length > 10) {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses.slice(0, 10) },
+              message: "Recommended courses retrieved successfully",
+            });
+          } else {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses },
+              message: "Recommended courses retrieved successfully",
+            });
+          }
+        }
+      } else {
+        res.status(404).json({ data: user, message: "Profile not found" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleRetrieveRecommendedCoursesBasedOnGoals = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { userID } = req.body;
+
+      const { item: user } = await this.db.getItem({
+        key: { name: "userID", value: userID as string },
+        tableName: "userprofiles",
+      });
+
+      if (user) {
+        const { goals, interests } = user;
+
+        if (
+          goals &&
+          (goals as string[]).length &&
+          interests &&
+          (interests as string[]).length
+        ) {
+          const { courses, httpStatusCode } =
+            await this.coursesDB.searchCoursesBasedOnGoalsAndInterests({
+              goals: goals as string[],
+              interests: interests as string[],
+            });
+
+          const { shuffledCourses } = this.shuffleCourses({ courses });
+
+          if (shuffledCourses.length > 10) {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses.slice(0, 10) },
+              message: "Recommended courses retrieved successfully",
+            });
+          } else {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses },
+              message: "Recommended courses retrieved successfully",
+            });
+          }
+        } else if (goals && (goals as string[]).length) {
+          const { courses, httpStatusCode } =
+            await this.coursesDB.searchCoursesBasedOnGoals({
+              goals: goals as string[],
+            });
+
+          const { shuffledCourses } = this.shuffleCourses({ courses });
+
+          if (shuffledCourses.length > 10) {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses.slice(0, 10) },
+              message: "Recommended courses retrieved successfully",
+            });
+          } else {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses },
+              message: "Recommended courses retrieved successfully",
+            });
+          }
+        } else if (interests && (interests as string[]).length) {
+          const { courses, httpStatusCode } =
+            await this.coursesDB.searchCoursesBasedOnInterests({
+              interests: interests as string[],
+            });
+
+          const { shuffledCourses } = this.shuffleCourses({ courses });
+
+          if (shuffledCourses.length > 10) {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses.slice(0, 10) },
+              message: "Recommended courses retrieved successfully",
+            });
+          } else {
+            res.status(httpStatusCode).json({
+              data: { courses: shuffledCourses },
+              message: "Recommended courses retrieved successfully",
+            });
+          }
+        } else {
+          const { courses, httpStatusCode } =
+            await this.coursesDB.getAllCourses();
 
           const { shuffledCourses } = this.shuffleCourses({ courses });
 

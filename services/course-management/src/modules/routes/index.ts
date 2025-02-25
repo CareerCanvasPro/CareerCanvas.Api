@@ -21,15 +21,22 @@ export class CourseManagementRoute {
   };
 
   private initRoutes = (): void => {
-    this.router
-      .route("/post")
-      .post(this.courseManagementController.handlePostCourses);
+    // this.router
+    //   .route("/post")
+    //   .post(this.courseManagementController.handlePostCourses);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 
     this.router
       .route("/recommendation")
       .get(this.courseManagementController.handleRetrieveRecommendedCourses);
+
+    this.router
+      .route("/recommendation/goals")
+      .get(
+        this.courseManagementController
+          .handleRetrieveRecommendedCoursesBasedOnGoals
+      );
 
     this.router
       .route("/search")
