@@ -6,16 +6,11 @@ import { cleanMessage } from "../../utils";
 import { postJobsSchema } from "../schemas";
 import { CareerTrendsDB, JobsDB } from "../services";
 
-interface FilterJobsForRecommendationParams {
-  goals: string[] | undefined;
-  interests: string[] | undefined;
-  jobs: Record<string, unknown>[];
-  personalityType: string | undefined;
-}
-
 interface FilterJobsForSearchParams {
   jobs: Record<string, unknown>[];
   keyword: string | undefined;
+  locationType: string | string[] | undefined;
+  type: string | string[] | undefined;
 }
 
 interface ShuffleJobsParams {
@@ -29,48 +24,11 @@ export class JobManagementController {
 
   private readonly jobsDB = new JobsDB();
 
-  private filterJobsForRecommendation = ({
-    goals,
-    interests,
-    jobs,
-    personalityType,
-  }: FilterJobsForRecommendationParams): {
-    filteredJobs: Record<string, unknown>[];
-  } => {
-    const filteredJobs = jobs.filter((job) => {
-      const flags: boolean[] = [];
-
-      flags.push((job.deadline as number) >= Date.now());
-
-      if (goals && goals.length) {
-        flags.push(
-          goals.some((goal) => (job.goals as string[]).includes(goal))
-        );
-      }
-
-      if (interests && interests.length) {
-        flags.push(
-          interests.some((interest) =>
-            (job.fields as string[]).includes(interest)
-          )
-        );
-      }
-
-      if (personalityType) {
-        flags.push(
-          (job.personalityTypes as string[]).includes(personalityType)
-        );
-      }
-
-      return flags.every((flag) => flag === true);
-    });
-
-    return { filteredJobs };
-  };
-
   private filterJobsForSearch = ({
     jobs,
     keyword,
+    locationType,
+    type,
   }: FilterJobsForSearchParams): {
     filteredJobs: Record<string, unknown>[];
   } => {
@@ -100,6 +58,22 @@ export class JobManagementController {
               .toLowerCase()
               .includes(keyword.toLowerCase()) ||
             (job.type as string).toLowerCase().includes(keyword.toLowerCase())
+        );
+      }
+
+      if (locationType) {
+        flags.push(
+          Array.isArray(locationType)
+            ? locationType.some((value) => job.locationType === value)
+            : job.locationType === locationType
+        );
+      }
+
+      if (type) {
+        flags.push(
+          Array.isArray(type)
+            ? type.some((value) => job.type === value)
+            : job.type === type
         );
       }
 
@@ -214,16 +188,14 @@ export class JobManagementController {
       if (user) {
         const { goals, interests, personalityType } = user;
 
-        const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
+        const { httpStatusCode, jobs } =
+          await this.jobsDB.retrieveRecommendedJobs({
+            goals: goals as string[] | undefined,
+            interests: interests as string[] | undefined,
+            personalityType: personalityType as string | undefined,
+          });
 
-        const { filteredJobs } = this.filterJobsForRecommendation({
-          goals: goals as string[] | undefined,
-          interests: interests as string[] | undefined,
-          jobs,
-          personalityType: personalityType as string | undefined,
-        });
-
-        const { shuffledJobs } = this.shuffleJobs({ jobs: filteredJobs });
+        const { shuffledJobs } = this.shuffleJobs({ jobs });
 
         if (shuffledJobs.length > 10) {
           res.status(httpStatusCode).json({
@@ -257,13 +229,15 @@ export class JobManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { keyword } = req.query;
+      const { keyword, locationType, type } = req.query;
 
       const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
 
       const { filteredJobs } = this.filterJobsForSearch({
         jobs,
         keyword: keyword as string | undefined,
+        locationType: locationType as string | string[] | undefined,
+        type: type as string | string[] | undefined,
       });
 
       res.status(httpStatusCode).json({

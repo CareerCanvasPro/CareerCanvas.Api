@@ -7,21 +7,14 @@ import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 import { config } from "../../config";
 
-interface IAttribute {
-  name: string;
-  value: string | string[];
-}
-
-interface BuildFilterExpressionParams {
-  attributes: IAttribute[];
-}
-
 interface PutJobParams {
   job: Record<string, unknown>;
 }
 
-interface ScanJobsParams {
-  attributes: IAttribute[];
+interface RetrieveRecommendedJobsParams {
+  goals: string[] | undefined;
+  interests: string[] | undefined;
+  personalityType: string | undefined;
 }
 
 export class JobsDB {
@@ -30,54 +23,6 @@ export class JobsDB {
   });
 
   private readonly tableName = "Jobs";
-
-  private buildFilterExpression = ({
-    attributes,
-  }: BuildFilterExpressionParams): {
-    expressionAttributeNames: Record<string, string>;
-    expressionAttributeValues: Record<string, unknown>;
-    filterExpression: string;
-  } => {
-    const expressionAttributeNames: Record<string, string> = {};
-
-    const expressionAttributeValues: Record<string, unknown> = {};
-
-    const filterExpressions: string[] = [];
-
-    attributes.forEach((attribute, index) => {
-      const placeholderName = `#field${index}`;
-
-      expressionAttributeNames[placeholderName] = attribute.name;
-
-      if (Array.isArray(attribute.value)) {
-        const orExpressions: string[] = [];
-
-        attribute.value.forEach((value, valueIndex) => {
-          const placeholderValue = `:value${index}${valueIndex}`;
-
-          expressionAttributeValues[placeholderValue] = value;
-
-          orExpressions.push(`${placeholderName} = ${placeholderValue}`);
-        });
-
-        filterExpressions.push(`(${orExpressions.join(" OR ")})`);
-      } else {
-        const placeholderValue = `:value${index}`;
-
-        expressionAttributeValues[placeholderValue] = attribute.value;
-
-        filterExpressions.push(`${placeholderName} = ${placeholderValue}`);
-      }
-    });
-
-    const filterExpression = filterExpressions.join(" AND ");
-
-    return {
-      expressionAttributeNames,
-      expressionAttributeValues,
-      filterExpression,
-    };
-  };
 
   public getAllJobs = async (): Promise<{
     httpStatusCode: number;
@@ -112,20 +57,67 @@ export class JobsDB {
     return { httpStatusCode };
   };
 
-  public scanJobs = async ({
-    attributes,
-  }: ScanJobsParams): Promise<{
+  public retrieveRecommendedJobs = async ({
+    goals,
+    interests,
+    personalityType,
+  }: RetrieveRecommendedJobsParams): Promise<{
+    count: number;
     httpStatusCode: number;
     jobs: Record<string, unknown>[];
   }> => {
-    const {
-      expressionAttributeNames,
-      expressionAttributeValues,
-      filterExpression,
-    } = this.buildFilterExpression({ attributes });
+    const expressionAttributeNames: Record<string, string> = {
+      "#deadline": "deadline",
+    };
+
+    const expressionAttributeValues: Record<string, number | string> = {
+      ":deadline": Date.now(),
+    };
+
+    const filterExpressions: string[] = ["#deadline >= :deadline"];
+
+    if (goals && goals.length) {
+      expressionAttributeNames["#goals"] = "goals";
+
+      goals.forEach(
+        (goal, index) => (expressionAttributeValues[`:goal${index}`] = goal)
+      );
+
+      filterExpressions.push(
+        `(${goals
+          .map((_, index) => `contains(#goals, :goal${index})`)
+          .join(" OR ")})`
+      );
+    }
+
+    if (interests && interests.length) {
+      expressionAttributeNames["#fields"] = "fields";
+
+      interests.forEach(
+        (interest, index) =>
+          (expressionAttributeValues[`:interest${index}`] = interest)
+      );
+
+      filterExpressions.push(
+        `(${interests
+          .map((_, index) => `contains(#fields, :interest${index})`)
+          .join(" OR ")})`
+      );
+    }
+
+    if (personalityType) {
+      expressionAttributeNames["#personalityTypes"] = "personalityTypes";
+
+      expressionAttributeValues[":personalityType"] = "personalityType";
+
+      filterExpressions.push("contains(#personalityTypes, :personalityType)");
+    }
+
+    const filterExpression = filterExpressions.join(" AND ");
 
     const {
       $metadata: { httpStatusCode },
+      Count: count,
       Items: Jobs,
     } = await this.dynamoDBClient.send(
       new ScanCommand({
@@ -138,6 +130,6 @@ export class JobsDB {
 
     const jobs = Jobs.map((job) => unmarshall(job));
 
-    return { httpStatusCode, jobs };
+    return { count, httpStatusCode, jobs };
   };
 }
