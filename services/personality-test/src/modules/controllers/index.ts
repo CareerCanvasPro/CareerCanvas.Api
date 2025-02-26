@@ -20,7 +20,21 @@ export class PersonalityTestController {
       const { result: user } = await this.resultsDB.getResult({ userID });
 
       if (user) {
-        res.status(409).json({ data: null, message: "User already exists" });
+        const { httpStatusCode } = await this.resultsDB.updateResult({
+          result,
+          userID,
+        });
+
+        await this.db.updateItem({
+          attributes: [{ name: "personalityTestStatus", value: "pending" }],
+          key: { name: "userID", value: userID },
+          tableName: "userprofiles",
+        });
+
+        res.status(httpStatusCode).json({
+          data: null,
+          message: "Result updated successfully",
+        });
       } else {
         const { httpStatusCode } = await this.resultsDB.putResult({
           result,
@@ -66,47 +80,6 @@ export class PersonalityTestController {
         });
       } else {
         res.status(404).json({ data: null, message: "No questions found" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateResult = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { result, userID } = req.body;
-
-      const { result: user } = await this.resultsDB.getResult({ userID });
-
-      if (user) {
-        const { httpStatusCode } = await this.resultsDB.updateResult({
-          result,
-          userID,
-        });
-
-        await this.db.updateItem({
-          attributes: [{ name: "personalityTestStatus", value: "pending" }],
-          key: { name: "userID", value: userID },
-          tableName: "userprofiles",
-        });
-
-        res.status(httpStatusCode).json({
-          data: null,
-          message: "Result updated successfully",
-        });
-      } else {
-        res.status(404).json({ data: null, message: "User not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

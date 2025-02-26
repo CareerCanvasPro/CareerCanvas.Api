@@ -28,7 +28,6 @@ export class PersonalityTestRoute {
 
     this.router
       .route("/result")
-      .post(this.personalityTestController.handleEnterResult)
-      .put(this.personalityTestController.handleUpdateResult);
+      .post(this.personalityTestController.handleEnterResult);
   };
 }
