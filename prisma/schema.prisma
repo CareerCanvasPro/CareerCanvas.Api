@@ -9,8 +9,25 @@ datasource db {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model personality_test_questions {
-  question_id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  question    String
-  category    String @db.VarChar(2)
-  score       Int
+  question_id              String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question                 String
+  category                 String                     @db.VarChar(2)
+  score                    Int
+  personality_test_answers personality_test_answers[]
+}
+
+model personality_test_answers {
+  answer_id                  String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                      @db.Uuid
+  question_id                String                      @db.Uuid
+  answer                     Int
+  personality_test_questions personality_test_questions  @relation(fields: [question_id], references: [question_id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, question_id])
+}
+
+model users {
+  user_id                  String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personality_test_answers personality_test_answers[]
 }
