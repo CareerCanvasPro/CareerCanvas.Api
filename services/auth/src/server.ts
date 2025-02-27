@@ -4,11 +4,20 @@ import timeout from "express-timeout-handler";
 import morgan from "morgan";
 
 import { App } from "./app";
-import { config } from "./config";
+import { client, config } from "./config";
 import { AuthRoute } from "./modules/routes";
 
-function startServer(): void {
+const startServer = async (): Promise<void> => {
   try {
+    await client
+      .connect()
+      .then(() => {
+        console.log("Connected to the PostgreSQL database!");
+      })
+      .catch((error) => {
+        console.error("Error connecting to the database:", error);
+      });
+
     const app = new App({ port: config.port });
 
     app.initTemplates();
@@ -31,6 +40,6 @@ function startServer(): void {
   } catch (error) {
     console.error(`${error.name}: ${error.message}`);
   }
-}
+};
 
 startServer();
