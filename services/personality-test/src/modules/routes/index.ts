@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 
 import { PersonalityTestController } from "../controllers";
 import { handleVerifyAccessToken } from "../middlewares";
@@ -11,17 +11,20 @@ export class PersonalityTestRoute {
   public readonly router = Router();
 
   constructor() {
-    this.initMiddlewares([handleVerifyAccessToken]);
-
     this.initRoutes();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private initMiddlewares = (middlewares: any[]): void => {
+  private initMiddlewares = (middlewares: RequestHandler[]): void => {
     this.router.use(middlewares);
   };
 
   private initRoutes = (): void => {
+    this.router
+      .route("/questions")
+      .post(this.personalityTestController.handlePostQuestions);
+
+    this.initMiddlewares([handleVerifyAccessToken]);
+
     this.router
       .route("/questions")
       .get(this.personalityTestController.handleRetrieveQuestions);

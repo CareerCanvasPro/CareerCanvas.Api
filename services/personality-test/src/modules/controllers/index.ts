@@ -65,6 +65,25 @@ export class PersonalityTestController {
     }
   };
 
+  public handlePostQuestions = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { questions } = req.body;
+
+      await this.questionsDB.postQuestions({ questions });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Questions posted successfully" });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ data: null, message: `${error.name}: ${error.message}` });
+    }
+  };
+
   public handleRetrieveQuestions = async (
     req: Request,
     res: Response
