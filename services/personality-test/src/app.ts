@@ -1,22 +1,13 @@
-import express from "express";
+import express, { RequestHandler } from "express";
 
 import { IRoute } from "./types";
-
-interface AppConstructorParams {
-  port: number;
-}
 
 export class App {
   private readonly app = express();
 
-  private readonly port: number;
+  constructor(private readonly config: { port: number }) {}
 
-  constructor({ port }: AppConstructorParams) {
-    this.port = port;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public initMiddlewares(middlewares: any[]): void {
+  public initMiddlewares(middlewares: RequestHandler[]): void {
     this.app.use(middlewares);
   }
 
@@ -27,8 +18,8 @@ export class App {
   }
 
   public listen(): void {
-    this.app.listen(this.port, () => {
-      console.log(`App listening on port ${this.port}`);
+    this.app.listen(this.config.port, () => {
+      console.log(`App listening on port ${this.config.port}`);
     });
   }
 }

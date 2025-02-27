@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model personality_test_questions {
+  question_id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question    String
+  category    String @db.VarChar(2)
+  score       Int
+}
