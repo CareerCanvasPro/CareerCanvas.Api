@@ -7,27 +7,184 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model personality_test_questions {
-  question_id              String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  question                 String
-  category                 String                     @db.VarChar(2)
-  score                    Int
-  personality_test_answers personality_test_answers[]
+/// COMMON SCHEMA
+
+model Author {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
 }
 
-model personality_test_answers {
-  answer_id                  String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id                    String                      @db.Uuid
-  question_id                String                      @db.Uuid
-  answer                     Int
-  personality_test_questions personality_test_questions  @relation(fields: [question_id], references: [question_id], onDelete: Cascade, onUpdate: NoAction)
-  users                      users                       @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@unique([user_id, question_id])
+model Field {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
+  jobs    Job[]
+  users   User[]
 }
 
-model users {
-  user_id                  String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  personality_test_answers personality_test_answers[]
+model Goal {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
+  jobs    Job[]
+  users   User[]
+}
+
+model Language {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model PersonalityType {
+  id    String @id @default(cuid())
+  name  String @unique @db.VarChar(4)
+  jobs  Job[]
+  users User[]
+}
+
+model Skill {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+/// COURSE SCHEMA
+
+model Course {
+  id           String   @id @default(cuid())
+  currency     String   @db.VarChar(3)
+  duration     Int
+  image        String
+  level        String
+  name         String
+  price        Decimal
+  rating       Decimal
+  ratingCount  Int
+  sourceName   String
+  sourceUrl    String
+  studentCount Int
+  authors      Author[]
+  goals        Goal[]
+  topic        Field    @relation(fields: [topicId], references: [id])
+  topicId      String
+}
+
+/// JOB SCHEMA
+
+model Job {
+  id               String            @id @default(cuid())
+  companyLogo      String
+  currency         String            @db.VarChar(3)
+  deadline         BigInt
+  location         String
+  locationType     String
+  organization     String
+  position         String
+  salary           Int
+  salaryInterval   String
+  salaryMax        Int?
+  type             String
+  fields           Field[]
+  goals            Goal[]
+  personalityTypes PersonalityType[]
+}
+
+/// PERSONALITY TEST SCHEMA
+
+model PersonalityTestAnswer {
+  id         String                  @id @default(cuid())
+  answer     Int
+  question   PersonalityTestQuestion @relation(fields: [questionId], references: [id])
+  user       User                    @relation(fields: [userId], references: [id])
+  questionId String
+  userId     String
+
+  @@unique([questionId, userId])
+}
+
+model PersonalityTestQuestion {
+  id       String                  @id @default(cuid())
+  category String                  @db.VarChar(4)
+  question String
+  score    Int
+  answers  PersonalityTestAnswer[]
+}
+
+/// USER SCHEMA
+
+model User {
+  id                      String                  @id @default(cuid())
+  aboutMe                 String?
+  address                 String?
+  email                   String?                 @unique
+  fcmToken                String?                 @unique
+  name                    String?
+  personalityTestResultEI Float?
+  personalityTestResultSN Float?
+  personalityTestResultTF Float?
+  personalityTestResultJP Float?
+  personalityTestStatus   String?
+  phone                   String?                 @unique
+  profilePicture          String?
+  username                String                  @unique
+  answers                 PersonalityTestAnswer[]
+  appreciations           Appreciation[]
+  educations              Education[]
+  goals                   Goal[]
+  interests               Field[]
+  languages               Language[]
+  occupations             Occupation[]
+  resumes                 Resume[]
+  skills                  Skill[]
+  personalityType         PersonalityType?        @relation(fields: [personalityTypeId], references: [id])
+  personalityTypeId       String?
+}
+
+model Appreciation {
+  id           String  @id @default(cuid())
+  date         BigInt?
+  name         String?
+  organization String?
+  user         User    @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Education {
+  id                    String  @id @default(cuid())
+  achievements          String?
+  certificateName       String?
+  certificateSize       Int?
+  certificateType       String?
+  certificateUploadedAt BigInt?
+  certificateUrl        String?
+  field                 String?
+  graduationDate        BigInt?
+  institute             String?
+  isCurrent             Boolean @default(false)
+  user                  User    @relation(fields: [userId], references: [id])
+  userId                String
+}
+
+model Occupation {
+  id           String  @id @default(cuid())
+  designation  String?
+  endDate      BigInt?
+  isCurrent    Boolean @default(false)
+  organization String?
+  startDate    BigInt?
+  user         User    @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Resume {
+  id         String @id @default(cuid())
+  name       String
+  size       Int
+  type       String
+  uploadedAt BigInt
+  url        String
+  user       User   @relation(fields: [userId], references: [id])
+  userId     String
 }
