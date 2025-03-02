@@ -104,6 +104,15 @@ model Skill {
   users User[]
 }
 
+/// AUTH SCHEMA
+
+model Otp {
+  id        String @id @default(cuid())
+  expiresAt BigInt
+  otp       String @db.VarChar(6)
+  username  String
+}
+
 /// COURSE SCHEMA
 
 model Course {
