@@ -3,28 +3,18 @@ import Joi from "joi";
 
 const envVarsSchema = Joi.object()
   .keys({
-    AWSREGION: Joi.string().optional(),
-    AWSREGION_PRODUCTION: Joi.string().optional(),
-    AWSREGION_STAGING: Joi.string().optional(),
-
-    BUCKETNAME: Joi.string().optional(),
-    BUCKETNAME_PRODUCTION: Joi.string().optional(),
-    BUCKETNAME_STAGING: Joi.string().optional(),
-
-    CLIENTSECRET: Joi.string().optional(),
-    CLIENTSECRET_PRODUCTION: Joi.string().optional(),
-    CLIENTSECRET_STAGING: Joi.string().optional(),
-
-    NODE_ENV: Joi.string()
-      .valid("production", "development", "staging")
-      .required(),
-
+    ENV: Joi.string().valid("development", "production").required(),
+    BUCKET: Joi.string().optional(),
+    BUCKET_PRODUCTION: Joi.string().optional(),
     PORT: Joi.number().default(8002),
+    REGION: Joi.string().optional(),
+    REGION_PRODUCTION: Joi.string().optional(),
+    SECRET: Joi.string().optional(),
+    SECRET_PRODUCTION: Joi.string().optional(),
   })
-  // Enforce at least one key from each pair (AWSREGION, CLIENTID, etc.)
-  .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
-  .or("BUCKETNAME", "BUCKETNAME_PRODUCTION", "BUCKETNAME_STAGING")
-  .or("CLIENTSECRET", "CLIENTSECRET_PRODUCTION", "CLIENTSECRET_STAGING")
+  .or("BUCKET", "BUCKET_PRODUCTION")
+  .or("REGION", "REGION_PRODUCTION")
+  .or("SECRET", "SECRET_PRODUCTION")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -35,30 +25,12 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-// Dynamic selection of values based on NODE_ENV
 export const config = {
-  aws: {
-    clientSecret:
-      envVars.NODE_ENV === "production"
-        ? envVars.CLIENTSECRET_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.CLIENTSECRET_STAGING
-        : envVars.CLIENTSECRET,
-    region:
-      envVars.NODE_ENV === "production"
-        ? envVars.AWSREGION_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.AWSREGION_STAGING
-        : envVars.AWSREGION,
-    s3: {
-      bucketName:
-        envVars.NODE_ENV === "production"
-          ? envVars.BUCKETNAME_PRODUCTION
-          : envVars.NODE_ENV === "staging"
-          ? envVars.BUCKETNAME_STAGING
-          : envVars.BUCKETNAME,
-    },
-  },
-  env: envVars.NODE_ENV,
+  bucket:
+    envVars.ENV === "production" ? envVars.BUCKET_PRODUCTION : envVars.BUCKET,
   port: envVars.PORT,
+  region:
+    envVars.ENV === "production" ? envVars.REGION_PRODUCTION : envVars.REGION,
+  secret:
+    envVars.ENV === "production" ? envVars.SECRET_PRODUCTION : envVars.SECRET,
 };

@@ -2,31 +2,31 @@ import { prismaClient } from "../../config";
 
 interface IAnswer {
   answer: number;
-  questionID: string;
+  questionId: string;
 }
 
 interface CheckIsUserParams {
-  userID: string;
+  userId: string;
 }
 
 interface SubmitAnswersParams {
   answers: IAnswer[];
-  userID: string;
+  userId: string;
 }
 
 interface UpdateAnswersParams {
   answers: IAnswer[];
-  userID: string;
+  userId: string;
 }
 
 export class AnswersDB {
   public checkIsUser = async ({
-    userID,
+    userId,
   }: CheckIsUserParams): Promise<{
     isUser: boolean;
   }> => {
-    const answers = await prismaClient.personality_test_answers.findMany({
-      where: { user_id: userID },
+    const answers = await prismaClient.personalityTestAnswer.findMany({
+      where: { userId },
     });
 
     const isUser = !!answers.length;
@@ -36,27 +36,27 @@ export class AnswersDB {
 
   public submitAnswers = async ({
     answers,
-    userID,
+    userId,
   }: SubmitAnswersParams): Promise<void> => {
-    await prismaClient.personality_test_answers.createMany({
-      data: answers.map(({ answer, questionID }) => ({
-        answer: answer,
-        question_id: questionID,
-        user_id: userID,
+    await prismaClient.personalityTestAnswer.createMany({
+      data: answers.map(({ answer, questionId }) => ({
+        answer,
+        questionId,
+        userId,
       })),
     });
   };
 
   public updateAnswers = async ({
     answers,
-    userID,
+    userId,
   }: UpdateAnswersParams): Promise<void> => {
     await prismaClient.$transaction(
-      answers.map(({ answer, questionID }) =>
-        prismaClient.personality_test_answers.update({
+      answers.map(({ answer, questionId }) =>
+        prismaClient.personalityTestAnswer.update({
           data: { answer },
           where: {
-            user_id_question_id: { question_id: questionID, user_id: userID },
+            questionId_userId: { questionId, userId },
           },
         })
       )

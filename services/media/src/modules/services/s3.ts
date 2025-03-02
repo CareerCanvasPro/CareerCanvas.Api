@@ -29,10 +29,10 @@ interface UploadFileParams {
 }
 
 export class S3 {
-  private readonly BUCKET_NAME = config.aws.s3.bucketName;
+  private readonly BUCKET = config.bucket;
 
   private readonly s3Client = new S3Client({
-    region: config.aws.region,
+    region: config.region,
   });
 
   public deleteFile = async ({
@@ -42,7 +42,7 @@ export class S3 {
       $metadata: { httpStatusCode },
     } = await this.s3Client.send(
       new DeleteObjectCommand({
-        Bucket: this.BUCKET_NAME,
+        Bucket: this.BUCKET,
         Key: key,
       })
     );
@@ -56,7 +56,7 @@ export class S3 {
     const signedUrl = await getSignedUrl(
       this.s3Client,
       new GetObjectCommand({
-        Bucket: this.BUCKET_NAME,
+        Bucket: this.BUCKET,
         Key: key,
       }),
       { expiresIn: 3600 }
@@ -66,7 +66,7 @@ export class S3 {
   };
 
   public getUrl = ({ key }: GetUrlParams): { url: string } => {
-    const url = `https://${this.BUCKET_NAME}.s3.${config.aws.region}.amazonaws.com/${key}`;
+    const url = `https://${this.BUCKET}.s3.${config.region}.amazonaws.com/${key}`;
 
     return { url };
   };
@@ -83,7 +83,7 @@ export class S3 {
       new PutObjectCommand({
         ACL: acl,
         Body: body,
-        Bucket: this.BUCKET_NAME,
+        Bucket: this.BUCKET,
         ContentType: contentType,
         Key: key,
       })

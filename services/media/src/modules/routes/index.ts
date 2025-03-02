@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import multer from "multer";
 
 import { MediaController } from "../controllers";
@@ -36,8 +36,7 @@ export class MediaRoute {
     this.initRoutes();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public initMiddlewares = (middlewares: any[]): void => {
+  public initMiddlewares = (middlewares: RequestHandler[]): void => {
     this.router.use(middlewares);
   };
 

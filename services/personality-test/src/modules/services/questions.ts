@@ -14,7 +14,7 @@ export class QuestionsDB {
   public postQuestions = async ({
     questions,
   }: PostQuestionsParams): Promise<void> => {
-    await prismaClient.personality_test_questions.createMany({
+    await prismaClient.personalityTestQuestion.createMany({
       data: questions,
     });
   };
@@ -22,7 +22,7 @@ export class QuestionsDB {
   public retrieveQuestions = async (): Promise<{
     questions: Record<string, number | string>[];
   }> => {
-    const questions = await prismaClient.personality_test_questions.findMany();
+    const questions = await prismaClient.personalityTestQuestion.findMany();
 
     return { questions };
   };

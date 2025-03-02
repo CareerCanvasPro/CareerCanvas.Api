@@ -4,7 +4,7 @@ import { verify } from "jsonwebtoken";
 import { config } from "../../config";
 
 interface IAccessTokenPayload {
-  userID: string;
+  userId: string;
   username: string;
 }
 
@@ -26,7 +26,7 @@ export const handleVerifyAccessToken = (
     try {
       verify(
         accessToken,
-        config.aws.clientSecret,
+        config.secret,
         (error: unknown, decoded: IAccessTokenPayload) => {
           if (error) {
             throw error;

@@ -15,14 +15,14 @@ export class PersonalityTestController {
     res: Response
   ): Promise<void> => {
     try {
-      const { answers, userID } = req.body;
+      const { answers, userId } = req.body;
 
-      const { isUser } = await this.answersDB.checkIsUser({ userID });
+      const { isUser } = await this.answersDB.checkIsUser({ userId });
 
       if (isUser) {
         await this.answersDB.updateAnswers({
           answers,
-          userID,
+          userId,
         });
 
         // await this.db.updateItem({
@@ -38,7 +38,7 @@ export class PersonalityTestController {
       } else {
         await this.answersDB.submitAnswers({
           answers,
-          userID,
+          userId,
         });
 
         // await this.db.updateItem({

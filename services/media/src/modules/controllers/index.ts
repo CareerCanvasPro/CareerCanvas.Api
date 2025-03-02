@@ -41,10 +41,10 @@ export class MediaController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { userId } = req.body;
 
       const { httpStatusCode } = await this.s3.deleteFile({
-        key: `${userID}-profile-picture`,
+        key: `${userId}-profile-picture`,
       });
 
       if (httpStatusCode === 204) {
@@ -158,7 +158,7 @@ export class MediaController {
   ): Promise<void> => {
     try {
       const {
-        body: { error, userID },
+        body: { error, userId },
         file,
       } = req;
 
@@ -173,7 +173,7 @@ export class MediaController {
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
-          key: `${userID}-certificate-${Date.now()}`,
+          key: `${userId}-certificate-${Date.now()}`,
         });
 
         const { url } = this.s3.getUrl({ key });
@@ -254,7 +254,7 @@ export class MediaController {
   ): Promise<void> => {
     try {
       const {
-        body: { error, userID },
+        body: { error, userId },
         file,
       } = req;
 
@@ -269,7 +269,7 @@ export class MediaController {
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
-          key: `${userID}-profile-picture`,
+          key: `${userId}-profile-picture`,
         });
 
         const { url } = this.s3.getUrl({ key });
@@ -298,7 +298,7 @@ export class MediaController {
   ): Promise<void> => {
     try {
       const {
-        body: { error, userID },
+        body: { error, userId },
         file,
       } = req;
 
@@ -313,7 +313,7 @@ export class MediaController {
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
-          key: `${userID}-resume-${Date.now()}`,
+          key: `${userId}-resume-${Date.now()}`,
         });
 
         const { url } = this.s3.getUrl({ key });
