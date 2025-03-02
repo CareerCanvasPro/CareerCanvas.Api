@@ -1,3 +1,30 @@
+-- CreateEnum
+CREATE TYPE "Category" AS ENUM ('EI', 'SN', 'TF', 'JP');
+
+-- CreateEnum
+CREATE TYPE "Currency" AS ENUM ('BDT', 'USD');
+
+-- CreateEnum
+CREATE TYPE "Language" AS ENUM ('Bangla', 'English');
+
+-- CreateEnum
+CREATE TYPE "Level" AS ENUM ('Beginner', 'Intermediate', 'Expert');
+
+-- CreateEnum
+CREATE TYPE "LocationType" AS ENUM ('Hybrid', 'On-site', 'Remote');
+
+-- CreateEnum
+CREATE TYPE "PersonalityTestStatus" AS ENUM ('Complete', 'Pending');
+
+-- CreateEnum
+CREATE TYPE "PersonalityType" AS ENUM ('INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP');
+
+-- CreateEnum
+CREATE TYPE "SalaryInterval" AS ENUM ('Annum', 'Month');
+
+-- CreateEnum
+CREATE TYPE "Type" AS ENUM ('Contractual', 'Full-time', 'Intern', 'Part-time');
+
 -- CreateTable
 CREATE TABLE "Author" (
     "id" TEXT NOT NULL,
@@ -23,22 +50,6 @@ CREATE TABLE "Goal" (
 );
 
 -- CreateTable
-CREATE TABLE "Language" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-
-    CONSTRAINT "Language_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "PersonalityType" (
-    "id" TEXT NOT NULL,
-    "name" VARCHAR(4) NOT NULL,
-
-    CONSTRAINT "PersonalityType_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Skill" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -49,10 +60,10 @@ CREATE TABLE "Skill" (
 -- CreateTable
 CREATE TABLE "Course" (
     "id" TEXT NOT NULL,
-    "currency" VARCHAR(3) NOT NULL,
+    "currency" "Currency" NOT NULL,
     "duration" INTEGER NOT NULL,
     "image" TEXT NOT NULL,
-    "level" TEXT NOT NULL,
+    "level" "Level" NOT NULL,
     "name" TEXT NOT NULL,
     "price" DECIMAL(65,30) NOT NULL,
     "rating" DECIMAL(65,30) NOT NULL,
@@ -69,16 +80,17 @@ CREATE TABLE "Course" (
 CREATE TABLE "Job" (
     "id" TEXT NOT NULL,
     "companyLogo" TEXT NOT NULL,
-    "currency" VARCHAR(3) NOT NULL,
+    "currency" "Currency" NOT NULL,
     "deadline" BIGINT NOT NULL,
     "location" TEXT NOT NULL,
-    "locationType" TEXT NOT NULL,
+    "locationType" "LocationType" NOT NULL,
     "organization" TEXT NOT NULL,
+    "personalityTypes" "PersonalityType"[],
     "position" TEXT NOT NULL,
     "salary" INTEGER NOT NULL,
-    "salaryInterval" TEXT NOT NULL,
+    "salaryInterval" "SalaryInterval" NOT NULL,
     "salaryMax" INTEGER,
-    "type" TEXT NOT NULL,
+    "type" "Type" NOT NULL,
 
     CONSTRAINT "Job_pkey" PRIMARY KEY ("id")
 );
@@ -96,7 +108,7 @@ CREATE TABLE "PersonalityTestAnswer" (
 -- CreateTable
 CREATE TABLE "PersonalityTestQuestion" (
     "id" TEXT NOT NULL,
-    "category" VARCHAR(4) NOT NULL,
+    "category" "Category" NOT NULL,
     "question" TEXT NOT NULL,
     "score" INTEGER NOT NULL,
 
@@ -110,16 +122,17 @@ CREATE TABLE "User" (
     "address" TEXT,
     "email" TEXT,
     "fcmToken" TEXT,
+    "languages" "Language"[],
     "name" TEXT,
     "personalityTestResultEI" DOUBLE PRECISION,
     "personalityTestResultSN" DOUBLE PRECISION,
     "personalityTestResultTF" DOUBLE PRECISION,
     "personalityTestResultJP" DOUBLE PRECISION,
-    "personalityTestStatus" TEXT,
+    "personalityTestStatus" "PersonalityTestStatus",
+    "personalityType" "PersonalityType",
     "phone" TEXT,
     "profilePicture" TEXT,
     "username" TEXT NOT NULL,
-    "personalityTypeId" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -220,14 +233,6 @@ CREATE TABLE "_GoalToUser" (
 );
 
 -- CreateTable
-CREATE TABLE "_LanguageToUser" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_LanguageToUser_AB_pkey" PRIMARY KEY ("A","B")
-);
-
--- CreateTable
 CREATE TABLE "_SkillToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -243,14 +248,6 @@ CREATE TABLE "_CourseToGoal" (
     CONSTRAINT "_CourseToGoal_AB_pkey" PRIMARY KEY ("A","B")
 );
 
--- CreateTable
-CREATE TABLE "_JobToPersonalityType" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_JobToPersonalityType_AB_pkey" PRIMARY KEY ("A","B")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "Author_name_key" ON "Author"("name");
 
@@ -259,12 +256,6 @@ CREATE UNIQUE INDEX "Field_name_key" ON "Field"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Goal_name_key" ON "Goal"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Language_name_key" ON "Language"("name");
-
--- CreateIndex
-CREATE UNIQUE INDEX "PersonalityType_name_key" ON "PersonalityType"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Skill_name_key" ON "Skill"("name");
@@ -300,40 +291,31 @@ CREATE INDEX "_GoalToJob_B_index" ON "_GoalToJob"("B");
 CREATE INDEX "_GoalToUser_B_index" ON "_GoalToUser"("B");
 
 -- CreateIndex
-CREATE INDEX "_LanguageToUser_B_index" ON "_LanguageToUser"("B");
-
--- CreateIndex
 CREATE INDEX "_SkillToUser_B_index" ON "_SkillToUser"("B");
 
 -- CreateIndex
 CREATE INDEX "_CourseToGoal_B_index" ON "_CourseToGoal"("B");
 
--- CreateIndex
-CREATE INDEX "_JobToPersonalityType_B_index" ON "_JobToPersonalityType"("B");
-
 -- AddForeignKey
 ALTER TABLE "Course" ADD CONSTRAINT "Course_topicId_fkey" FOREIGN KEY ("topicId") REFERENCES "Field"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PersonalityTestAnswer" ADD CONSTRAINT "PersonalityTestAnswer_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "PersonalityTestQuestion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PersonalityTestAnswer" ADD CONSTRAINT "PersonalityTestAnswer_questionId_fkey" FOREIGN KEY ("questionId") REFERENCES "PersonalityTestQuestion"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "PersonalityTestAnswer" ADD CONSTRAINT "PersonalityTestAnswer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PersonalityTestAnswer" ADD CONSTRAINT "PersonalityTestAnswer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_personalityTypeId_fkey" FOREIGN KEY ("personalityTypeId") REFERENCES "PersonalityType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Appreciation" ADD CONSTRAINT "Appreciation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Appreciation" ADD CONSTRAINT "Appreciation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Education" ADD CONSTRAINT "Education_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Education" ADD CONSTRAINT "Education_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Occupation" ADD CONSTRAINT "Occupation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Occupation" ADD CONSTRAINT "Occupation_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Resume" ADD CONSTRAINT "Resume_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Resume" ADD CONSTRAINT "Resume_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_AuthorToCourse" ADD CONSTRAINT "_AuthorToCourse_A_fkey" FOREIGN KEY ("A") REFERENCES "Author"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -366,12 +348,6 @@ ALTER TABLE "_GoalToUser" ADD CONSTRAINT "_GoalToUser_A_fkey" FOREIGN KEY ("A") 
 ALTER TABLE "_GoalToUser" ADD CONSTRAINT "_GoalToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_LanguageToUser" ADD CONSTRAINT "_LanguageToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Language"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_LanguageToUser" ADD CONSTRAINT "_LanguageToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "_SkillToUser" ADD CONSTRAINT "_SkillToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Skill"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -382,9 +358,3 @@ ALTER TABLE "_CourseToGoal" ADD CONSTRAINT "_CourseToGoal_A_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "_CourseToGoal" ADD CONSTRAINT "_CourseToGoal_B_fkey" FOREIGN KEY ("B") REFERENCES "Goal"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_JobToPersonalityType" ADD CONSTRAINT "_JobToPersonalityType_A_fkey" FOREIGN KEY ("A") REFERENCES "Job"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_JobToPersonalityType" ADD CONSTRAINT "_JobToPersonalityType_B_fkey" FOREIGN KEY ("B") REFERENCES "PersonalityType"("id") ON DELETE CASCADE ON UPDATE CASCADE;

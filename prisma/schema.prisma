@@ -7,6 +7,73 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// ENUMS
+
+enum Category {
+  EI
+  SN
+  TF
+  JP
+}
+
+enum Currency {
+  BDT
+  USD
+}
+
+enum Language {
+  BANGLA  @map("Bangla")
+  ENGLISH @map("English")
+}
+
+enum Level {
+  BEGINNER     @map("Beginner")
+  INTERMEDIATE @map("Intermediate")
+  EXPERT       @map("Expert")
+}
+
+enum LocationType {
+  HYBRID  @map("Hybrid")
+  ON_SITE @map("On-site")
+  REMOTE  @map("Remote")
+}
+
+enum PersonalityTestStatus {
+  COMPLETE @map("Complete")
+  PENDING  @map("Pending")
+}
+
+enum PersonalityType {
+  INTJ
+  INTP
+  ENTJ
+  ENTP
+  INFJ
+  INFP
+  ENFJ
+  ENFP
+  ISTJ
+  ISFJ
+  ESTJ
+  ESFJ
+  ISTP
+  ISFP
+  ESTP
+  ESFP
+}
+
+enum SalaryInterval {
+  ANNUM @map("Annum")
+  MONTH @map("Month")
+}
+
+enum Type {
+  CONTRACTUAL @map("Contractual")
+  FULL_TIME   @map("Full-time")
+  INTERN      @map("Intern")
+  PART_TIME   @map("Part-time")
+}
+
 /// COMMON SCHEMA
 
 model Author {
@@ -31,19 +98,6 @@ model Goal {
   users   User[]
 }
 
-model Language {
-  id    String @id @default(cuid())
-  name  String @unique
-  users User[]
-}
-
-model PersonalityType {
-  id    String @id @default(cuid())
-  name  String @unique @db.VarChar(4)
-  jobs  Job[]
-  users User[]
-}
-
 model Skill {
   id    String @id @default(cuid())
   name  String @unique
@@ -54,10 +108,10 @@ model Skill {
 
 model Course {
   id           String   @id @default(cuid())
-  currency     String   @db.VarChar(3)
+  currency     Currency
   duration     Int
   image        String
-  level        String
+  level        Level
   name         String
   price        Decimal
   rating       Decimal
@@ -76,19 +130,19 @@ model Course {
 model Job {
   id               String            @id @default(cuid())
   companyLogo      String
-  currency         String            @db.VarChar(3)
+  currency         Currency
   deadline         BigInt
   location         String
-  locationType     String
+  locationType     LocationType
   organization     String
+  personalityTypes PersonalityType[]
   position         String
   salary           Int
-  salaryInterval   String
+  salaryInterval   SalaryInterval
   salaryMax        Int?
-  type             String
+  type             Type
   fields           Field[]
   goals            Goal[]
-  personalityTypes PersonalityType[]
 }
 
 /// PERSONALITY TEST SCHEMA
@@ -96,8 +150,8 @@ model Job {
 model PersonalityTestAnswer {
   id         String                  @id @default(cuid())
   answer     Int
-  question   PersonalityTestQuestion @relation(fields: [questionId], references: [id])
-  user       User                    @relation(fields: [userId], references: [id])
+  question   PersonalityTestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   questionId String
   userId     String
 
@@ -106,7 +160,7 @@ model PersonalityTestAnswer {
 
 model PersonalityTestQuestion {
   id       String                  @id @default(cuid())
-  category String                  @db.VarChar(4)
+  category Category
   question String
   score    Int
   answers  PersonalityTestAnswer[]
@@ -120,12 +174,14 @@ model User {
   address                 String?
   email                   String?                 @unique
   fcmToken                String?                 @unique
+  languages               Language[]
   name                    String?
   personalityTestResultEI Float?
   personalityTestResultSN Float?
   personalityTestResultTF Float?
   personalityTestResultJP Float?
-  personalityTestStatus   String?
+  personalityTestStatus   PersonalityTestStatus?
+  personalityType         PersonalityType?
   phone                   String?                 @unique
   profilePicture          String?
   username                String                  @unique
@@ -134,12 +190,9 @@ model User {
   educations              Education[]
   goals                   Goal[]
   interests               Field[]
-  languages               Language[]
   occupations             Occupation[]
   resumes                 Resume[]
   skills                  Skill[]
-  personalityType         PersonalityType?        @relation(fields: [personalityTypeId], references: [id])
-  personalityTypeId       String?
 }
 
 model Appreciation {
@@ -147,7 +200,7 @@ model Appreciation {
   date         BigInt?
   name         String?
   organization String?
-  user         User    @relation(fields: [userId], references: [id])
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 }
 
@@ -163,7 +216,7 @@ model Education {
   graduationDate        BigInt?
   institute             String?
   isCurrent             Boolean @default(false)
-  user                  User    @relation(fields: [userId], references: [id])
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
 }
 
@@ -174,7 +227,7 @@ model Occupation {
   isCurrent    Boolean @default(false)
   organization String?
   startDate    BigInt?
-  user         User    @relation(fields: [userId], references: [id])
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 }
 
@@ -185,6 +238,6 @@ model Resume {
   type       String
   uploadedAt BigInt
   url        String
-  user       User   @relation(fields: [userId], references: [id])
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
 }
