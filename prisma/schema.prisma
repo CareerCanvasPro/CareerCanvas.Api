@@ -181,6 +181,8 @@ model User {
   id                      String                  @id @default(cuid())
   aboutMe                 String?
   address                 String?
+  coins                   Int?
+  createdAt               DateTime                @default(now())
   email                   String?                 @unique
   fcmToken                String?                 @unique
   languages               Language[]
@@ -193,6 +195,7 @@ model User {
   personalityType         PersonalityType?
   phone                   String?                 @unique
   profilePicture          String?
+  updatedAt               DateTime                @updatedAt
   username                String                  @unique
   answers                 PersonalityTestAnswer[]
   appreciations           Appreciation[]
