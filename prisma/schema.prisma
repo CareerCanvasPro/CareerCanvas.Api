@@ -109,8 +109,8 @@ model Skill {
 model Otp {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-  expiresAt BigInt
-  otp       String   @db.VarChar(6)
+  expiresAt DateTime
+  otp       String
   updatedAt DateTime @updatedAt
   username  String
 }
@@ -125,8 +125,8 @@ model Course {
   image        String
   level        Level
   name         String
-  price        Decimal
-  rating       Decimal
+  price        Float
+  rating       Float
   ratingCount  Int
   sourceName   String
   sourceUrl    String
@@ -145,7 +145,7 @@ model Job {
   companyLogo      String
   createdAt        DateTime          @default(now())
   currency         Currency
-  deadline         BigInt
+  deadline         DateTime
   location         String
   locationType     JobLocationType
   organization     String
@@ -211,13 +211,13 @@ model User {
 }
 
 model Appreciation {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  date         BigInt?
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  date         DateTime?
   name         String?
   organization String?
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 }
 
@@ -226,7 +226,7 @@ model Education {
   achievements   String?
   createdAt      DateTime     @default(now())
   field          String?
-  graduationDate BigInt?
+  graduationDate DateTime?
   institute      String?
   isCurrent      Boolean      @default(false)
   updatedAt      DateTime     @updatedAt
@@ -242,22 +242,22 @@ model Certificate {
   size        Int?
   type        String?
   updatedAt   DateTime  @updatedAt
-  uploadedAt  BigInt?
+  uploadedAt  DateTime?
   url         String?
   education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
   educationId String    @unique
 }
 
 model Occupation {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
   designation  String?
-  endDate      BigInt?
-  isCurrent    Boolean  @default(false)
+  endDate      DateTime?
+  isCurrent    Boolean   @default(false)
   organization String?
-  startDate    BigInt?
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate    DateTime?
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 }
 
@@ -282,7 +282,7 @@ model Resume {
   size       Int
   type       String
   updatedAt  DateTime @updatedAt
-  uploadedAt BigInt
+  uploadedAt DateTime
   url        String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
