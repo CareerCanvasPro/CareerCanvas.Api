@@ -108,6 +108,7 @@ model Skill {
 
 model Otp {
   id        String @id @default(cuid())
+  createdAt               DateTime                @default(now())
   expiresAt BigInt
   otp       String @db.VarChar(6)
   username  String
@@ -117,6 +118,7 @@ model Otp {
 
 model Course {
   id           String   @id @default(cuid())
+  createdAt               DateTime                @default(now())
   currency     Currency
   duration     Int
   image        String
@@ -139,6 +141,7 @@ model Course {
 model Job {
   id               String            @id @default(cuid())
   companyLogo      String
+  createdAt               DateTime                @default(now())
   currency         Currency
   deadline         BigInt
   location         String
@@ -159,6 +162,7 @@ model Job {
 model PersonalityTestAnswer {
   id         String                  @id @default(cuid())
   answer     Int
+  createdAt               DateTime                @default(now())
   question   PersonalityTestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   questionId String
@@ -209,6 +213,7 @@ model User {
 
 model Appreciation {
   id           String  @id @default(cuid())
+  createdAt               DateTime                @default(now())
   date         BigInt?
   name         String?
   organization String?
@@ -224,6 +229,7 @@ model Education {
   certificateType       String?
   certificateUploadedAt BigInt?
   certificateUrl        String?
+  createdAt               DateTime                @default(now())
   field                 String?
   graduationDate        BigInt?
   institute             String?
@@ -234,6 +240,7 @@ model Education {
 
 model Occupation {
   id           String  @id @default(cuid())
+  createdAt               DateTime                @default(now())
   designation  String?
   endDate      BigInt?
   isCurrent    Boolean @default(false)
@@ -245,6 +252,7 @@ model Occupation {
 
 model Resume {
   id         String @id @default(cuid())
+  createdAt               DateTime                @default(now())
   name       String
   size       Int
   type       String
