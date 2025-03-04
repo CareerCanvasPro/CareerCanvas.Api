@@ -1,5 +1,6 @@
 import {
   Appreciation,
+  Certificate,
   Education,
   Occupation,
   Prisma,
@@ -44,6 +45,7 @@ export class UsersDb {
         goals: true;
         interests: true;
         occupations: true;
+        personality: true;
         resumes: true;
         skills: true;
       };
@@ -56,6 +58,7 @@ export class UsersDb {
         goals: true,
         interests: true,
         occupations: true,
+        personality: true,
         resumes: true,
         skills: true,
       },
@@ -249,6 +252,102 @@ export class UsersDb {
         educations: {
           update: {
             data: education,
+            where: {
+              id: educationId,
+            },
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+  };
+
+  // EDUCATION CERTIFICATE
+
+  public createUserEducationCertificate = async ({
+    certificate,
+    educationId,
+    id,
+  }: {
+    certificate: Pick<
+      Certificate,
+      "name" | "size" | "type" | "uploadedAt" | "url"
+    >;
+    educationId: string;
+    id: string;
+  }): Promise<void> => {
+    await prismaClient.user.update({
+      data: {
+        educations: {
+          update: {
+            data: {
+              certificate: {
+                create: certificate,
+              },
+            },
+            where: {
+              id: educationId,
+            },
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+  };
+
+  public deleteUserEducationCertificate = async ({
+    educationId,
+    id,
+  }: {
+    educationId: string;
+    id: string;
+  }): Promise<void> => {
+    await prismaClient.user.update({
+      data: {
+        educations: {
+          update: {
+            data: {
+              certificate: {
+                delete: true,
+              },
+            },
+            where: {
+              id: educationId,
+            },
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+  };
+
+  public updateUserEducationCertificate = async ({
+    certificate,
+    educationId,
+    id,
+  }: {
+    certificate: Pick<
+      Certificate,
+      "name" | "size" | "type" | "uploadedAt" | "url"
+    >;
+    educationId: string;
+    id: string;
+  }): Promise<void> => {
+    await prismaClient.user.update({
+      data: {
+        educations: {
+          update: {
+            data: {
+              certificate: {
+                update: certificate,
+              },
+            },
             where: {
               id: educationId,
             },
