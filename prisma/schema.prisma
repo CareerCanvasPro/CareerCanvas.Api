@@ -107,10 +107,11 @@ model Skill {
 /// AUTH SCHEMA
 
 model Otp {
-  id        String @id @default(cuid())
-  createdAt               DateTime                @default(now())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
   expiresAt BigInt
-  otp       String @db.VarChar(6)
+  otp       String   @db.VarChar(6)
+  updatedAt DateTime @updatedAt
   username  String
 }
 
@@ -118,7 +119,7 @@ model Otp {
 
 model Course {
   id           String   @id @default(cuid())
-  createdAt               DateTime                @default(now())
+  createdAt    DateTime @default(now())
   currency     Currency
   duration     Int
   image        String
@@ -130,6 +131,7 @@ model Course {
   sourceName   String
   sourceUrl    String
   studentCount Int
+  updatedAt    DateTime @updatedAt
   authors      Author[]
   goals        Goal[]
   topic        Field    @relation(fields: [topicId], references: [id])
@@ -141,7 +143,7 @@ model Course {
 model Job {
   id               String            @id @default(cuid())
   companyLogo      String
-  createdAt               DateTime                @default(now())
+  createdAt        DateTime          @default(now())
   currency         Currency
   deadline         BigInt
   location         String
@@ -153,6 +155,7 @@ model Job {
   salaryInterval   SalaryInterval
   salaryMax        Int?
   type             Type
+  updatedAt        DateTime          @updatedAt
   fields           Field[]
   goals            Goal[]
 }
@@ -162,7 +165,8 @@ model Job {
 model PersonalityTestAnswer {
   id         String                  @id @default(cuid())
   answer     Int
-  createdAt               DateTime                @default(now())
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
   question   PersonalityTestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   questionId String
@@ -212,52 +216,56 @@ model User {
 }
 
 model Appreciation {
-  id           String  @id @default(cuid())
-  createdAt               DateTime                @default(now())
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
   date         BigInt?
   name         String?
   organization String?
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 }
 
 model Education {
-  id                    String  @id @default(cuid())
+  id                    String   @id @default(cuid())
   achievements          String?
   certificateName       String?
   certificateSize       Int?
   certificateType       String?
   certificateUploadedAt BigInt?
   certificateUrl        String?
-  createdAt               DateTime                @default(now())
+  createdAt             DateTime @default(now())
   field                 String?
   graduationDate        BigInt?
   institute             String?
-  isCurrent             Boolean @default(false)
-  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isCurrent             Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                String
 }
 
 model Occupation {
-  id           String  @id @default(cuid())
-  createdAt               DateTime                @default(now())
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
   designation  String?
   endDate      BigInt?
-  isCurrent    Boolean @default(false)
+  isCurrent    Boolean  @default(false)
   organization String?
   startDate    BigInt?
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
 }
 
 model Resume {
-  id         String @id @default(cuid())
-  createdAt               DateTime                @default(now())
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
   name       String
   size       Int
   type       String
+  updatedAt  DateTime @updatedAt
   uploadedAt BigInt
   url        String
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
 }
