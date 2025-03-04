@@ -192,7 +192,7 @@ model User {
   coins                   Int?
   createdAt               DateTime                @default(now())
   email                   String?                 @unique
-  fcmToken                String?                 @unique
+  fcmToken                String?
   languages               Language[]
   name                    String?
   personalityTestResultEI Float?
@@ -227,21 +227,30 @@ model Appreciation {
 }
 
 model Education {
-  id                    String   @id @default(cuid())
-  achievements          String?
-  certificateName       String?
-  certificateSize       Int?
-  certificateType       String?
-  certificateUploadedAt BigInt?
-  certificateUrl        String?
-  createdAt             DateTime @default(now())
-  field                 String?
-  graduationDate        BigInt?
-  institute             String?
-  isCurrent             Boolean  @default(false)
-  updatedAt             DateTime @updatedAt
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                String
+  id             String       @id @default(cuid())
+  achievements   String?
+  createdAt      DateTime     @default(now())
+  field          String?
+  graduationDate BigInt?
+  institute      String?
+  isCurrent      Boolean      @default(false)
+  updatedAt      DateTime     @updatedAt
+  certificate    Certificate?
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+}
+
+model Certificate {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  name        String?
+  size        Int?
+  type        String?
+  updatedAt   DateTime  @updatedAt
+  uploadedAt  BigInt?
+  url         String?
+  education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
+  educationId String    @unique
 }
 
 model Occupation {
