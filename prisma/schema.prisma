@@ -125,12 +125,12 @@ model Course {
   image        String
   level        Level
   name         String
-  price        Float
-  rating       Float
-  ratingCount  Int
+  price        Float    @default(0)
+  rating       Float    @default(0)
+  ratingCount  Int      @default(0)
   sourceName   String
   sourceUrl    String
-  studentCount Int
+  studentCount Int      @default(0)
   updatedAt    DateTime @updatedAt
   authors      Author[]
   goals        Goal[]
@@ -188,15 +188,15 @@ model PersonalityTestQuestion {
 model User {
   id             String                  @id @default(cuid())
   aboutMe        String?
-  address        String?
-  coins          Int?
+  address        String
+  coins          Int                     @default(0)
   createdAt      DateTime                @default(now())
   email          String?                 @unique
   fcmToken       String?
   languages      Language[]
-  name           String?
+  name           String
   phone          String?                 @unique
-  profilePicture String?
+  profilePicture String
   updatedAt      DateTime                @updatedAt
   username       String                  @unique
   answers        PersonalityTestAnswer[]
@@ -214,8 +214,8 @@ model Appreciation {
   id           String    @id @default(cuid())
   createdAt    DateTime  @default(now())
   date         DateTime?
-  name         String?
-  organization String?
+  name         String
+  organization String
   updatedAt    DateTime  @updatedAt
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
@@ -225,9 +225,9 @@ model Education {
   id             String       @id @default(cuid())
   achievements   String?
   createdAt      DateTime     @default(now())
-  field          String?
+  field          String
   graduationDate DateTime?
-  institute      String?
+  institute      String
   isCurrent      Boolean      @default(false)
   updatedAt      DateTime     @updatedAt
   certificate    Certificate?
@@ -238,12 +238,12 @@ model Education {
 model Certificate {
   id          String    @id @default(cuid())
   createdAt   DateTime  @default(now())
-  name        String?
-  size        Int?
-  type        String?
+  name        String
+  size        Int
+  type        String
   updatedAt   DateTime  @updatedAt
-  uploadedAt  DateTime?
-  url         String?
+  uploadedAt  DateTime
+  url         String
   education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
   educationId String    @unique
 }
@@ -251,11 +251,11 @@ model Certificate {
 model Occupation {
   id           String    @id @default(cuid())
   createdAt    DateTime  @default(now())
-  designation  String?
+  designation  String
   endDate      DateTime?
   isCurrent    Boolean   @default(false)
-  organization String?
-  startDate    DateTime?
+  organization String
+  startDate    DateTime
   updatedAt    DateTime  @updatedAt
   user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId       String
@@ -264,10 +264,10 @@ model Occupation {
 model Personality {
   id           String                 @id @default(cuid())
   createdAt    DateTime               @default(now())
-  testResultEI Float?
-  testResultSN Float?
-  testResultTF Float?
-  testResultJP Float?
+  testResultEI Float                  @default(0)
+  testResultSN Float                  @default(0)
+  testResultTF Float                  @default(0)
+  testResultJP Float                  @default(0)
   testStatus   PersonalityTestStatus?
   type         PersonalityType?
   updatedAt    DateTime               @updatedAt
