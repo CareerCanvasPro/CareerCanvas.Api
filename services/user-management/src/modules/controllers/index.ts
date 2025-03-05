@@ -228,7 +228,7 @@ export class UserManagementController {
     }
   };
 
-  public handleUpdateFcmToken = async (
+  public handleUpdateUserFcmToken = async (
     req: Request,
     res: Response
   ): Promise<void> => {
