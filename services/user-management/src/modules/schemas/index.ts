@@ -1,103 +1,184 @@
 import joi from "joi";
 
-export const createProfileSchema = joi
+export const userSchema = joi
   .object()
   .keys({
-    address: joi.string().trim().allow(null),
-    email: joi.string().email().trim().allow(null),
-    name: joi.string().trim().allow(null),
-    phone: joi
-      .string()
-      .regex(/^\+[1-9]\d{1,14}$/)
-      .allow(null),
+    address: joi.string().required().trim(),
+    email: joi.string().email().trim(),
+    name: joi.string().required().trim(),
+    phone: joi.string().regex(/^\+[1-9]\d{1,14}$/),
     profilePicture: joi
       .string()
       .uri({
         scheme: ["https"],
       })
-      .allow(null),
-    userID: joi.string().required(),
+      .required(),
+    userId: joi.string().required(),
     username: joi.string().required(),
   })
-  .unknown(false);
+  .or("email", "phone")
+  .unknown(false)
+  .required();
 
-export const updateProfileSchema = joi
+export const stringArraySchema = joi
+  .array()
+  .items(joi.string().required().trim())
+  .required();
+
+export const stringSchema = joi.string().required().trim();
+
+export const urlSchema = joi
+  .string()
+  .uri({
+    scheme: ["https"],
+  })
+  .required();
+
+// APPRECIATIONS
+
+export const appreciationArraySchema = joi
+  .array()
+  .items(
+    joi
+      .object()
+      .keys({
+        date: joi.date().allow(null),
+        name: joi.string().required().trim(),
+        organization: joi.string().required().trim(),
+      })
+      .unknown(false)
+      .required()
+  )
+  .required();
+
+export const appreciationSchema = joi
   .object()
   .keys({
-    aboutMe: joi.string().trim().allow(null),
-    address: joi.string().trim().allow(null),
-    appreciations: joi
-      .array()
-      .items(
-        joi.object().keys({
-          date: joi.number().allow(null),
-          name: joi.string().trim().allow(null),
-          organization: joi.string().trim().allow(null),
-        })
-      )
-      .allow(null),
-    dateOfBirth: joi.number().allow(null),
-    education: joi
-      .array()
-      .items(
-        joi.object().keys({
-          achievements: joi.string().trim().allow(null),
-          certificate: joi
-            .object()
-            .keys({
-              name: joi.string(),
-              size: joi.number(),
-              type: joi.string(),
-              uploadedAt: joi.number(),
-              url: joi.string().uri({
-                scheme: ["https"],
-              }),
-            })
-            .allow(null),
-          field: joi.string().trim().allow(null),
-          graduationDate: joi.number().allow(null),
-          institute: joi.string().trim().allow(null),
-          isCurrent: joi.boolean().default(false),
-        })
-      )
-      .allow(null),
-    fcmToken: joi.string().allow(null),
-    interests: joi.array().items(joi.string()).allow(null),
-    isEducationDeleted: joi.boolean(),
-    isOccupationDeleted: joi.boolean(),
-    isSkillsDeleted: joi.boolean(),
-    languages: joi.array().items(joi.string()).allow(null),
-    name: joi.string().trim().allow(null),
-    occupation: joi
-      .array()
-      .items(
-        joi.object().keys({
-          designation: joi.string().trim().allow(null),
-          from: joi.number().allow(null),
-          isCurrent: joi.boolean().default(false),
-          organization: joi.string().trim().allow(null),
-          to: joi.number().allow(null),
-        })
-      )
-      .allow(null),
-    profilePicture: joi
-      .string()
-      .uri({ scheme: ["https"] })
-      .allow(null),
-    resumes: joi
-      .array()
-      .items(
-        joi.object().keys({
-          name: joi.string(),
-          size: joi.number(),
-          type: joi.string(),
-          uploadedAt: joi.number(),
-          url: joi.string().uri({
-            scheme: ["https"],
-          }),
-        })
-      )
-      .allow(null),
-    skills: joi.array().items(joi.string()).allow(null),
+    date: joi.date().allow(null),
+    name: joi.string().required().trim(),
+    organization: joi.string().required().trim(),
   })
-  .unknown(false);
+  .unknown(false)
+  .required();
+
+// EDUCATIONS
+
+export const educationArraySchema = joi
+  .array()
+  .items(
+    joi
+      .object()
+      .keys({
+        achievements: joi.string().trim().allow(null),
+        field: joi.string().required().trim(),
+        graduationDate: joi.date().allow(null),
+        institute: joi.string().required().trim(),
+        isCurrent: joi.boolean().default(false),
+      })
+      .unknown(false)
+      .required()
+  )
+  .required();
+
+export const educationSchema = joi
+  .object()
+  .keys({
+    achievements: joi.string().trim().allow(null),
+    field: joi.string().required().trim(),
+    graduationDate: joi.date().allow(null),
+    institute: joi.string().required().trim(),
+    isCurrent: joi.boolean().default(false),
+  })
+  .unknown(false)
+  .required();
+
+// EDUCATION CERTIFICATE
+
+export const educationCertificateSchema = joi
+  .object()
+  .keys({
+    name: joi.string().required(),
+    size: joi.number().required(),
+    type: joi.string().required(),
+    uploadedAt: joi.number().required(),
+    url: joi
+      .string()
+      .uri({
+        scheme: ["https"],
+      })
+      .required(),
+  })
+  .unknown(false)
+  .required();
+
+// OCCUPATIONS
+
+export const occupationArraySchema = joi
+  .array()
+  .items(
+    joi
+      .object()
+      .keys({
+        designation: joi.string().required().trim(),
+        endDate: joi.date().allow(null),
+        isCurrent: joi.boolean().default(false),
+        organization: joi.string().required().trim(),
+        startDate: joi.date().required(),
+      })
+      .unknown(false)
+      .required()
+  )
+  .required();
+
+export const occupationSchema = joi
+  .object()
+  .keys({
+    designation: joi.string().required().trim(),
+    endDate: joi.date().allow(null),
+    isCurrent: joi.boolean().default(false),
+    organization: joi.string().required().trim(),
+    startDate: joi.date().required(),
+  })
+  .unknown(false)
+  .required();
+
+// RESUMES
+
+export const resumeArraySchema = joi
+  .array()
+  .items(
+    joi
+      .object()
+      .keys({
+        name: joi.string().required(),
+        size: joi.number().required(),
+        type: joi.string().required(),
+        uploadedAt: joi.number().required(),
+        url: joi
+          .string()
+          .uri({
+            scheme: ["https"],
+          })
+          .required(),
+      })
+      .unknown(false)
+      .required()
+  )
+  .required();
+
+export const resumeSchema = joi
+  .object()
+  .keys({
+    name: joi.string().required(),
+    size: joi.number().required(),
+    type: joi.string().required(),
+    uploadedAt: joi.number().required(),
+    url: joi
+      .string()
+      .uri({
+        scheme: ["https"],
+      })
+      .required(),
+  })
+  .unknown(false)
+  .required();

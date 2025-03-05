@@ -134,7 +134,10 @@ export class UsersDb {
     appreciations,
     id,
   }: {
-    appreciations: Omit<Appreciation, "id" | "userId">[];
+    appreciations: Omit<
+      Appreciation,
+      "createdAt" | "id" | "updatedAt" | "userId"
+    >[];
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({
@@ -175,7 +178,10 @@ export class UsersDb {
     appreciationId,
     id,
   }: {
-    appreciation: Omit<Appreciation, "id" | "userId">;
+    appreciation: Omit<
+      Appreciation,
+      "createdAt" | "id" | "updatedAt" | "userId"
+    >;
     appreciationId: string;
     id: string;
   }): Promise<void> => {
@@ -202,7 +208,7 @@ export class UsersDb {
     educations,
     id,
   }: {
-    educations: Omit<Education, "id" | "userId">[];
+    educations: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">[];
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({
@@ -243,7 +249,7 @@ export class UsersDb {
     educationId,
     id,
   }: {
-    education: Omit<Education, "id" | "userId">;
+    education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
     educationId: string;
     id: string;
   }): Promise<void> => {
@@ -507,7 +513,10 @@ export class UsersDb {
     occupations,
   }: {
     id: string;
-    occupations: Omit<Occupation, "id" | "userId">[];
+    occupations: Omit<
+      Occupation,
+      "createdAt" | "id" | "updatedAt" | "userId"
+    >[];
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
@@ -548,7 +557,7 @@ export class UsersDb {
     occupationId,
   }: {
     id: string;
-    occupation: Omit<Occupation, "id" | "userId">;
+    occupation: Omit<Occupation, "createdAt" | "id" | "updatedAt" | "userId">;
     occupationId: string;
   }): Promise<void> => {
     await prismaClient.user.update({
@@ -575,7 +584,7 @@ export class UsersDb {
     resumes,
   }: {
     id: string;
-    resumes: Omit<Resume, "id" | "userId">[];
+    resumes: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">[];
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
@@ -616,7 +625,7 @@ export class UsersDb {
     resumeId,
   }: {
     id: string;
-    resume: Omit<Resume, "id" | "userId">;
+    resume: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">;
     resumeId: string;
   }): Promise<void> => {
     await prismaClient.user.update({
