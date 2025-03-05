@@ -1,13 +1,27 @@
 import { Request, Response } from "express";
 
 import { cleanMessage } from "../../utils";
-import { createProfileSchema, updateProfileSchema } from "../schemas";
-import { UsersDB } from "../services";
+import {
+  appreciationArraySchema,
+  appreciationSchema,
+  educationArraySchema,
+  educationCertificateSchema,
+  educationSchema,
+  occupationArraySchema,
+  occupationSchema,
+  resumeArraySchema,
+  resumeSchema,
+  stringArraySchema,
+  stringSchema,
+  urlSchema,
+  userSchema,
+} from "../schemas";
+import { UsersDb } from "../services";
 
 export class UserManagementController {
-  private readonly usersDB = new UsersDB();
+  private readonly usersDb = new UsersDb();
 
-  public handleCreateProfile = async (
+  public handleCreateUser = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -16,7 +30,7 @@ export class UserManagementController {
 
       delete req.body.iat;
 
-      const { error, value } = createProfileSchema.validate(req.body, {
+      const { error, value } = userSchema.validate(req.body, {
         abortEarly: false,
       });
 
@@ -27,41 +41,35 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { address, email, name, phone, profilePicture, userID } = value;
+        const {
+          address,
+          email,
+          name,
+          phone,
+          profilePicture,
+          userId,
+          username,
+        } = value;
 
-        const { user } = await this.usersDB.getUser({
-          keyValue: userID,
+        const coins = 10;
+
+        await this.usersDb.createUser({
+          user: {
+            address,
+            coins,
+            email,
+            id: userId,
+            name,
+            phone,
+            profilePicture,
+            username,
+          },
         });
 
-        if (user) {
-          res
-            .status(409)
-            .json({ data: null, message: "Profile already exists" });
-        } else {
-          if (address && email && name && phone && profilePicture) {
-            const coins = 10;
-
-            const { httpStatusCode } = await this.usersDB.putUser({
-              user: { ...value, coins },
-            });
-
-            res.status(httpStatusCode).json({
-              data: { coins },
-              message: "New profile created successfully",
-            });
-          } else {
-            const coins = 5;
-
-            const { httpStatusCode } = await this.usersDB.putUser({
-              user: { ...value, coins },
-            });
-
-            res.status(httpStatusCode).json({
-              data: { coins },
-              message: "New profile created successfully",
-            });
-          }
-        }
+        res.status(201).json({
+          data: { coins },
+          message: "New profile created successfully",
+        });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -76,24 +84,20 @@ export class UserManagementController {
     }
   };
 
-  public handleDeleteProfile = async (
+  public handleDeleteUser = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { userId } = req.body;
 
-      const { deletedUser, httpStatusCode } = await this.usersDB.deleteUser({
-        keyValue: userID,
+      await this.usersDb.deleteUser({
+        id: userId,
       });
 
-      if (deletedUser) {
-        res
-          .status(httpStatusCode)
-          .json({ data: null, message: "Profile deleted successfully" });
-      } else {
-        res.status(404).json({ data: null, message: "Profile not found" });
-      }
+      res
+        .status(200)
+        .json({ data: null, message: "Profile deleted successfully" });
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res
@@ -107,20 +111,20 @@ export class UserManagementController {
     }
   };
 
-  public handleGetProfile = async (
+  public handleFindUser = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { userId } = req.body;
 
-      const { httpStatusCode, user } = await this.usersDB.getUser({
-        keyValue: userID,
+      const { user } = await this.usersDb.findUser({
+        id: userId,
       });
 
       if (user) {
         res
-          .status(httpStatusCode)
+          .status(200)
           .json({ data: user, message: "Profile retrieved successfully" });
       } else {
         res.status(404).json({ data: null, message: "Profile not found" });
@@ -138,24 +142,19 @@ export class UserManagementController {
     }
   };
 
-  public handleUpdateProfile = async (
+  public handleUpdateUserAboutMe = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { aboutMe, userId } = req.body;
 
-      delete req.body.exp;
-
-      delete req.body.iat;
-
-      delete req.body.userID;
-
-      delete req.body.username;
-
-      const { error, value } = updateProfileSchema.validate(req.body, {
-        abortEarly: false,
-      });
+      const { error, value: validatedAboutMe } = stringSchema.validate(
+        aboutMe,
+        {
+          abortEarly: false,
+        }
+      );
 
       if (error) {
         const validationErrors = error.details.map((error) =>
@@ -164,68 +163,14 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { user } = await this.usersDB.getUser({
-          keyValue: userID,
+        await this.usersDb.updateUserAboutMe({
+          aboutMe: validatedAboutMe,
+          id: userId,
         });
 
-        if (!user) {
-          res.status(404).json({ data: user, message: "Profile not found" });
-        } else {
-          const { education, occupation, skills } = value;
-
-          const attributes = Object.entries(value).map(([name, value]) => ({
-            name,
-            value,
-          }));
-          // when deleting education, set education to empty array or null and isEducationDeleted to true
-          if (
-            education &&
-            education.length &&
-            !user.education && // education must not exist in db before
-            !user.isEducationDeleted // education must not have deleted status set to true
-          ) {
-            attributes.push({
-              name: "coins",
-              value: (user.coins as number) + 5,
-            });
-          }
-          // Similar to education
-          if (
-            occupation &&
-            occupation.length &&
-            !user.isOccupationDeleted &&
-            !user.occupation
-          ) {
-            attributes.push({
-              name: "coins",
-              value: (user.coins as number) + 5,
-            });
-          }
-          // Similar to education
-          if (
-            skills &&
-            skills.length &&
-            !user.isSkillsDeleted &&
-            !user.skills
-          ) {
-            attributes.push({
-              name: "coins",
-              value: (user.coins as number) + 5,
-            });
-          }
-
-          const { httpStatusCode, updatedUser } = await this.usersDB.updateUser(
-            {
-              attributes,
-              keyValue: userID,
-            }
-          );
-
-          res.status(httpStatusCode).json({
-            data: { coins: updatedUser.coins },
-            message: "Profile updated successfully",
-          });
-        }
+        res
+          .status(200)
+          .json({ data: null, message: "About me updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -240,168 +185,1143 @@ export class UserManagementController {
     }
   };
 
-  //   updateProfilePicture = async (req: Request, res: Response) => {
-  //     // Validate request body
-  //     const result = validationResult(req.body);
-  //     if (!result.isEmpty()) {
-  //       return res.status(422).json({ errors: result.array() });
-  //     }
+  public handleUpdateUserAddress = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { address, userId } = req.body;
 
-  //     const requestedFrom = req.headers["requestedfrom"];
-  //     const logger = new Logger(
-  //       "user-management-service",
-  //       `UPDATEPROFILEPICTURE-${req.body.username}`,
-  //       requestedFrom
-  //     );
-  //     const { username, profilePicture } = req.body;
+      const { error, value: validatedAddress } = stringSchema.validate(
+        address,
+        {
+          abortEarly: false,
+        }
+      );
 
-  //     logger.info("Received request to update profile picture", {
-  //       username,
-  //       profilePicture,
-  //     });
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
-  //     const userService = new UserManagementService(this.TableName, username);
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserAddress({
+          address: validatedAddress,
+          id: userId,
+        });
 
-  //     try {
-  //       const user = await userService.getItem(username);
+        res
+          .status(200)
+          .json({ data: null, message: "Address updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
 
-  //       if (!user?.user) {
-  //         logger.error("User not found", { username });
-  //         return res.status(404).json({ error: "User not found" });
-  //       }
+  public handleUpdateFcmToken = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { fcmToken, userId } = req.body;
 
-  //       const updateExpression = "SET #profilePicture = :profilePicture";
-  //       const expressionAttributeNames: { [key: string]: string } = {};
-  //       const expressionAttributeValues: { [key: string]: any } = {};
+      const { error, value: validatedFcmToken } = stringSchema.validate(
+        fcmToken,
+        {
+          abortEarly: false,
+        }
+      );
 
-  //       const updatedProfilePictureUrl = "";
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
-  //       // Perform the update operation
-  //       const success = await userService.updateItem(
-  //         updateExpression,
-  //         expressionAttributeNames,
-  //         expressionAttributeValues
-  //       );
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserFcmToken({
+          fcmToken: validatedFcmToken,
+          id: userId,
+        });
 
-  //       if (success?.data) {
-  //         const responseMeta = success?.data?.$metadata;
-  //         const statusCode = success?.data.$metadata?.httpStatusCode;
+        res
+          .status(200)
+          .json({ data: null, message: "FCM token updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
 
-  //         logger.info("Profile picture updated successfully", {
-  //           statusCode,
-  //           responseMeta,
-  //         });
+  public handleUpdateUserName = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { name, userId } = req.body;
 
-  //         return res.status(statusCode).json({ Data: responseMeta }).end();
-  //       } else {
-  //         logger.error("Failed to update profile picture", { username });
-  //         return res.status(402).json({ Data: "Failed" }).end();
-  //       }
-  //     } catch (error) {
-  //       logger.error("Error updating profile picture", { error: error });
-  //       return res
-  //         .status(500)
-  //         .json({ error: "Failed to update profile picture" });
-  //     }
-  //   };
+      const { error, value: validatedName } = stringSchema.validate(name, {
+        abortEarly: false,
+      });
 
-  //   updateSetting = (req: Request, res: Response) => {
-  //     const requestedFrom = req.headers["requestedfrom"];
-  //     const logger = new Logger(
-  //       "user-management-service",
-  //       `UPDATESETTING-${req.body.username}`,
-  //       requestedFrom
-  //     );
-  //     const { username, matchPreference } = req.body;
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
-  //     logger.info("Received request to update match preferences", {
-  //       username,
-  //       matchPreference,
-  //     });
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserName({
+          id: userId,
+          name: validatedName,
+        });
 
-  //     const userService = new UserManagementService(this.TableName, username);
+        res
+          .status(200)
+          .json({ data: null, message: "Name updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
 
-  //     userService
-  //       .updateMatchPreference(username, matchPreference)
-  //       .then((success) => {
-  //         if (success) {
-  //           logger.info("Match preferences updated successfully", {
-  //             username,
-  //             matchPreference,
-  //           });
-  //           res.status(200).json({ Data: success }).end();
-  //         } else {
-  //           logger.warning(
-  //             "Failed to update match preferences, invalid response",
-  //             { username, matchPreference }
-  //           );
-  //           res
-  //             .status(400)
-  //             .json({ error: "Failed to update match preferences" })
-  //             .end();
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         logger.error("Error updating match preferences", { error });
-  //         res.status(500).json({
-  //           error:
-  //             error.message ||
-  //             "An error occurred while updating match preferences",
-  //         });
-  //       });
-  //   };
+  public handleUpdateUserProfilePicture = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { profilePicture, userId } = req.body;
 
-  //   attrchange = async (req: Request, res: Response) => {
-  //     const requestedFrom = req.headers["requestedfrom"];
-  //     const logger = new Logger(
-  //       "user-management-service",
-  //       `ATTRCHANGE-${req.body.username}`,
-  //       requestedFrom
-  //     );
-  //     const myUUID = uuidv4();
-  //     const { username, data } = req.body;
+      const { error, value: validatedProfilePicture } = urlSchema.validate(
+        profilePicture,
+        {
+          abortEarly: false,
+        }
+      );
 
-  //     // Adding necessary attributes to the request data
-  //     data.user = username;
-  //     data.id = myUUID;
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
 
-  //     logger.info("Received request to create attribute change", {
-  //       username,
-  //       data,
-  //     });
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserProfilePicture({
+          id: userId,
+          profilePicture: validatedProfilePicture,
+        });
 
-  //     const userService = new UserManagementService(
-  //       this.AttributeTableName,
-  //       username
-  //     );
+        res.status(200).json({
+          data: null,
+          message: "Profile picture updated successfully",
+        });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
 
-  //     try {
-  //       // Create an attribute change request
-  //       const success = await userService.createAttributeChangeRequest(data);
+  // APPRECIATIONS
 
-  //       if (success) {
-  //         logger.info("Attribute change request created successfully", {
-  //           username,
-  //           data,
-  //         });
-  //         res.status(200).json({ Data: success }).end();
-  //       } else {
-  //         logger.warning(
-  //           "Failed to create attribute change request, invalid response",
-  //           { username, data }
-  //         );
-  //         res
-  //           .status(400)
-  //           .json({ error: "Failed to create attribute change request" })
-  //           .end();
-  //       }
-  //     } catch (error) {
-  //       logger.error("Error creating attribute change request", { error });
-  //       res.status(500).json({
-  //         error:
-  //           error.message ||
-  //           "An error occurred while creating the attribute change request",
-  //       });
-  //     }
-  //   };
+  public handleCreateUserAppreciations = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { appreciations, userId } = req.body;
+
+      const { error, value: validatedAppreciations } =
+        appreciationArraySchema.validate(appreciations, {
+          abortEarly: false,
+        });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserAppreciations({
+          appreciations: validatedAppreciations,
+          id: userId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Appreciations created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserAppreciation = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { appreciationId },
+      } = req;
+
+      await this.usersDb.deleteUserAppreciation({
+        appreciationId,
+        id: userId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Appreciation deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserAppreciation = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { appreciation, userId },
+        params: { appreciationId },
+      } = req;
+
+      const { error, value: validatedAppreciation } =
+        appreciationSchema.validate(appreciation, {
+          abortEarly: false,
+        });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserAppreciation({
+          appreciation: validatedAppreciation,
+          appreciationId,
+          id: userId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Appreciation updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // EDUCATIONS
+
+  public handleCreateUserEducations = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { educations, userId } = req.body;
+
+      const { error, value: validatedEducations } =
+        educationArraySchema.validate(educations, {
+          abortEarly: false,
+        });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserEducations({
+          educations: validatedEducations,
+          id: userId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Educations created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserEducation = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { educationId },
+      } = req;
+
+      await this.usersDb.deleteUserEducation({
+        educationId,
+        id: userId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Education deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserEducation = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { education, userId },
+        params: { educationId },
+      } = req;
+
+      const { error, value: validatedEducation } = educationSchema.validate(
+        education,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserEducation({
+          education: validatedEducation,
+          educationId,
+          id: userId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Education updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // EDUCATION CERTIFICATE
+
+  public handleCreateUserEducationCertificate = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { certificate, userId },
+        params: { educationId },
+      } = req;
+
+      const { error, value: validatedCertificate } =
+        educationCertificateSchema.validate(certificate, {
+          abortEarly: false,
+        });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserEducationCertificate({
+          certificate: validatedCertificate,
+          educationId,
+          id: userId,
+        });
+
+        res.status(200).json({
+          data: null,
+          message: "Education certificate created successfully",
+        });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserEducationCertificate = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { educationId },
+      } = req;
+
+      await this.usersDb.deleteUserEducationCertificate({
+        educationId,
+        id: userId,
+      });
+
+      res.status(200).json({
+        data: null,
+        message: "Education certificate deleted successfully",
+      });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserEducationCertificate = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { certificate, userId },
+        params: { educationId },
+      } = req;
+
+      const { error, value: validatedCertificate } =
+        educationCertificateSchema.validate(certificate, {
+          abortEarly: false,
+        });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserEducationCertificate({
+          certificate: validatedCertificate,
+          educationId,
+          id: userId,
+        });
+
+        res.status(200).json({
+          data: null,
+          message: "Education certificate updated successfully",
+        });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // GOALS
+
+  public handleCreateUserGoals = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { goals, userId } = req.body;
+
+      const { error, value: validatedGoals } = stringArraySchema.validate(
+        goals,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserGoals({
+          goals: validatedGoals,
+          id: userId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Goals created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserGoal = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { goalId },
+      } = req;
+
+      await this.usersDb.deleteUserGoal({
+        goalId,
+        id: userId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Goal deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserGoal = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { goal, userId },
+        params: { goalId },
+      } = req;
+
+      const { error, value: validatedGoal } = stringSchema.validate(goal, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserGoal({
+          goal: validatedGoal,
+          goalId,
+          id: userId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Goal updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // INTERESTS
+
+  public handleCreateUserInterests = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { interests, userId } = req.body;
+
+      const { error, value: validatedInterests } = stringArraySchema.validate(
+        interests,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserInterests({
+          id: userId,
+          interests: validatedInterests,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Interests created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserInterest = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { interestId },
+      } = req;
+
+      await this.usersDb.deleteUserInterest({
+        id: userId,
+        interestId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Interest deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserInterest = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { interest, userId },
+        params: { interestId },
+      } = req;
+
+      const { error, value: validatedInterest } = stringSchema.validate(
+        interest,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserInterest({
+          id: userId,
+          interest: validatedInterest,
+          interestId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Interest updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // OCCUPATIONS
+
+  public handleCreateUserOccupations = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { occupations, userId } = req.body;
+
+      const { error, value: validatedOccupations } =
+        occupationArraySchema.validate(occupations, {
+          abortEarly: false,
+        });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserOccupations({
+          id: userId,
+          occupations: validatedOccupations,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Occupations created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserOccupation = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { occupationId },
+      } = req;
+
+      await this.usersDb.deleteUserOccupation({
+        id: userId,
+        occupationId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Occupation deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserOccupation = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { occupation, userId },
+        params: { occupationId },
+      } = req;
+
+      const { error, value: validatedOccupation } = occupationSchema.validate(
+        occupation,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserOccupation({
+          id: userId,
+          occupation: validatedOccupation,
+          occupationId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Occupation updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // RESUMES
+
+  public handleCreateUserResumes = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { resumes, userId } = req.body;
+
+      const { error, value: validatedResumes } = resumeArraySchema.validate(
+        resumes,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserResumes({
+          id: userId,
+          resumes: validatedResumes,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Resumes created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserResume = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { resumeId },
+      } = req;
+
+      await this.usersDb.deleteUserResume({
+        id: userId,
+        resumeId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Resume deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserResume = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { resume, userId },
+        params: { resumeId },
+      } = req;
+
+      const { error, value: validatedResume } = resumeSchema.validate(resume, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserResume({
+          id: userId,
+          resume: validatedResume,
+          resumeId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Resume updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // SKILLS
+
+  public handleCreateUserSkills = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { skills, userId } = req.body;
+
+      const { error, value: validatedSkills } = stringArraySchema.validate(
+        skills,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.createUserSkills({
+          id: userId,
+          skills: validatedSkills,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Skills created successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleDeleteUserSkill = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { userId },
+        params: { skillId },
+      } = req;
+
+      await this.usersDb.deleteUserSkill({
+        id: userId,
+        skillId,
+      });
+
+      res
+        .status(200)
+        .json({ data: null, message: "Skill deleted successfully" });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  public handleUpdateUserSkill = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const {
+        body: { skill, userId },
+        params: { skillId },
+      } = req;
+
+      const { error, value: validatedSkill } = stringSchema.validate(skill, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserSkill({
+          id: userId,
+          skill: validatedSkill,
+          skillId,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Skill updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
 }
