@@ -1,135 +1,90 @@
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  ScanCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { PersonalityType, Prisma } from "@prisma/client";
 
-import { config } from "../../config";
+import { prismaClient } from "../../config";
 
-interface PutJobParams {
-  job: Record<string, unknown>;
-}
-
-interface RetrieveRecommendedJobsParams {
-  goals: string[] | undefined;
-  interests: string[] | undefined;
-  personalityType: string | undefined;
-}
-
-export class JobsDB {
-  private readonly dynamoDBClient = new DynamoDBClient({
-    region: config.aws.region,
-  });
-
-  private readonly tableName = "Jobs";
-
-  public getAllJobs = async (): Promise<{
-    httpStatusCode: number;
-    jobs: Record<string, unknown>[];
-  }> => {
-    const {
-      $metadata: { httpStatusCode },
-      Items: Jobs,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        TableName: this.tableName,
-      })
-    );
-
-    const jobs = Jobs.map((job) => unmarshall(job));
-
-    return { httpStatusCode, jobs };
-  };
-
-  public putJob = async ({
-    job,
-  }: PutJobParams): Promise<{ httpStatusCode: number }> => {
-    const {
-      $metadata: { httpStatusCode },
-    } = await this.dynamoDBClient.send(
-      new PutItemCommand({
-        Item: marshall(job),
-        TableName: this.tableName,
-      })
-    );
-
-    return { httpStatusCode };
-  };
-
-  public retrieveRecommendedJobs = async ({
+export class JobsDb {
+  public buildQuery = ({
     goals,
     interests,
     personalityType,
-  }: RetrieveRecommendedJobsParams): Promise<{
-    count: number;
-    httpStatusCode: number;
-    jobs: Record<string, unknown>[];
-  }> => {
-    const expressionAttributeNames: Record<string, string> = {
-      "#deadline": "deadline",
-    };
+  }: {
+    goals: string[] | null | undefined;
+    interests: string[] | null | undefined;
+    personalityType: PersonalityType | null | undefined;
+  }): { query: Prisma.JobWhereInput } => {
+    const query: Prisma.JobWhereInput = {};
 
-    const expressionAttributeValues: Record<string, number | string> = {
-      ":deadline": Date.now(),
+    query.deadline = {
+      gte: new Date(),
     };
-
-    const filterExpressions: string[] = ["#deadline >= :deadline"];
 
     if (goals && goals.length) {
-      expressionAttributeNames["#goals"] = "goals";
-
-      goals.forEach(
-        (goal, index) => (expressionAttributeValues[`:goal${index}`] = goal)
-      );
-
-      filterExpressions.push(
-        `(${goals
-          .map((_, index) => `contains(#goals, :goal${index})`)
-          .join(" OR ")})`
-      );
+      query.goals = {
+        some: {
+          name: {
+            in: goals,
+          },
+        },
+      };
     }
 
     if (interests && interests.length) {
-      expressionAttributeNames["#fields"] = "fields";
-
-      interests.forEach(
-        (interest, index) =>
-          (expressionAttributeValues[`:interest${index}`] = interest)
-      );
-
-      filterExpressions.push(
-        `(${interests
-          .map((_, index) => `contains(#fields, :interest${index})`)
-          .join(" OR ")})`
-      );
+      query.fields = {
+        some: {
+          name: {
+            in: interests,
+          },
+        },
+      };
     }
 
     if (personalityType) {
-      expressionAttributeNames["#personalityTypes"] = "personalityTypes";
-
-      expressionAttributeValues[":personalityType"] = "personalityType";
-
-      filterExpressions.push("contains(#personalityTypes, :personalityType)");
+      query.personalityTypes = {
+        has: personalityType,
+      };
     }
 
-    const filterExpression = filterExpressions.join(" AND ");
+    return { query };
+  };
 
-    const {
-      $metadata: { httpStatusCode },
-      Count: count,
-      Items: Jobs,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        ExpressionAttributeNames: expressionAttributeNames,
-        ExpressionAttributeValues: marshall(expressionAttributeValues),
-        FilterExpression: filterExpression,
-        TableName: this.tableName,
-      })
-    );
+  public findAllJobs = async (): Promise<{
+    jobs: Prisma.JobGetPayload<{
+      include: {
+        fields: true;
+        goals: true;
+      };
+    }>[];
+  }> => {
+    const jobs = await prismaClient.job.findMany({
+      include: {
+        fields: true,
+        goals: true,
+      },
+    });
 
-    const jobs = Jobs.map((job) => unmarshall(job));
+    return { jobs };
+  };
 
-    return { count, httpStatusCode, jobs };
+  public findJobsByQuery = async ({
+    query,
+  }: {
+    query: Prisma.JobWhereInput;
+  }): Promise<{
+    jobs: Prisma.JobGetPayload<{
+      include: {
+        fields: true;
+        goals: true;
+      };
+    }>[];
+  }> => {
+    const jobs = await prismaClient.job.findMany({
+      include: {
+        fields: true,
+        goals: true,
+      },
+      where: query,
+    });
+
+    return { jobs };
   };
 }
