@@ -1,4 +1,10 @@
-import { Job, PersonalityType, Prisma } from "@prisma/client";
+import {
+  Job,
+  JobLocationType,
+  JobType,
+  PersonalityType,
+  Prisma,
+} from "@prisma/client";
 
 import { prismaClient } from "../../config";
 
@@ -6,11 +12,17 @@ export class JobsDb {
   public buildQuery = ({
     goals,
     interests,
+    keyword,
+    locationTypes,
     personalityType,
+    types,
   }: {
     goals: string[] | null | undefined;
     interests: string[] | null | undefined;
+    keyword: string | null | undefined;
+    locationTypes: JobLocationType[] | null | undefined;
     personalityType: PersonalityType | null | undefined;
+    types: JobType[] | null | undefined;
   }): { query: Prisma.JobWhereInput } => {
     const query: Prisma.JobWhereInput = {};
 
@@ -38,9 +50,64 @@ export class JobsDb {
       };
     }
 
+    if (keyword) {
+      query.OR = [
+        {
+          fields: {
+            some: {
+              name: {
+                contains: keyword,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+        {
+          goals: {
+            some: {
+              name: {
+                contains: keyword,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+        {
+          location: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        },
+        {
+          organization: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        },
+        {
+          position: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    if (locationTypes && locationTypes.length) {
+      query.locationType = {
+        in: locationTypes,
+      };
+    }
+
     if (personalityType) {
       query.personalityTypes = {
         has: personalityType,
+      };
+    }
+
+    if (types && types.length) {
+      query.type = {
+        in: types,
       };
     }
 
