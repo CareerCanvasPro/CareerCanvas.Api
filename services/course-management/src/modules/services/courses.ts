@@ -1,190 +1,128 @@
-import {
-  DynamoDBClient,
-  PutItemCommand,
-  ScanCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { Course, Prisma } from "@prisma/client";
 
-import { config } from "../../config";
+import { prismaClient } from "../../config";
 
-interface PutCourseParams {
-  course: Record<string, unknown>;
-}
+export class CoursesDb {
+  public buildQuery = ({
+    goals,
+    interests,
+  }: {
+    goals: string[] | null | undefined;
+    interests: string[] | null | undefined;
+  }): { query: Prisma.CourseWhereInput } => {
+    const query: Prisma.CourseWhereInput = {};
 
-interface SearchCoursesBasedOnGoalsParams {
-  goals: string[];
-}
+    if (goals && goals.length) {
+      query.goals = {
+        some: {
+          name: {
+            in: goals,
+          },
+        },
+      };
+    }
 
-interface SearchCoursesBasedOnInterestsParams {
-  interests: string[];
-}
+    if (interests && interests.length) {
+      query.topic = {
+        name: {
+          in: interests,
+        },
+      };
+    }
 
-interface SearchCoursesBasedOnGoalsAndInterestsParams {
-  goals: string[];
-  interests: string[];
-}
-
-export class CoursesDB {
-  private readonly dynamoDBClient = new DynamoDBClient({
-    region: config.aws.region,
-  });
-
-  private readonly tableName = "Courses";
-
-  public getAllCourses = async (): Promise<{
-    courses: Record<string, unknown>[];
-    httpStatusCode: number;
-  }> => {
-    const {
-      $metadata: { httpStatusCode },
-      Items: Courses,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        TableName: this.tableName,
-      })
-    );
-
-    const courses = Courses.map((course) => unmarshall(course));
-
-    return { courses, httpStatusCode };
+    return { query };
   };
 
-  public putCourse = async ({
+  public createCourse = async ({
     course,
-  }: PutCourseParams): Promise<{ httpStatusCode: number }> => {
-    const {
-      $metadata: { httpStatusCode },
-    } = await this.dynamoDBClient.send(
-      new PutItemCommand({
-        Item: marshall(course),
-        TableName: this.tableName,
-      })
-    );
-
-    return { httpStatusCode };
-  };
-
-  public searchCoursesBasedOnGoals = async ({
+    authors,
     goals,
-  }: SearchCoursesBasedOnGoalsParams): Promise<{
-    count: number;
-    courses: Record<string, unknown>[];
-    httpStatusCode: number;
-  }> => {
-    const expressionAttributeNames = { "#goals": "goals" };
-
-    const expressionAttributeValues: Record<string, string> = {};
-
-    goals.forEach(
-      (goal, index) => (expressionAttributeValues[`:goal${index}`] = goal)
-    );
-
-    const filterExpression = goals
-      .map((_, index) => `contains(#goals, :goal${index})`)
-      .join(" OR ");
-
-    const {
-      $metadata: { httpStatusCode },
-      Count: count,
-      Items: Courses,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        ExpressionAttributeNames: expressionAttributeNames,
-        ExpressionAttributeValues: marshall(expressionAttributeValues),
-        FilterExpression: filterExpression,
-        TableName: this.tableName,
-      })
-    );
-
-    const courses = Courses.map((course) => unmarshall(course));
-
-    return { count, courses, httpStatusCode };
+    topic,
+  }: {
+    course: Omit<Course, "id" | "createdAt" | "topicId" | "updatedAt">;
+    authors: string[];
+    goals: string[];
+    topic: string;
+  }): Promise<void> => {
+    await prismaClient.course.create({
+      data: {
+        ...course,
+        authors: {
+          connectOrCreate: authors.map((author) => ({
+            create: {
+              name: author,
+            },
+            where: {
+              name: author,
+            },
+          })),
+        },
+        goals: {
+          connectOrCreate: goals.map((goal) => ({
+            create: {
+              name: goal,
+            },
+            where: {
+              name: goal,
+            },
+          })),
+        },
+        topic: {
+          connectOrCreate: {
+            create: {
+              name: topic,
+            },
+            where: {
+              name: topic,
+            },
+          },
+        },
+      },
+    });
   };
 
-  public searchCoursesBasedOnInterests = async ({
-    interests,
-  }: SearchCoursesBasedOnInterestsParams): Promise<{
-    count: number;
-    courses: Record<string, unknown>[];
-    httpStatusCode: number;
+  public findAllCourses = async (): Promise<{
+    courses: Prisma.CourseGetPayload<{
+      include: {
+        authors: true;
+        goals: true;
+        topic: true;
+      };
+    }>[];
   }> => {
-    const expressionAttributeNames = { "#topic": "topic" };
+    const courses = await prismaClient.course.findMany({
+      include: {
+        authors: true,
+        goals: true,
+        topic: true,
+      },
+    });
 
-    const expressionAttributeValues: Record<string, string> = {};
-
-    interests.forEach(
-      (interest, index) =>
-        (expressionAttributeValues[`:interest${index}`] = interest)
-    );
-
-    const filterExpression = interests
-      .map((_, index) => `#topic = :interest${index}`)
-      .join(" OR ");
-
-    const {
-      $metadata: { httpStatusCode },
-      Count: count,
-      Items: Courses,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        ExpressionAttributeNames: expressionAttributeNames,
-        ExpressionAttributeValues: marshall(expressionAttributeValues),
-        FilterExpression: filterExpression,
-        TableName: this.tableName,
-      })
-    );
-
-    const courses = Courses.map((course) => unmarshall(course));
-
-    return { count, courses, httpStatusCode };
+    return { courses };
   };
 
-  public searchCoursesBasedOnGoalsAndInterests = async ({
-    goals,
-    interests,
-  }: SearchCoursesBasedOnGoalsAndInterestsParams): Promise<{
-    count: number;
-    courses: Record<string, unknown>[];
-    httpStatusCode: number;
+  public findCoursesByQuery = async ({
+    query,
+  }: {
+    query: Prisma.CourseWhereInput;
+  }): Promise<{
+    courses: Prisma.CourseGetPayload<{
+      include: {
+        authors: true;
+        goals: true;
+        topic: true;
+      };
+    }>[];
   }> => {
-    const expressionAttributeNames = { "#goals": "goals", "#topic": "topic" };
+    const courses = await prismaClient.course.findMany({
+      include: {
+        authors: true,
+        goals: true,
+        topic: true,
+      },
+      where: query,
+    });
 
-    const expressionAttributeValues: Record<string, string> = {};
-
-    goals.forEach(
-      (goal, index) => (expressionAttributeValues[`:goal${index}`] = goal)
-    );
-
-    interests.forEach(
-      (interest, index) =>
-        (expressionAttributeValues[`:interest${index}`] = interest)
-    );
-
-    const goalsFilterExpression = goals
-      .map((_, index) => `contains(#goals, :goal${index})`)
-      .join(" OR ");
-
-    const interestsFilterExpression = interests
-      .map((_, index) => `#topic = :interest${index}`)
-      .join(" OR ");
-
-    const filterExpression = `(${goalsFilterExpression}) AND (${interestsFilterExpression})`;
-
-    const {
-      $metadata: { httpStatusCode },
-      Count: count,
-      Items: Courses,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        ExpressionAttributeNames: expressionAttributeNames,
-        ExpressionAttributeValues: marshall(expressionAttributeValues),
-        FilterExpression: filterExpression,
-        TableName: this.tableName,
-      })
-    );
-
-    const courses = Courses.map((course) => unmarshall(course));
-
-    return { count, courses, httpStatusCode };
+    return { courses };
   };
 }

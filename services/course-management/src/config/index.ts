@@ -1,3 +1,4 @@
+import { PrismaClient } from "@prisma/client";
 import "dotenv/config";
 import joi from "joi";
 
@@ -51,3 +52,5 @@ export const config = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
 };
+
+export const prismaClient = new PrismaClient();
