@@ -378,8 +378,13 @@ export class UsersDb {
     await prismaClient.user.update({
       data: {
         goals: {
-          create: goals.map((goal) => ({
-            name: goal,
+          connectOrCreate: goals.map((goal) => ({
+            create: {
+              name: goal,
+            },
+            where: {
+              name: goal,
+            },
           })),
         },
       },
@@ -448,8 +453,13 @@ export class UsersDb {
     await prismaClient.user.update({
       data: {
         interests: {
-          create: interests.map((interest) => ({
-            name: interest,
+          connectOrCreate: interests.map((interest) => ({
+            create: {
+              name: interest,
+            },
+            where: {
+              name: interest,
+            },
           })),
         },
       },
@@ -657,8 +667,13 @@ export class UsersDb {
     await prismaClient.user.update({
       data: {
         skills: {
-          create: skills.map((skill) => ({
-            name: skill,
+          connectOrCreate: skills.map((skill) => ({
+            create: {
+              name: skill,
+            },
+            where: {
+              name: skill,
+            },
           })),
         },
       },
