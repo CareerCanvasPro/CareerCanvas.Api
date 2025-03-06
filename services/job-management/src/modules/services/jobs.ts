@@ -1,4 +1,4 @@
-import { PersonalityType, Prisma } from "@prisma/client";
+import { Job, PersonalityType, Prisma } from "@prisma/client";
 
 import { prismaClient } from "../../config";
 
@@ -45,6 +45,42 @@ export class JobsDb {
     }
 
     return { query };
+  };
+
+  public createJob = async ({
+    job,
+    fields,
+    goals,
+  }: {
+    job: Omit<Job, "id" | "createdAt" | "updatedAt">;
+    fields: string[];
+    goals: string[];
+  }): Promise<void> => {
+    await prismaClient.job.create({
+      data: {
+        ...job,
+        fields: {
+          connectOrCreate: fields.map((field) => ({
+            create: {
+              name: field,
+            },
+            where: {
+              name: field,
+            },
+          })),
+        },
+        goals: {
+          connectOrCreate: goals.map((goal) => ({
+            create: {
+              name: goal,
+            },
+            where: {
+              name: goal,
+            },
+          })),
+        },
+      },
+    });
   };
 
   public findAllJobs = async (): Promise<{
