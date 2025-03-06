@@ -17,12 +17,12 @@ export class JobsDb {
     personalityType,
     types,
   }: {
-    goals: string[] | null | undefined;
-    interests: string[] | null | undefined;
-    keyword: string | null | undefined;
-    locationTypes: JobLocationType[] | null | undefined;
-    personalityType: PersonalityType | null | undefined;
-    types: JobType[] | null | undefined;
+    goals?: string[] | null | undefined;
+    interests?: string[] | null | undefined;
+    keyword?: string | null | undefined;
+    locationTypes?: JobLocationType[] | null | undefined;
+    personalityType?: PersonalityType | null | undefined;
+    types?: JobType[] | null | undefined;
   }): { query: Prisma.JobWhereInput } => {
     const query: Prisma.JobWhereInput = {};
 

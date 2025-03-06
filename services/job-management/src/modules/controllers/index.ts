@@ -1,87 +1,21 @@
+import { JobLocationType, JobType } from "@prisma/client";
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { DB } from "../../../../../utility/db";
 import { cleanMessage } from "../../utils";
 import { postJobsSchema } from "../schemas";
-import { CareerTrendsDB, JobsDB } from "../services";
-
-interface FilterJobsForSearchParams {
-  jobs: Record<string, unknown>[];
-  keyword: string | undefined;
-  locationType: string | string[] | undefined;
-  type: string | string[] | undefined;
-}
+import { CareerTrendsDB, JobsDb, UsersDb } from "../services";
 
 interface ShuffleJobsParams {
   jobs: Record<string, unknown>[];
 }
 
 export class JobManagementController {
-  private readonly db = new DB();
-
   private readonly careerTrendsDB = new CareerTrendsDB();
 
-  private readonly jobsDB = new JobsDB();
+  private readonly jobsDb = new JobsDb();
 
-  private filterJobsForSearch = ({
-    jobs,
-    keyword,
-    locationType,
-    type,
-  }: FilterJobsForSearchParams): {
-    filteredJobs: Record<string, unknown>[];
-  } => {
-    const filteredJobs = jobs.filter((job) => {
-      const flags: boolean[] = [];
-
-      flags.push((job.deadline as number) >= Date.now());
-
-      if (keyword) {
-        flags.push(
-          (job.fields as string[]).some((field) =>
-            field.toLowerCase().includes(keyword.toLowerCase())
-          ) ||
-            (job.goals as string[]).some((goal) =>
-              goal.toLowerCase().includes(keyword.toLowerCase())
-            ) ||
-            (job.location as string)
-              .toLowerCase()
-              .includes(keyword.toLowerCase()) ||
-            (job.locationType as string)
-              .toLowerCase()
-              .includes(keyword.toLowerCase()) ||
-            (job.organization as string)
-              .toLowerCase()
-              .includes(keyword.toLowerCase()) ||
-            (job.position as string)
-              .toLowerCase()
-              .includes(keyword.toLowerCase()) ||
-            (job.type as string).toLowerCase().includes(keyword.toLowerCase())
-        );
-      }
-
-      if (locationType) {
-        flags.push(
-          Array.isArray(locationType)
-            ? locationType.some((value) => job.locationType === value)
-            : job.locationType === locationType
-        );
-      }
-
-      if (type) {
-        flags.push(
-          Array.isArray(type)
-            ? type.some((value) => job.type === value)
-            : job.type === type
-        );
-      }
-
-      return flags.every((flag) => flag === true);
-    });
-
-    return { filteredJobs };
-  };
+  private readonly usersDb = new UsersDb();
 
   private shuffleJobs = ({
     jobs,
@@ -178,32 +112,34 @@ export class JobManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { userId } = req.body;
 
-      const { item: user } = await this.db.getItem({
-        key: { name: "userID", value: userID as string },
-        tableName: "userprofiles",
-      });
+      const { user } = await this.usersDb.findUser({ id: userId });
 
       if (user) {
-        const { goals, interests, personalityType } = user;
+        const { goals, interests, personality } = user;
 
-        const { httpStatusCode, jobs } =
-          await this.jobsDB.retrieveRecommendedJobs({
-            goals: goals as string[] | undefined,
-            interests: interests as string[] | undefined,
-            personalityType: personalityType as string | undefined,
-          });
+        const { query } = this.jobsDb.buildQuery({
+          goals: goals ? goals.map((goal) => goal.name) : null,
+          interests: interests
+            ? interests.map((interest) => interest.name)
+            : null,
+          personalityType: personality ? personality.type : null,
+        });
+
+        const { jobs } = await this.jobsDb.findJobsByQuery({
+          query,
+        });
 
         const { shuffledJobs } = this.shuffleJobs({ jobs });
 
         if (shuffledJobs.length > 10) {
-          res.status(httpStatusCode).json({
+          res.status(200).json({
             data: { jobs: shuffledJobs.slice(0, 10) },
             message: "Recommended jobs retrieved successfully",
           });
         } else {
-          res.status(httpStatusCode).json({
+          res.status(200).json({
             data: { jobs: shuffledJobs },
             message: "Recommended jobs retrieved successfully",
           });
@@ -231,17 +167,26 @@ export class JobManagementController {
     try {
       const { keyword, locationType, type } = req.query;
 
-      const { httpStatusCode, jobs } = await this.jobsDB.getAllJobs();
-
-      const { filteredJobs } = this.filterJobsForSearch({
-        jobs,
+      const { query } = this.jobsDb.buildQuery({
         keyword: keyword as string | undefined,
-        locationType: locationType as string | string[] | undefined,
-        type: type as string | string[] | undefined,
+        locationTypes: locationType
+          ? Array.isArray(locationType)
+            ? (locationType as JobLocationType[])
+            : [locationType as JobLocationType]
+          : null,
+        types: type
+          ? Array.isArray(type)
+            ? (type as JobType[])
+            : [type as JobType]
+          : null,
       });
 
-      res.status(httpStatusCode).json({
-        data: { filteredJobs },
+      const { jobs } = await this.jobsDb.findJobsByQuery({
+        query,
+      });
+
+      res.status(200).json({
+        data: { jobs },
         message: "Search results retrieved successfully",
       });
     } catch (error) {
