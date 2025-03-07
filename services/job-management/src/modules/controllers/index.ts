@@ -1,9 +1,8 @@
-import { JobLocationType, JobType } from "@prisma/client";
+import { Job, JobLocationType, JobType } from "@prisma/client";
 import { Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
 
 import { cleanMessage } from "../../utils";
-import { postJobsSchema } from "../schemas";
+import { jobArraySchema } from "../schemas";
 import { CareerTrendsDB, JobsDb, UsersDb } from "../services";
 
 interface ShuffleJobsParams {
@@ -31,16 +30,14 @@ export class JobManagementController {
     return { shuffledJobs };
   };
 
-  public handlePostJobs = async (
+  public handleCreateJobs = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      delete req.body.exp;
+      const { jobs } = req.body;
 
-      delete req.body.iat;
-
-      const { error, value } = postJobsSchema.validate(req.body, {
+      const { error, value: validatedJobs } = jobArraySchema.validate(jobs, {
         abortEarly: false,
       });
 
@@ -51,16 +48,23 @@ export class JobManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        (value as Record<string, unknown>[]).forEach(
-          async (value) =>
-            await this.jobsDB.putJob({
-              job: { ...value, jobID: uuidv4() },
-            })
-        );
+        (validatedJobs as Record<string, unknown>[]).forEach(async (job) => {
+          const { fields, goals } = job;
+
+          delete job.fields;
+
+          delete job.goals;
+
+          await this.jobsDb.createJob({
+            fields: fields as string[],
+            goals: goals as string[],
+            job: job as Omit<Job, "id" | "createdAt" | "updatedAt">,
+          });
+        });
 
         res.status(200).json({
           data: null,
-          message: "New jobs posted successfully",
+          message: "New jobs created successfully",
         });
       }
     } catch (error) {
@@ -145,7 +149,7 @@ export class JobManagementController {
           });
         }
       } else {
-        res.status(404).json({ data: user, message: "Profile not found" });
+        res.status(404).json({ data: null, message: "Profile not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

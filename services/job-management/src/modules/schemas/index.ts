@@ -1,6 +1,6 @@
 import joi from "joi";
 
-export const postJobsSchema = joi
+export const jobArraySchema = joi
   .array()
   .items(
     joi
@@ -92,14 +92,14 @@ export const postJobsSchema = joi
           .required(),
         position: joi.string().required().trim(),
         salary: joi.number().min(0).required(),
+        salaryInterval: joi.string().valid("Annum", "Month").required(),
         salaryMax: joi.number().min(0),
-        salaryTime: joi.string().valid("Annum", "Month").required(),
         type: joi
           .string()
           .valid("Contractual", "Full-time", "Intern", "Part-time")
           .required(),
       })
-      .required()
       .unknown(false)
+      .required()
   )
   .required();
