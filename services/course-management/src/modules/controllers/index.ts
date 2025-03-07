@@ -1,92 +1,44 @@
+import { Level, Prisma } from "@prisma/client";
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { DB } from "../../../../../utility/db";
 import { cleanMessage } from "../../utils";
 import { postCoursesSchema } from "../schemas";
-import { CoursesDB } from "../services";
-
-type Level = "Beginner" | "Intermediate" | "Expert";
-
-interface ExtractDurationParams {
-  duration: string | string[];
-}
-
-interface FilterCoursesParams {
-  courses: Record<string, unknown>[];
-  duration: string | string[] | undefined;
-  keyword: string | undefined;
-  level: Level | Level[] | undefined;
-}
-
-interface ShuffleCoursesParams {
-  courses: Record<string, unknown>[];
-}
+import { CoursesDb, UsersDb } from "../services";
 
 export class CourseManagementController {
-  private readonly db = new DB();
+  private readonly coursesDb = new CoursesDb();
 
-  private readonly coursesDB = new CoursesDB();
+  private readonly usersDb = new UsersDb();
 
-  private extractDuration = ({ duration }: ExtractDurationParams): string[][] =>
-    Array.isArray(duration)
-      ? duration.map((value) => value.split("-"))
-      : [duration.split("-")];
-
-  private filterCourses = ({
-    courses,
-    duration,
-    keyword,
-    level,
-  }: FilterCoursesParams): {
-    filteredCourses: Record<string, unknown>[];
-  } => {
-    const filteredCourses = courses.filter((course) => {
-      const flags: boolean[] = [];
-
-      if (duration) {
-        const extractedDuration = this.extractDuration({ duration });
-
-        flags.push(
-          extractedDuration.some(
-            (value) =>
-              (course.duration as number) >= parseFloat(value[0]) &&
-              (course.duration as number) <= parseFloat(value[1])
-          )
-        );
-      }
-
-      if (keyword) {
-        flags.push(
-          (course.name as string)
-            .toLowerCase()
-            .includes(keyword.toLowerCase()) ||
-            (course.topic as string)
-              .toLowerCase()
-              .includes(keyword.toLowerCase()) ||
-            (course.authors as string[]).some((author) =>
-              author.toLowerCase().includes(keyword.toLowerCase())
-            )
-        );
-      }
-
-      if (level) {
-        flags.push(
-          Array.isArray(level)
-            ? level.some((value) => course.level === value)
-            : course.level === level
-        );
-      }
-
-      return flags.every((flag) => flag === true);
-    });
-
-    return { filteredCourses };
-  };
+  private extractDurations = ({
+    durations,
+  }: {
+    durations: string[];
+  }): number[][] =>
+    durations.map((duration) =>
+      duration.split("-").map((value) => parseInt(value, 10))
+    );
 
   private shuffleCourses = ({
     courses,
-  }: ShuffleCoursesParams): { shuffledCourses: Record<string, unknown>[] } => {
+  }: {
+    courses: Prisma.CourseGetPayload<{
+      include: {
+        authors: true;
+        goals: true;
+        topic: true;
+      };
+    }>[];
+  }): {
+    shuffledCourses: Prisma.CourseGetPayload<{
+      include: {
+        authors: true;
+        goals: true;
+        topic: true;
+      };
+    }>[];
+  } => {
     const shuffledCourses = [...courses];
 
     for (let i = shuffledCourses.length - 1; i > 0; i--) {
@@ -151,55 +103,36 @@ export class CourseManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { userId } = req.body;
 
-      const { item: user } = await this.db.getItem({
-        key: { name: "userID", value: userID as string },
-        tableName: "userprofiles",
-      });
+      const { user } = await this.usersDb.findUser({ id: userId });
 
       if (user) {
         const { interests } = user;
 
-        if (!interests || !(interests as string[]).length) {
-          const { courses, httpStatusCode } =
-            await this.coursesDB.getAllCourses();
+        const { query } = this.coursesDb.buildQuery({
+          interests: interests
+            ? interests.map((interest) => interest.name)
+            : null,
+        });
 
-          const { shuffledCourses } = this.shuffleCourses({ courses });
+        const { courses } = await this.coursesDb.findCoursesByQuery({ query });
 
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
+        const { shuffledCourses } = this.shuffleCourses({ courses });
+
+        if (shuffledCourses.length > 10) {
+          res.status(200).json({
+            data: { courses: shuffledCourses.slice(0, 10) },
+            message: "Recommended courses retrieved successfully",
+          });
         } else {
-          const { courses, httpStatusCode } =
-            await this.coursesDB.searchCoursesBasedOnInterests({
-              interests: interests as string[],
-            });
-
-          const { shuffledCourses } = this.shuffleCourses({ courses });
-
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
+          res.status(200).json({
+            data: { courses: shuffledCourses },
+            message: "Recommended courses retrieved successfully",
+          });
         }
       } else {
-        res.status(404).json({ data: user, message: "Profile not found" });
+        res.status(404).json({ data: null, message: "Profile not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -219,99 +152,39 @@ export class CourseManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userID } = req.body;
+      const { userId } = req.body;
 
-      const { item: user } = await this.db.getItem({
-        key: { name: "userID", value: userID as string },
-        tableName: "userprofiles",
-      });
+      const { user } = await this.usersDb.findUser({ id: userId });
 
       if (user) {
         const { goals, interests } = user;
 
-        if (
-          goals &&
-          (goals as string[]).length &&
-          interests &&
-          (interests as string[]).length
-        ) {
-          const { courses, httpStatusCode } =
-            await this.coursesDB.searchCoursesBasedOnGoalsAndInterests({
-              goals: goals as string[],
-              interests: interests as string[],
-            });
+        const { query } = this.coursesDb.buildQuery({
+          goals: goals ? goals.map((goal) => goal.name) : null,
+          interests: interests
+            ? interests.map((interest) => interest.name)
+            : null,
+        });
 
-          const { shuffledCourses } = this.shuffleCourses({ courses });
+        const { courses } = await this.coursesDb.findCoursesByQuery({ query });
 
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
-        } else if (goals && (goals as string[]).length) {
-          const { courses, httpStatusCode } =
-            await this.coursesDB.searchCoursesBasedOnGoals({
-              goals: goals as string[],
-            });
+        const { shuffledCourses } = this.shuffleCourses({ courses });
 
-          const { shuffledCourses } = this.shuffleCourses({ courses });
-
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
-        } else if (interests && (interests as string[]).length) {
-          const { courses, httpStatusCode } =
-            await this.coursesDB.searchCoursesBasedOnInterests({
-              interests: interests as string[],
-            });
-
-          const { shuffledCourses } = this.shuffleCourses({ courses });
-
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
+        if (shuffledCourses.length > 10) {
+          res.status(200).json({
+            data: { courses: shuffledCourses.slice(0, 10) },
+            message:
+              "Recommended courses based on goals retrieved successfully",
+          });
         } else {
-          const { courses, httpStatusCode } =
-            await this.coursesDB.getAllCourses();
-
-          const { shuffledCourses } = this.shuffleCourses({ courses });
-
-          if (shuffledCourses.length > 10) {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses.slice(0, 10) },
-              message: "Recommended courses retrieved successfully",
-            });
-          } else {
-            res.status(httpStatusCode).json({
-              data: { courses: shuffledCourses },
-              message: "Recommended courses retrieved successfully",
-            });
-          }
+          res.status(200).json({
+            data: { courses: shuffledCourses },
+            message:
+              "Recommended courses based on goals retrieved successfully",
+          });
         }
       } else {
-        res.status(404).json({ data: user, message: "Profile not found" });
+        res.status(404).json({ data: null, message: "Profile not found" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -333,17 +206,24 @@ export class CourseManagementController {
     try {
       const { duration, keyword, level } = req.query;
 
-      const { courses, httpStatusCode } = await this.coursesDB.getAllCourses();
-
-      const { filteredCourses } = this.filterCourses({
-        courses,
-        duration: duration as string | string[] | undefined,
+      const { query } = this.coursesDb.buildQuery({
+        durations: duration
+          ? Array.isArray(duration)
+            ? this.extractDurations({ durations: duration as string[] })
+            : this.extractDurations({ durations: [duration as string] })
+          : null,
         keyword: keyword as string | undefined,
-        level: level as Level | Level[] | undefined,
+        levels: level
+          ? Array.isArray(level)
+            ? (level as Level[])
+            : [level as Level]
+          : null,
       });
 
-      res.status(httpStatusCode).json({
-        data: { courses: filteredCourses },
+      const { courses } = await this.coursesDb.findCoursesByQuery({ query });
+
+      res.status(200).json({
+        data: { courses },
         message: "Search results retrieved successfully",
       });
     } catch (error) {

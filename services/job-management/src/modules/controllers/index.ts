@@ -1,13 +1,9 @@
-import { Job, JobLocationType, JobType } from "@prisma/client";
+import { Job, JobLocationType, JobType, Prisma } from "@prisma/client";
 import { Request, Response } from "express";
 
 import { cleanMessage } from "../../utils";
 import { jobArraySchema } from "../schemas";
 import { CareerTrendsDB, JobsDb, UsersDb } from "../services";
-
-interface ShuffleJobsParams {
-  jobs: Record<string, unknown>[];
-}
 
 export class JobManagementController {
   private readonly careerTrendsDB = new CareerTrendsDB();
@@ -18,7 +14,21 @@ export class JobManagementController {
 
   private shuffleJobs = ({
     jobs,
-  }: ShuffleJobsParams): { shuffledJobs: Record<string, unknown>[] } => {
+  }: {
+    jobs: Prisma.JobGetPayload<{
+      include: {
+        fields: true;
+        goals: true;
+      };
+    }>[];
+  }): {
+    shuffledJobs: Prisma.JobGetPayload<{
+      include: {
+        fields: true;
+        goals: true;
+      };
+    }>[];
+  } => {
     const shuffledJobs = [...jobs];
 
     for (let i = shuffledJobs.length - 1; i > 0; i--) {
