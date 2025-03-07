@@ -1,16 +1,31 @@
-import { Course, Prisma } from "@prisma/client";
+import { Course, Level, Prisma } from "@prisma/client";
 
 import { prismaClient } from "../../config";
 
 export class CoursesDb {
   public buildQuery = ({
+    durations,
     goals,
     interests,
+    keyword,
+    levels,
   }: {
-    goals: string[] | null | undefined;
-    interests: string[] | null | undefined;
+    durations?: number[][] | null | undefined;
+    goals?: string[] | null | undefined;
+    interests?: string[] | null | undefined;
+    keyword?: string | null | undefined;
+    levels?: Level[] | null | undefined;
   }): { query: Prisma.CourseWhereInput } => {
     const query: Prisma.CourseWhereInput = {};
+
+    if (durations && durations.length) {
+      query.OR = durations.map((duration) => ({
+        duration: {
+          gte: duration[0],
+          lte: duration[1],
+        },
+      }));
+    }
 
     if (goals && goals.length) {
       query.goals = {
@@ -27,6 +42,41 @@ export class CoursesDb {
         name: {
           in: interests,
         },
+      };
+    }
+
+    if (keyword) {
+      query.OR = [
+        {
+          authors: {
+            some: {
+              name: {
+                contains: keyword,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+        {
+          name: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        },
+        {
+          topic: {
+            name: {
+              contains: keyword,
+              mode: "insensitive",
+            },
+          },
+        },
+      ];
+    }
+
+    if (levels && levels.length) {
+      query.level = {
+        in: levels,
       };
     }
 
