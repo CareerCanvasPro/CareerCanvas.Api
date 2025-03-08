@@ -1,3 +1,5 @@
+import { Otp } from "@prisma/client";
+
 import { prismaClient } from "../../config";
 
 export class OtpsDb {
@@ -17,32 +19,24 @@ export class OtpsDb {
     });
   };
 
-  public scanOtps = async ({
-    attribute,
-  }: ScanOtpsParams): Promise<{
-    httpStatusCode: number;
-    otps: Record<string, unknown>[];
+  public findOtp = async ({
+    otp,
+    username,
+  }: {
+    otp: string;
+    username: string;
+  }): Promise<{
+    foundOtp: Otp;
   }> => {
-    const {
-      $metadata: { httpStatusCode },
-      Items: Otps,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        ExpressionAttributeNames: {
-          "#field": attribute.name,
+    const foundOtp = await prismaClient.otp.findUnique({
+      where: {
+        otp_username: {
+          otp,
+          username,
         },
-        ExpressionAttributeValues: {
-          ":value": marshall({
-            value: attribute.value,
-          }).value,
-        },
-        FilterExpression: "#field = :value",
-        TableName: this.tableName,
-      })
-    );
+      },
+    });
 
-    const otps = Otps.map((otp) => unmarshall(otp));
-
-    return { httpStatusCode, otps };
+    return { foundOtp };
   };
 }
