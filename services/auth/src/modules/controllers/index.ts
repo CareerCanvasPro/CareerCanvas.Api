@@ -6,26 +6,25 @@ import { sign, verify } from "jsonwebtoken";
 import otpGenerator from "otp-generator";
 import { v4 as uuidv4 } from "uuid";
 
-import { DB } from "../../../../../utility/db";
 import { Nodemailer } from "../../../../../utility/nodemailer";
 import { SNS } from "../../../../../utility/sns";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
 import { emailSchema, phoneSchema } from "../schemas";
-import { OtpsDB } from "../services";
+import { OtpsDb, UsersDb } from "../services";
 
 interface ITokenPayload {
   username: string;
 }
 
 export class AuthController {
-  private readonly db = new DB();
-
   private readonly nodemailer = new Nodemailer();
 
   private readonly sns = new SNS();
 
-  private readonly otpsDB = new OtpsDB();
+  private readonly otpsDb = new OtpsDb();
+
+  private readonly usersDb = new UsersDb();
 
   public handleRequestMagicLink = async (
     req: Request,
@@ -145,7 +144,7 @@ export class AuthController {
           to: email,
         });
 
-        await this.otpsDB.putOtp({ otp, username: email });
+        await this.otpsDb.createOtp({ otp, username: email });
 
         res.status(200).json({
           data: null,
@@ -195,7 +194,7 @@ export class AuthController {
           phoneNumber: phone,
         });
 
-        await this.otpsDB.putOtp({
+        await this.otpsDb.createOtp({
           otp,
           username: phone,
         });
@@ -232,18 +231,15 @@ export class AuthController {
           if (error) {
             throw error;
           } else {
-            const { items: users } = await this.db.scanItems({
-              attribute: { name: "username", value: username },
-              tableName: "userprofiles",
-            });
+            const { user } = await this.usersDb.findUser({ username });
 
-            const isNewUser = !users.length;
+            const isNewUser = !user;
 
-            const userID = isNewUser ? uuidv4() : users[0].userID;
+            const userId = isNewUser ? uuidv4() : user.id;
 
             sign(
               {
-                userID,
+                userId,
                 username,
               },
               config.aws.clientSecret,
@@ -304,29 +300,27 @@ export class AuthController {
     res: Response
   ): Promise<void> => {
     try {
-      const { otp } = req.query;
+      const { otp, username } = req.query;
 
-      const { otps } = await this.otpsDB.scanOtps({
-        attribute: { name: "otp", value: otp },
+      const { foundOtp } = await this.otpsDb.findOtp({
+        otp: otp as string,
+        username: username as string,
       });
 
-      if (otps.length) {
-        const [userOtp] = otps;
-
-        if ((userOtp.expiresAt as number) >= Math.floor(Date.now() / 1000)) {
-          const { items: users } = await this.db.scanItems({
-            attribute: { name: "username", value: userOtp.username },
-            tableName: "userprofiles",
+      if (foundOtp) {
+        if (foundOtp.expiresAt >= new Date()) {
+          const { user } = await this.usersDb.findUser({
+            username: username as string,
           });
 
-          const isNewUser = !users.length;
+          const isNewUser = !user;
 
-          const userID = isNewUser ? uuidv4() : users[0].userID;
+          const userId = isNewUser ? uuidv4() : user.id;
 
           sign(
             {
-              userID,
-              username: userOtp.username,
+              userId,
+              username,
             },
             config.aws.clientSecret,
             {
@@ -345,7 +339,7 @@ export class AuthController {
                       coins,
                       expiresAt: Date.now() + 604800000,
                       isNewUser,
-                      username: userOtp.username,
+                      username,
                     },
                     message: "OTP verified successfully",
                   });
@@ -355,7 +349,7 @@ export class AuthController {
                       accessToken,
                       expiresAt: Date.now() + 604800000,
                       isNewUser,
-                      username: userOtp.username,
+                      username,
                     },
                     message: "OTP verified successfully",
                   });

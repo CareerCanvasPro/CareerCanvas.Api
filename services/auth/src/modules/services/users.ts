@@ -1,17 +1,17 @@
+import { User } from "@prisma/client";
+
 import { prismaClient } from "../../config";
 
 export class UsersDb {
-  public checkIsUser = async ({
+  public findUser = async ({
     username,
   }: {
     username: string;
   }): Promise<{
-    isUser: boolean;
+    user: User;
   }> => {
     const user = await prismaClient.user.findUnique({ where: { username } });
 
-    const isUser = !!user;
-
-    return { isUser };
+    return { user };
   };
 }

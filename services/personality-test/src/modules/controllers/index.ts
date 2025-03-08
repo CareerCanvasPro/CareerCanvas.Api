@@ -1,14 +1,13 @@
 import { Request, Response } from "express";
 
-// import { DB } from "../../../../../utility/db";
-import { AnswersDB, QuestionsDB } from "../services";
+import { AnswersDb, QuestionsDb, UsersDb } from "../services";
 
 export class PersonalityTestController {
-  // private readonly db = new DB();
+  private readonly answersDb = new AnswersDb();
 
-  private readonly answersDB = new AnswersDB();
+  private readonly questionsDb = new QuestionsDb();
 
-  private readonly questionsDB = new QuestionsDB();
+  private readonly usersDb = new UsersDb();
 
   public handlePostAnswers = async (
     req: Request,
@@ -17,35 +16,33 @@ export class PersonalityTestController {
     try {
       const { answers, userId } = req.body;
 
-      const { isUser } = await this.answersDB.checkIsUser({ userId });
+      const { isUser } = await this.answersDb.checkIsUser({ userId });
 
       if (isUser) {
-        await this.answersDB.updateAnswers({
+        await this.answersDb.updateAnswers({
           answers,
           userId,
         });
 
-        // await this.db.updateItem({
-        //   attributes: [{ name: "personalityTestStatus", value: "pending" }],
-        //   key: { name: "userID", value: userID },
-        //   tableName: "userprofiles",
-        // });
+        await this.usersDb.updateUserPersonality({
+          id: userId,
+          personality: { testStatus: "PENDING" },
+        });
 
         res.status(200).json({
           data: null,
           message: "Answers updated successfully",
         });
       } else {
-        await this.answersDB.submitAnswers({
+        await this.answersDb.submitAnswers({
           answers,
           userId,
         });
 
-        // await this.db.updateItem({
-        //   attributes: [{ name: "personalityTestStatus", value: "pending" }],
-        //   key: { name: "userID", value: userID },
-        //   tableName: "userprofiles",
-        // });
+        await this.usersDb.createUserPersonality({
+          id: userId,
+          personality: { testStatus: "PENDING" },
+        });
 
         res.status(200).json({
           data: null,
@@ -66,7 +63,7 @@ export class PersonalityTestController {
     try {
       const { questions } = req.body;
 
-      await this.questionsDB.postQuestions({ questions });
+      await this.questionsDb.postQuestions({ questions });
 
       res
         .status(200)
@@ -83,7 +80,7 @@ export class PersonalityTestController {
     res: Response
   ): Promise<void> => {
     try {
-      const { questions } = await this.questionsDB.retrieveQuestions();
+      const { questions } = await this.questionsDb.retrieveQuestions();
 
       if (questions.length) {
         res.status(200).json({

@@ -19,7 +19,7 @@ interface UpdateAnswersParams {
   userId: string;
 }
 
-export class AnswersDB {
+export class AnswersDb {
   public checkIsUser = async ({
     userId,
   }: CheckIsUserParams): Promise<{

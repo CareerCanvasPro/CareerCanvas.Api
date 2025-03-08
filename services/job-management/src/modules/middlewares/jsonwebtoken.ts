@@ -4,7 +4,7 @@ import { verify } from "jsonwebtoken";
 import { config } from "../../config";
 
 interface IAccessTokenPayload {
-  userID: string;
+  userId: string;
   username: string;
 }
 

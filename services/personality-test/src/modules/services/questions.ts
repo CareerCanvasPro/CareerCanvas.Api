@@ -10,7 +10,7 @@ interface PostQuestionsParams {
   questions: IQuestion[];
 }
 
-export class QuestionsDB {
+export class QuestionsDb {
   public postQuestions = async ({
     questions,
   }: PostQuestionsParams): Promise<void> => {

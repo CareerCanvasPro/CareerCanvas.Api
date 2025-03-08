@@ -15,27 +15,27 @@ enum Currency {
 }
 
 enum JobLocationType {
-  HYBRID  @map("Hybrid")
-  ON_SITE @map("On-site")
-  REMOTE  @map("Remote")
+  HYBRID
+  ON_SITE
+  REMOTE
 }
 
 enum JobType {
-  CONTRACTUAL @map("Contractual")
-  FULL_TIME   @map("Full-time")
-  INTERN      @map("Intern")
-  PART_TIME   @map("Part-time")
+  CONTRACTUAL
+  FULL_TIME
+  INTERN
+  PART_TIME
 }
 
 enum Language {
-  BANGLA  @map("Bangla")
-  ENGLISH @map("English")
+  BANGLA
+  ENGLISH
 }
 
 enum Level {
-  BEGINNER     @map("Beginner")
-  INTERMEDIATE @map("Intermediate")
-  EXPERT       @map("Expert")
+  BEGINNER
+  INTERMEDIATE
+  EXPERT
 }
 
 enum PersonalityTestQuestionCategory {
@@ -46,8 +46,8 @@ enum PersonalityTestQuestionCategory {
 }
 
 enum PersonalityTestStatus {
-  COMPLETE @map("Complete")
-  PENDING  @map("Pending")
+  COMPLETE
+  PENDING
 }
 
 enum PersonalityType {
@@ -70,8 +70,8 @@ enum PersonalityType {
 }
 
 enum SalaryInterval {
-  ANNUM @map("Annum")
-  MONTH @map("Month")
+  ANNUM
+  MONTH
 }
 
 /// COMMON SCHEMA
@@ -264,17 +264,17 @@ model Occupation {
 }
 
 model Personality {
-  id           String                 @id @default(cuid())
-  createdAt    DateTime               @default(now())
-  testResultEI Float                  @default(0)
-  testResultSN Float                  @default(0)
-  testResultTF Float                  @default(0)
-  testResultJP Float                  @default(0)
-  testStatus   PersonalityTestStatus?
+  id           String                @id @default(cuid())
+  createdAt    DateTime              @default(now())
+  testResultEI Float                 @default(0)
+  testResultSN Float                 @default(0)
+  testResultTF Float                 @default(0)
+  testResultJP Float                 @default(0)
+  testStatus   PersonalityTestStatus
   type         PersonalityType?
-  updatedAt    DateTime               @updatedAt
-  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String                 @unique
+  updatedAt    DateTime              @updatedAt
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String                @unique
 }
 
 model Resume {
