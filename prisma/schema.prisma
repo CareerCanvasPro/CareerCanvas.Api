@@ -113,6 +113,8 @@ model Otp {
   otp       String
   updatedAt DateTime @updatedAt
   username  String
+
+  @@unique([otp, username])
 }
 
 /// COURSE SCHEMA
