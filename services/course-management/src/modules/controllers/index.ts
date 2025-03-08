@@ -1,9 +1,8 @@
-import { Level, Prisma } from "@prisma/client";
+import { Course, Level, Prisma } from "@prisma/client";
 import { Request, Response } from "express";
-import { v4 as uuidv4 } from "uuid";
 
 import { cleanMessage } from "../../utils";
-import { postCoursesSchema } from "../schemas";
+import { courseArraySchema } from "../schemas";
 import { CoursesDb, UsersDb } from "../services";
 
 export class CourseManagementController {
@@ -53,18 +52,19 @@ export class CourseManagementController {
     return { shuffledCourses };
   };
 
-  public handlePostCourses = async (
+  public handleCreateCourses = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      delete req.body.exp;
+      const { courses } = req.body;
 
-      delete req.body.iat;
-
-      const { error, value } = postCoursesSchema.validate(req.body, {
-        abortEarly: false,
-      });
+      const { error, value: validatedCourses } = courseArraySchema.validate(
+        courses,
+        {
+          abortEarly: false,
+        }
+      );
 
       if (error) {
         const validationErrors = error.details.map((error) =>
@@ -73,16 +73,31 @@ export class CourseManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        (value as Record<string, unknown>[]).forEach(
-          async (value) =>
-            await this.coursesDB.putCourse({
-              course: { ...value, courseID: uuidv4() },
-            })
+        (validatedCourses as Record<string, unknown>[]).forEach(
+          async (course) => {
+            const { authors, goals, topic } = course;
+
+            delete course.authors;
+
+            delete course.goals;
+
+            delete course.topic;
+
+            await this.coursesDb.createCourse({
+              authors: authors as string[],
+              course: course as Omit<
+                Course,
+                "id" | "createdAt" | "topicId" | "updatedAt"
+              >,
+              goals: goals as string[],
+              topic: topic as string,
+            });
+          }
         );
 
         res.status(200).json({
           data: null,
-          message: "New courses posted successfully",
+          message: "New courses created successfully",
         });
       }
     } catch (error) {
