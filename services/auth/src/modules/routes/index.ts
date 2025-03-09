@@ -24,10 +24,10 @@ export class AuthRoute {
       this.authController.handleRequestEmailOtp
     );
 
-    this.router.post(
-      "/otp/request/sms",
-      this.authController.handleRequestSmsOtp
-    );
+    // this.router.post(
+    //   "/otp/request/sms",
+    //   this.authController.handleRequestSmsOtp
+    // );
 
     this.router.get(
       "/magic-link/verify",

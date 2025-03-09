@@ -6,11 +6,10 @@ import { sign, verify } from "jsonwebtoken";
 import otpGenerator from "otp-generator";
 import { v4 as uuidv4 } from "uuid";
 
-import { Nodemailer } from "../../../../../utility/nodemailer";
-import { SNS } from "../../../../../utility/sns";
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import { emailSchema, phoneSchema } from "../schemas";
+import { emailSchema } from "../schemas";
+import { Nodemailer } from "../services";
 import { OtpsDb, UsersDb } from "../services";
 
 interface ITokenPayload {
@@ -19,8 +18,6 @@ interface ITokenPayload {
 
 export class AuthController {
   private readonly nodemailer = new Nodemailer();
-
-  private readonly sns = new SNS();
 
   private readonly otpsDb = new OtpsDb();
 
@@ -46,7 +43,7 @@ export class AuthController {
 
         sign(
           { username: email },
-          config.aws.clientSecret,
+          config.jwt.secret,
           {
             expiresIn: "15m",
           },
@@ -164,58 +161,58 @@ export class AuthController {
     }
   };
 
-  public handleRequestSmsOtp = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { error, value } = phoneSchema.validate(req.body, {
-        abortEarly: false,
-      });
+  // public handleRequestSmsOtp = async (
+  //   req: Request,
+  //   res: Response
+  // ): Promise<void> => {
+  //   try {
+  //     const { error, value } = phoneSchema.validate(req.body, {
+  //       abortEarly: false,
+  //     });
 
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
+  //     if (error) {
+  //       const validationErrors = error.details.map((error) =>
+  //         cleanMessage(error.message)
+  //       );
 
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        const { phone } = value;
+  //       res.status(400).json({ data: null, message: validationErrors });
+  //     } else {
+  //       const { phone } = value;
 
-        const otp = otpGenerator.generate(6, {
-          digits: true,
-          lowerCaseAlphabets: false,
-          specialChars: false,
-          upperCaseAlphabets: false,
-        });
+  //       const otp = otpGenerator.generate(6, {
+  //         digits: true,
+  //         lowerCaseAlphabets: false,
+  //         specialChars: false,
+  //         upperCaseAlphabets: false,
+  //       });
 
-        const { httpStatusCode } = await this.sns.sendSMS({
-          message: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}. Don't share this OTP with anyone. This is confidential information intended only for you. If you did not request this OTP, please contact our support team immediately at support@careercanvas.pro`,
-          phoneNumber: phone,
-        });
+  //       const { httpStatusCode } = await this.sns.sendSMS({
+  //         message: `Your One-Time Password (OTP) for Career Canvas account verification is ${otp}. Don't share this OTP with anyone. This is confidential information intended only for you. If you did not request this OTP, please contact our support team immediately at support@careercanvas.pro`,
+  //         phoneNumber: phone,
+  //       });
 
-        await this.otpsDb.createOtp({
-          otp,
-          username: phone,
-        });
+  //       await this.otpsDb.createOtp({
+  //         otp,
+  //         username: phone,
+  //       });
 
-        res.status(httpStatusCode).json({
-          data: null,
-          message: "OTP sent to given phone number successfully",
-        });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
+  //       res.status(httpStatusCode).json({
+  //         data: null,
+  //         message: "OTP sent to given phone number successfully",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     if (error.$metadata && error.$metadata.httpStatusCode) {
+  //       res
+  //         .status(error.$metadata.httpStatusCode)
+  //         .json({ data: null, message: `${error.name}: ${error.message}` });
+  //     } else {
+  //       res
+  //         .status(500)
+  //         .json({ data: null, message: `${error.name}: ${error.message}` });
+  //     }
+  //   }
+  // };
 
   public handleVerifyMagicLink = async (
     req: Request,
@@ -226,7 +223,7 @@ export class AuthController {
 
       verify(
         token as string,
-        config.aws.clientSecret,
+        config.jwt.secret,
         async (error: unknown, { username }: ITokenPayload) => {
           if (error) {
             throw error;
@@ -242,7 +239,7 @@ export class AuthController {
                 userId,
                 username,
               },
-              config.aws.clientSecret,
+              config.jwt.secret,
               {
                 expiresIn: "7d",
               },
@@ -322,7 +319,7 @@ export class AuthController {
               userId,
               username,
             },
-            config.aws.clientSecret,
+            config.jwt.secret,
             {
               expiresIn: "7d",
             },

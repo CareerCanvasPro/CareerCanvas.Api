@@ -1,2 +1,3 @@
-export * from "./otp";
+export * from "./nodemailer";
+export * from "./otps";
 export * from "./users";
