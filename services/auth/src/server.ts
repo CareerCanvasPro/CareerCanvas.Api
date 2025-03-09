@@ -1,6 +1,5 @@
 import { json, urlencoded } from "body-parser";
 import cors from "cors";
-import timeout from "express-timeout-handler";
 import morgan from "morgan";
 
 import { App } from "./app";
@@ -29,7 +28,6 @@ const startServer = async (): Promise<void> => {
       }),
       morgan("dev"),
       cors(),
-      timeout.handler({ timeout: 300000 }),
     ]);
 
     app.initRoutes([new AuthRoute()]);
