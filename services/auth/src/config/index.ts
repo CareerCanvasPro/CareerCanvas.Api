@@ -5,24 +5,19 @@ import joi from "joi";
 const envVarsSchema = joi
   .object()
   .keys({
-    AWSREGION: joi.string().optional(),
-    AWSREGION_PRODUCTION: joi.string().optional(),
-    AWSREGION_STAGING: joi.string().optional(),
-
-    CLIENTSECRET: joi.string().optional(),
-    CLIENTSECRET_PRODUCTION: joi.string().optional(),
-    CLIENTSECRET_STAGING: joi.string().optional(),
-
-    NODE_ENV: joi
-      .string()
-      .valid("development", "production", "staging")
-      .required(),
-
+    AWS_REGION: joi.string().optional(),
+    AWS_REGION_PRODUCTION: joi.string().optional(),
+    ENV: joi.string().valid("development", "production").required(),
+    JWT_SECRET: joi.string().optional(),
+    JWT_SECRET_PRODUCTION: joi.string().optional(),
+    MAIL_HOST: joi.string().required(),
+    MAIL_PASSWORD: joi.string().required(),
+    MAIL_PORT: joi.string().required(),
+    MAIL_USERNAME: joi.string().required(),
     PORT: joi.number().default(8001),
   })
-  // Enforce at least one key from each pair (AWSREGION, CLIENTID, etc.)
-  .or("AWSREGION", "AWSREGION_PRODUCTION", "AWSREGION_STAGING")
-  .or("CLIENTSECRET", "CLIENTSECRET_PRODUCTION", "CLIENTSECRET_STAGING")
+  .or("AWS_REGION", "AWS_REGION_PRODUCTION")
+  .or("JWT_SECRET", "JWT_SECRET_PRODUCTION")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -33,23 +28,25 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-// Dynamic selection of values based on NODE_ENV
 export const config = {
   aws: {
-    clientSecret:
-      envVars.NODE_ENV === "production"
-        ? envVars.CLIENTSECRET_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.CLIENTSECRET_STAGING
-        : envVars.CLIENTSECRET,
     region:
-      envVars.NODE_ENV === "production"
-        ? envVars.AWSREGION_PRODUCTION
-        : envVars.NODE_ENV === "staging"
-        ? envVars.AWSREGION_STAGING
-        : envVars.AWSREGION,
+      envVars.ENV === "production"
+        ? envVars.AWS_REGION_PRODUCTION
+        : envVars.AWS_REGION,
   },
-  env: envVars.NODE_ENV,
+  jwt: {
+    secret:
+      envVars.ENV === "production"
+        ? envVars.JWT_SECRET_PRODUCTION
+        : envVars.JWT_SECRET,
+  },
+  mail: {
+    host: envVars.MAIL_HOST,
+    password: envVars.MAIL_PASSWORD,
+    port: envVars.MAIL_PORT,
+    username: envVars.MAIL_USERNAME,
+  },
   port: envVars.PORT,
 };
 
