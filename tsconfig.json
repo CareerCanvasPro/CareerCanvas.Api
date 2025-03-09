@@ -9,13 +9,11 @@
     "noImplicitAny": false,
     "noLib": false,
     "outDir": "./lib",
-    "paths": {
-      "@career-canvas/*": ["./*"]
-    },
     "removeComments": true,
     "sourceMap": true,
     "target": "es6",
     "typeRoots": ["types"]
   },
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "exclude": ["node_modules"],
+  "include": ["./src"]
 }
