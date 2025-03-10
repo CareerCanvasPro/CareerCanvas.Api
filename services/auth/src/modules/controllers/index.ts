@@ -60,9 +60,6 @@ export class AuthController {
                     "..",
                     "..",
                     "..",
-                    "..",
-                    "..",
-                    "..",
                     "src",
                     "views",
                     "email.ejs"
@@ -122,18 +119,7 @@ export class AuthController {
 
         await this.nodemailer.sendMail({
           html: await renderFile(
-            join(
-              __dirname,
-              "..",
-              "..",
-              "..",
-              "..",
-              "..",
-              "..",
-              "src",
-              "views",
-              "email-otp.ejs"
-            ),
+            join(__dirname, "..", "..", "..", "src", "views", "email-otp.ejs"),
             { otp }
           ),
           subject: "OTP for Career Canvas Account Verification",
@@ -224,10 +210,22 @@ export class AuthController {
       verify(
         token as string,
         config.jwt.secret,
-        async (error: unknown, { username }: ITokenPayload) => {
+        async (error: unknown, decoded: ITokenPayload) => {
           if (error) {
-            throw error;
+            if ((error as Error).name === "JsonWebTokenError") {
+              res.status(401).render("error", {
+                message: "401 Unauthorized | Invalid link",
+                title: "401 Unauthorized",
+              });
+            } else if ((error as Error).name === "TokenExpiredError") {
+              res.status(401).render("error", {
+                message: "401 Unauthorized | Link has expired",
+                title: "401 Unauthorized",
+              });
+            }
           } else {
+            const { username } = decoded;
+
             const { user } = await this.usersDb.findUser({ username });
 
             const isNewUser = !user;
@@ -272,23 +270,12 @@ export class AuthController {
           }
         }
       );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      if (error.name === "JsonWebTokenError") {
-        res.status(401).render("error", {
-          message: "401 Unauthorized | Invalid link",
-          title: "401 Unauthorized",
-        });
-      } else if (error.name === "TokenExpiredError") {
-        res.status(401).render("error", {
-          message: "401 Unauthorized | Link has expired",
-          title: "401 Unauthorized",
-        });
-      } else {
-        res.status(500).render("error", {
-          message: "500 Internal Server Error",
-          title: "500 Internal Server Error",
-        });
-      }
+      res.status(500).render("error", {
+        message: "500 Internal Server Error",
+        title: "500 Internal Server Error",
+      });
     }
   };
 

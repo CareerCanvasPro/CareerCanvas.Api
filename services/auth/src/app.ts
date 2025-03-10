@@ -20,10 +20,7 @@ export class App {
 
   public initTemplates(): void {
     this.app.set("view engine", "ejs");
-    this.app.set(
-      "views",
-      join(__dirname, "..", "..", "..", "..", "src", "views")
-    );
+    this.app.set("views", join(__dirname, "..", "src", "views"));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
