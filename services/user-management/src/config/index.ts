@@ -5,12 +5,9 @@ import joi from "joi";
 const envVarsSchema = joi
   .object()
   .keys({
-    ENV: joi.string().valid("development", "production").required(),
-    JWT_SECRET: joi.string().optional(),
-    JWT_SECRET_PRODUCTION: joi.string().optional(),
+    JWT_SECRET: joi.string().required(),
     PORT: joi.number().default(8004),
   })
-  .or("JWT_SECRET", "JWT_SECRET_PRODUCTION")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -23,10 +20,7 @@ if (error) {
 
 export const config = {
   jwt: {
-    secret:
-      envVars.ENV === "production"
-        ? envVars.JWT_SECRET_PRODUCTION
-        : envVars.JWT_SECRET,
+    secret: envVars.JWT_SECRET,
   },
   port: envVars.PORT,
 };
