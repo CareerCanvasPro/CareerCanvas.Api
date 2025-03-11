@@ -3,9 +3,9 @@ import Joi from "joi";
 
 const envVarsSchema = Joi.object()
   .keys({
-    ENV: Joi.string().valid("development", "production").required(),
     BUCKET: Joi.string().optional(),
     BUCKET_PRODUCTION: Joi.string().optional(),
+    ENV: Joi.string().valid("development", "production").required(),
     PORT: Joi.number().default(8002),
     REGION: Joi.string().optional(),
     REGION_PRODUCTION: Joi.string().optional(),

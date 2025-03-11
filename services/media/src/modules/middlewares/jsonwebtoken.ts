@@ -29,7 +29,17 @@ export const handleVerifyAccessToken = (
         config.secret,
         (error: unknown, decoded: IAccessTokenPayload) => {
           if (error) {
-            throw error;
+            if ((error as Error).name === "JsonWebTokenError") {
+              res.status(401).json({
+                data: null,
+                message: `${(error as Error).name}: Invalid access token`,
+              });
+            } else if ((error as Error).name === "TokenExpiredError") {
+              res.status(401).json({
+                data: null,
+                message: `${(error as Error).name}: Access token has expired`,
+              });
+            }
           } else {
             req.body = { ...req.body, ...decoded };
 
@@ -38,21 +48,9 @@ export const handleVerifyAccessToken = (
         }
       );
     } catch (error) {
-      if (error.name === "JsonWebTokenError") {
-        res.status(401).json({
-          data: null,
-          message: `${error.name}: Invalid access token`,
-        });
-      } else if (error.name === "TokenExpiredError") {
-        res.status(401).json({
-          data: null,
-          message: `${error.name}: Access token has expired`,
-        });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
+      res
+        .status(500)
+        .json({ data: null, message: `${error.name}: ${error.message}` });
     }
   }
 };
