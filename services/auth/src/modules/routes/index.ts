@@ -13,7 +13,7 @@ export class AuthRoute {
     this.initRoutes();
   }
 
-  private initRoutes(): void {
+  private initRoutes = (): void => {
     this.router.post(
       "/magic-link/request",
       this.authController.handleRequestMagicLink
@@ -35,5 +35,5 @@ export class AuthRoute {
     );
 
     this.router.get("/otp/verify", this.authController.handleVerifyOtp);
-  }
+  };
 }
