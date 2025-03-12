@@ -13,7 +13,7 @@ export const jobArraySchema = joi
           })
           .required(),
         currency: joi.string().valid("BDT", "USD").required(),
-        deadline: joi.number().min(0).required(),
+        deadline: joi.date().required(),
         fields: joi
           .array()
           .items(
@@ -78,7 +78,7 @@ export const jobArraySchema = joi
         location: joi.string().required().trim(),
         locationType: joi
           .string()
-          .valid("Hybrid", "On-site", "Remote")
+          .valid("HYBRID", "ON_SITE", "REMOTE")
           .required(),
         organization: joi.string().required().trim(),
         personalityTypes: joi
@@ -92,11 +92,11 @@ export const jobArraySchema = joi
           .required(),
         position: joi.string().required().trim(),
         salary: joi.number().min(0).required(),
-        salaryInterval: joi.string().valid("Annum", "Month").required(),
+        salaryInterval: joi.string().valid("ANNUM", "MONTH").required(),
         salaryMax: joi.number().min(0),
         type: joi
           .string()
-          .valid("Contractual", "Full-time", "Intern", "Part-time")
+          .valid("CONTRACTUAL", "FULL_TIME", "INTERN", "PART_TIME")
           .required(),
       })
       .unknown(false)
