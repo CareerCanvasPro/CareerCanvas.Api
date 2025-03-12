@@ -26,7 +26,7 @@ export const handleVerifyAccessToken = (
     try {
       verify(
         accessToken,
-        config.secret,
+        config.jwt.secret,
         (error: unknown, decoded: IAccessTokenPayload) => {
           if (error) {
             if ((error as Error).name === "JsonWebTokenError") {

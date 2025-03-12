@@ -5,9 +5,9 @@ import { AuthController } from "../controllers";
 export class AuthRoute {
   private readonly authController = new AuthController();
 
-  public path = "/auth";
+  public readonly path = "/auth";
 
-  public router = Router();
+  public readonly router = Router();
 
   constructor() {
     this.initRoutes();

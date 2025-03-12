@@ -100,7 +100,6 @@ export const educationCertificateSchema = joi
     name: joi.string().required(),
     size: joi.number().required(),
     type: joi.string().required(),
-    uploadedAt: joi.date().required(),
     url: joi
       .string()
       .uri({
@@ -153,7 +152,6 @@ export const resumeArraySchema = joi
         name: joi.string().required(),
         size: joi.number().required(),
         type: joi.string().required(),
-        uploadedAt: joi.date().required(),
         url: joi
           .string()
           .uri({
@@ -172,7 +170,6 @@ export const resumeSchema = joi
     name: joi.string().required(),
     size: joi.number().required(),
     type: joi.string().required(),
-    uploadedAt: joi.date().required(),
     url: joi
       .string()
       .uri({

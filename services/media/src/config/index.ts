@@ -3,18 +3,11 @@ import Joi from "joi";
 
 const envVarsSchema = Joi.object()
   .keys({
-    BUCKET: Joi.string().optional(),
-    BUCKET_PRODUCTION: Joi.string().optional(),
-    ENV: Joi.string().valid("development", "production").required(),
+    AWS_REGION: Joi.string().required(),
+    JWT_SECRET: Joi.string().required(),
     PORT: Joi.number().default(8002),
-    REGION: Joi.string().optional(),
-    REGION_PRODUCTION: Joi.string().optional(),
-    SECRET: Joi.string().optional(),
-    SECRET_PRODUCTION: Joi.string().optional(),
+    S3_BUCKET: Joi.string().required(),
   })
-  .or("BUCKET", "BUCKET_PRODUCTION")
-  .or("REGION", "REGION_PRODUCTION")
-  .or("SECRET", "SECRET_PRODUCTION")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -26,11 +19,14 @@ if (error) {
 }
 
 export const config = {
-  bucket:
-    envVars.ENV === "production" ? envVars.BUCKET_PRODUCTION : envVars.BUCKET,
+  aws: {
+    region: envVars.AWS_REGION,
+  },
+  jwt: {
+    secret: envVars.JWT_SECRET,
+  },
   port: envVars.PORT,
-  region:
-    envVars.ENV === "production" ? envVars.REGION_PRODUCTION : envVars.REGION,
-  secret:
-    envVars.ENV === "production" ? envVars.SECRET_PRODUCTION : envVars.SECRET,
+  s3: {
+    bucket: envVars.S3_BUCKET,
+  },
 };

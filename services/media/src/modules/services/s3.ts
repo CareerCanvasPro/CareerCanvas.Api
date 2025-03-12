@@ -29,10 +29,10 @@ interface UploadFileParams {
 }
 
 export class S3 {
-  private readonly BUCKET = config.bucket;
+  private readonly BUCKET = config.s3.bucket;
 
   private readonly s3Client = new S3Client({
-    region: config.region,
+    region: config.aws.region,
   });
 
   public deleteFile = async ({
@@ -66,7 +66,7 @@ export class S3 {
   };
 
   public getUrl = ({ key }: GetUrlParams): { url: string } => {
-    const url = `https://${this.BUCKET}.s3.${config.region}.amazonaws.com/${key}`;
+    const url = `https://${this.BUCKET}.s3.${config.aws.region}.amazonaws.com/${key}`;
 
     return { url };
   };

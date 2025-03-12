@@ -277,10 +277,7 @@ export class UsersDb {
     educationId,
     id,
   }: {
-    certificate: Pick<
-      Certificate,
-      "name" | "size" | "type" | "uploadedAt" | "url"
-    >;
+    certificate: Pick<Certificate, "name" | "size" | "type" | "url">;
     educationId: string;
     id: string;
   }): Promise<void> => {
@@ -338,10 +335,7 @@ export class UsersDb {
     educationId,
     id,
   }: {
-    certificate: Pick<
-      Certificate,
-      "name" | "size" | "type" | "uploadedAt" | "url"
-    >;
+    certificate: Pick<Certificate, "name" | "size" | "type" | "url">;
     educationId: string;
     id: string;
   }): Promise<void> => {

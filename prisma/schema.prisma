@@ -244,7 +244,6 @@ model Certificate {
   size        Int
   type        String
   updatedAt   DateTime  @updatedAt
-  uploadedAt  DateTime
   url         String
   education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
   educationId String    @unique
@@ -278,14 +277,13 @@ model Personality {
 }
 
 model Resume {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  name       String
-  size       Int
-  type       String
-  updatedAt  DateTime @updatedAt
-  uploadedAt DateTime
-  url        String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  name      String
+  size      Int
+  type      String
+  updatedAt DateTime @updatedAt
+  url       String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
 }
