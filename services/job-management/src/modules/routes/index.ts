@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 
 import { JobManagementController } from "../controllers";
 import { handleVerifyAccessToken } from "../middlewares";
@@ -14,15 +14,14 @@ export class JobManagementRoute {
     this.initRoutes();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private initMiddlewares = (middlewares: any[]): void => {
+  private initMiddlewares = (middlewares: RequestHandler[]): void => {
     this.router.use(middlewares);
   };
 
   private initRoutes = (): void => {
     // this.router
     //   .route("/post")
-    //   .post(this.jobManagementController.handlePostJobs);
+    //   .post(this.jobManagementController.handleCreateJobs);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 

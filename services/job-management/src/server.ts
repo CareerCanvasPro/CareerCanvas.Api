@@ -6,7 +6,7 @@ import { App } from "./app";
 import { config } from "./config";
 import { JobManagementRoute } from "./modules/routes";
 
-function startServer(): void {
+const startServer = (): void => {
   try {
     const app = new App({ port: config.port });
 
@@ -25,6 +25,6 @@ function startServer(): void {
   } catch (error) {
     console.error(`${error.name}: ${error.message}`);
   }
-}
+};
 
 startServer();

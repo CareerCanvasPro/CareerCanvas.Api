@@ -58,7 +58,7 @@ export class JobManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        (validatedJobs as Record<string, unknown>[]).forEach(async (job) => {
+        for (const job of validatedJobs as Record<string, unknown>[]) {
           const { fields, goals } = job;
 
           delete job.fields;
@@ -70,7 +70,7 @@ export class JobManagementController {
             goals: goals as string[],
             job: job as Omit<Job, "id" | "createdAt" | "updatedAt">,
           });
-        });
+        }
 
         res.status(200).json({
           data: null,
