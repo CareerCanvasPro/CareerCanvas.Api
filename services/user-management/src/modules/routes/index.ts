@@ -74,21 +74,11 @@ export class UserManagementRoute {
 
     this.router
       .route("/goals")
-      .post(this.userManagementController.handleCreateUserGoals);
-
-    this.router
-      .route("/goals/:goalId")
-      .put(this.userManagementController.handleUpdateUserGoal)
-      .delete(this.userManagementController.handleDeleteUserGoal);
+      .put(this.userManagementController.handleUpdateUserGoals);
 
     this.router
       .route("/interests")
-      .post(this.userManagementController.handleCreateUserInterests);
-
-    this.router
-      .route("/interests/:interestId")
-      .put(this.userManagementController.handleUpdateUserInterest)
-      .delete(this.userManagementController.handleDeleteUserInterest);
+      .put(this.userManagementController.handleUpdateUserInterests);
 
     this.router
       .route("/occupations")
@@ -110,11 +100,6 @@ export class UserManagementRoute {
 
     this.router
       .route("/skills")
-      .post(this.userManagementController.handleCreateUserSkills);
-
-    this.router
-      .route("/skills/:skillId")
-      .put(this.userManagementController.handleUpdateUserSkill)
-      .delete(this.userManagementController.handleDeleteUserSkill);
+      .put(this.userManagementController.handleUpdateUserSkills);
   };
 }

@@ -54,7 +54,11 @@ export class UsersDb {
     const user = await prismaClient.user.findUnique({
       include: {
         appreciations: true,
-        educations: true,
+        educations: {
+          include: {
+            certificate: true
+          }
+        },
         goals: true,
         interests: true,
         occupations: true,
@@ -362,17 +366,36 @@ export class UsersDb {
 
   // GOALS
 
-  public createUserGoals = async ({
+  public updateUserGoals = async ({
     goals,
     id,
   }: {
     goals: string[];
     id: string;
   }): Promise<void> => {
+    const user = await prismaClient.user.findUnique({
+      select: {
+        goals: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+
+    const userGoals = user.goals.map((goal) => goal.name);
+
+    const goalsToAdd = goals.filter((goal) => !userGoals.includes(goal));
+
+    const goalsToRemove = userGoals.filter((goal) => !goals.includes(goal));
+
     await prismaClient.user.update({
       data: {
         goals: {
-          connectOrCreate: goals.map((goal) => ({
+          connectOrCreate: goalsToAdd.map((goal) => ({
             create: {
               name: goal,
             },
@@ -380,53 +403,9 @@ export class UsersDb {
               name: goal,
             },
           })),
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public deleteUserGoal = async ({
-    goalId,
-    id,
-  }: {
-    goalId: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        goals: {
-          delete: {
-            id: goalId,
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateUserGoal = async ({
-    goal,
-    goalId,
-    id,
-  }: {
-    goal: string;
-    goalId: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        goals: {
-          update: {
-            data: goal,
-            where: {
-              id: goalId,
-            },
-          },
+          disconnect: goalsToRemove.map((goal) => ({
+            name: goal,
+          })),
         },
       },
       where: {
@@ -437,17 +416,40 @@ export class UsersDb {
 
   // INTERESTS
 
-  public createUserInterests = async ({
+  public updateUserInterests = async ({
     id,
     interests,
   }: {
     id: string;
     interests: string[];
   }): Promise<void> => {
+    const user = await prismaClient.user.findUnique({
+      select: {
+        interests: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+
+    const userInterests = user.interests.map((interest) => interest.name);
+
+    const interestsToAdd = interests.filter(
+      (interest) => !userInterests.includes(interest)
+    );
+
+    const interestsToRemove = userInterests.filter(
+      (interest) => !interests.includes(interest)
+    );
+
     await prismaClient.user.update({
       data: {
         interests: {
-          connectOrCreate: interests.map((interest) => ({
+          connectOrCreate: interestsToAdd.map((interest) => ({
             create: {
               name: interest,
             },
@@ -455,53 +457,9 @@ export class UsersDb {
               name: interest,
             },
           })),
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public deleteUserInterest = async ({
-    id,
-    interestId,
-  }: {
-    id: string;
-    interestId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        interests: {
-          delete: {
-            id: interestId,
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateUserInterest = async ({
-    id,
-    interest,
-    interestId,
-  }: {
-    id: string;
-    interest: string;
-    interestId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        interests: {
-          update: {
-            data: interest,
-            where: {
-              id: interestId,
-            },
-          },
+          disconnect: interestsToRemove.map((interest) => ({
+            name: interest,
+          })),
         },
       },
       where: {
@@ -651,17 +609,38 @@ export class UsersDb {
 
   // SKILLS
 
-  public createUserSkills = async ({
+  public updateUserSkills = async ({
     id,
     skills,
   }: {
     id: string;
     skills: string[];
   }): Promise<void> => {
+    const user = await prismaClient.user.findUnique({
+      select: {
+        skills: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+
+    const userSkills = user.skills.map((skill) => skill.name);
+
+    const skillsToAdd = skills.filter((skill) => !userSkills.includes(skill));
+
+    const skillsToRemove = userSkills.filter(
+      (skill) => !skills.includes(skill)
+    );
+
     await prismaClient.user.update({
       data: {
         skills: {
-          connectOrCreate: skills.map((skill) => ({
+          connectOrCreate: skillsToAdd.map((skill) => ({
             create: {
               name: skill,
             },
@@ -669,53 +648,9 @@ export class UsersDb {
               name: skill,
             },
           })),
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public deleteUserSkill = async ({
-    id,
-    skillId,
-  }: {
-    id: string;
-    skillId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        skills: {
-          delete: {
-            id: skillId,
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateUserSkill = async ({
-    id,
-    skill,
-    skillId,
-  }: {
-    id: string;
-    skill: string;
-    skillId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        skills: {
-          update: {
-            data: skill,
-            where: {
-              id: skillId,
-            },
-          },
+          disconnect: skillsToRemove.map((skill) => ({
+            name: skill,
+          })),
         },
       },
       where: {

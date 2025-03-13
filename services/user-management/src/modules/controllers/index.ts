@@ -723,7 +723,7 @@ export class UserManagementController {
 
   // GOALS
 
-  public handleCreateUserGoals = async (
+  public handleUpdateUserGoals = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -744,89 +744,14 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        await this.usersDb.createUserGoals({
+        await this.usersDb.updateUserGoals({
           goals: validatedGoals,
           id: userId,
         });
 
         res
           .status(200)
-          .json({ data: null, message: "Goals created successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleDeleteUserGoal = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { userId },
-        params: { goalId },
-      } = req;
-
-      await this.usersDb.deleteUserGoal({
-        goalId,
-        id: userId,
-      });
-
-      res
-        .status(200)
-        .json({ data: null, message: "Goal deleted successfully" });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserGoal = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { goal, userId },
-        params: { goalId },
-      } = req;
-
-      const { error, value: validatedGoal } = stringSchema.validate(goal, {
-        abortEarly: false,
-      });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserGoal({
-          goal: validatedGoal,
-          goalId,
-          id: userId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Goal updated successfully" });
+          .json({ data: null, message: "Goals updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -843,7 +768,7 @@ export class UserManagementController {
 
   // INTERESTS
 
-  public handleCreateUserInterests = async (
+  public handleUpdateUserInterests = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -864,92 +789,14 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        await this.usersDb.createUserInterests({
+        await this.usersDb.updateUserInterests({
           id: userId,
           interests: validatedInterests,
         });
 
         res
           .status(200)
-          .json({ data: null, message: "Interests created successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleDeleteUserInterest = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { userId },
-        params: { interestId },
-      } = req;
-
-      await this.usersDb.deleteUserInterest({
-        id: userId,
-        interestId,
-      });
-
-      res
-        .status(200)
-        .json({ data: null, message: "Interest deleted successfully" });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserInterest = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { interest, userId },
-        params: { interestId },
-      } = req;
-
-      const { error, value: validatedInterest } = stringSchema.validate(
-        interest,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserInterest({
-          id: userId,
-          interest: validatedInterest,
-          interestId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Interest updated successfully" });
+          .json({ data: null, message: "Interests updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -1207,7 +1054,7 @@ export class UserManagementController {
 
   // SKILLS
 
-  public handleCreateUserSkills = async (
+  public handleUpdateUserSkills = async (
     req: Request,
     res: Response
   ): Promise<void> => {
@@ -1228,89 +1075,14 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        await this.usersDb.createUserSkills({
+        await this.usersDb.updateUserSkills({
           id: userId,
           skills: validatedSkills,
         });
 
         res
           .status(200)
-          .json({ data: null, message: "Skills created successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleDeleteUserSkill = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { userId },
-        params: { skillId },
-      } = req;
-
-      await this.usersDb.deleteUserSkill({
-        id: userId,
-        skillId,
-      });
-
-      res
-        .status(200)
-        .json({ data: null, message: "Skill deleted successfully" });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserSkill = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { skill, userId },
-        params: { skillId },
-      } = req;
-
-      const { error, value: validatedSkill } = stringSchema.validate(skill, {
-        abortEarly: false,
-      });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserSkill({
-          id: userId,
-          skill: validatedSkill,
-          skillId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Skill updated successfully" });
+          .json({ data: null, message: "Skills updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
