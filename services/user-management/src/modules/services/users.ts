@@ -41,7 +41,11 @@ export class UsersDb {
     user: Prisma.UserGetPayload<{
       include: {
         appreciations: true;
-        educations: true;
+        educations: {
+          include: {
+            certificate: true;
+          };
+        };
         goals: true;
         interests: true;
         occupations: true;
@@ -56,8 +60,8 @@ export class UsersDb {
         appreciations: true,
         educations: {
           include: {
-            certificate: true
-          }
+            certificate: true,
+          },
         },
         goals: true,
         interests: true,
