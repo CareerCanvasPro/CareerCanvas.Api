@@ -51,7 +51,7 @@ export class AuthController {
             if (error) {
               throw error;
             } else {
-              const magicLink = `https://auth.api.careercanvas.pro/auth/magic-link/verify?token=${token}`;
+              const magicLink = `http://54.151.208.63:8001/auth/magic-link/verify?token=${token}`;
 
               await this.nodemailer.sendMail({
                 html: await renderFile(
