@@ -1,3 +1,4 @@
+module.exports = {
   apps: [
     {
       name: "User Management Service",
