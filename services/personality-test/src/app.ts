@@ -7,19 +7,19 @@ export class App {
 
   constructor(private readonly config: { port: number }) {}
 
-  public initMiddlewares(middlewares: RequestHandler[]): void {
+  public initMiddlewares = (middlewares: RequestHandler[]): void => {
     this.app.use(middlewares);
-  }
+  };
 
-  public initRoutes(routes: IRoute[]): void {
+  public initRoutes = (routes: IRoute[]): void => {
     routes.forEach((route) => {
       this.app.use(route.path, route.router);
     });
-  }
+  };
 
-  public listen(): void {
+  public listen = (): void => {
     this.app.listen(this.config.port, () => {
       console.log(`App listening on port ${this.config.port}`);
     });
-  }
+  };
 }

@@ -19,9 +19,9 @@ export class PersonalityTestRoute {
   };
 
   private initRoutes = (): void => {
-    this.router
-      .route("/questions")
-      .post(this.personalityTestController.handlePostQuestions);
+    // this.router
+    //   .route("/questions")
+    //   .post(this.personalityTestController.handlePostQuestions);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 
@@ -30,7 +30,7 @@ export class PersonalityTestRoute {
       .get(this.personalityTestController.handleRetrieveQuestions);
 
     this.router
-      .route("/result")
+      .route("/answers")
       .post(this.personalityTestController.handlePostAnswers);
   };
 }

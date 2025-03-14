@@ -45,11 +45,6 @@ enum PersonalityTestQuestionCategory {
   JP
 }
 
-enum PersonalityTestStatus {
-  COMPLETE
-  PENDING
-}
-
 enum PersonalityType {
   INTJ
   INTP
@@ -263,17 +258,16 @@ model Occupation {
 }
 
 model Personality {
-  id           String                @id @default(cuid())
-  createdAt    DateTime              @default(now())
-  testResultEI Float                 @default(0)
-  testResultSN Float                 @default(0)
-  testResultTF Float                 @default(0)
-  testResultJP Float                 @default(0)
-  testStatus   PersonalityTestStatus
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  testResultEI Float            @default(0)
+  testResultSN Float            @default(0)
+  testResultTF Float            @default(0)
+  testResultJP Float            @default(0)
   type         PersonalityType?
-  updatedAt    DateTime              @updatedAt
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String                @unique
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String           @unique
 }
 
 model Resume {

@@ -5,12 +5,9 @@ import joi from "joi";
 const envVarsSchema = joi
   .object()
   .keys({
-    ENV: joi.string().valid("development", "production").required(),
+    JWT_SECRET: joi.string().required(),
     PORT: joi.number().default(8003),
-    SECRET: joi.string().optional(),
-    SECRET_PRODUCTION: joi.string().optional(),
   })
-  .or("SECRET", "SECRET_PRODUCTION")
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -22,9 +19,10 @@ if (error) {
 }
 
 export const config = {
+  jwt: {
+    secret: envVars.JWT_SECRET,
+  },
   port: envVars.PORT,
-  secret:
-    envVars.ENV === "production" ? envVars.SECRET_PRODUCTION : envVars.SECRET,
 };
 
 export const prismaClient = new PrismaClient();

@@ -1,13 +1,63 @@
+import { PersonalityTestAnswer, PersonalityType } from "@prisma/client";
 import { Request, Response } from "express";
 
-import { AnswersDb, QuestionsDb, UsersDb } from "../services";
+import {
+  AnswersDb,
+  PersonalityTestService,
+  QuestionsDb,
+  UsersDb,
+} from "../services";
 
 export class PersonalityTestController {
   private readonly answersDb = new AnswersDb();
 
+  private readonly personalityTestService = new PersonalityTestService();
+
   private readonly questionsDb = new QuestionsDb();
 
   private readonly usersDb = new UsersDb();
+
+  private processAnswers = async ({
+    answers,
+    id,
+  }: {
+    answers: PersonalityTestAnswer[];
+    id: string;
+  }): Promise<void> => {
+    const { questions } = await this.questionsDb.retrieveQuestions();
+
+    const { testResult, type } = this.personalityTestService.computeTestResult({
+      answers,
+      questions,
+    });
+
+    const { userPersonalityExists } =
+      await this.usersDb.checkIfUserPersonalityExists({ id });
+
+    if (userPersonalityExists) {
+      await this.usersDb.updateUserPersonality({
+        id,
+        personality: {
+          testResultEI: testResult.EI,
+          testResultJP: testResult.JP,
+          testResultSN: testResult.SN,
+          testResultTF: testResult.TF,
+          type: type as PersonalityType,
+        },
+      });
+    } else {
+      await this.usersDb.createUserPersonality({
+        id,
+        personality: {
+          testResultEI: testResult.EI,
+          testResultJP: testResult.JP,
+          testResultSN: testResult.SN,
+          testResultTF: testResult.TF,
+          type: type as PersonalityType,
+        },
+      });
+    }
+  };
 
   public handlePostAnswers = async (
     req: Request,
@@ -24,10 +74,7 @@ export class PersonalityTestController {
           userId,
         });
 
-        await this.usersDb.updateUserPersonality({
-          id: userId,
-          personality: { testStatus: "PENDING" },
-        });
+        await this.processAnswers({ answers, id: userId });
 
         res.status(200).json({
           data: null,
@@ -39,10 +86,7 @@ export class PersonalityTestController {
           userId,
         });
 
-        await this.usersDb.createUserPersonality({
-          id: userId,
-          personality: { testStatus: "PENDING" },
-        });
+        await this.processAnswers({ answers, id: userId });
 
         res.status(200).json({
           data: null,
@@ -84,7 +128,7 @@ export class PersonalityTestController {
 
       if (questions.length) {
         res.status(200).json({
-          data: { count: questions.length, questions },
+          data: { questions },
           message: "Questions retrieved successfully",
         });
       } else {
