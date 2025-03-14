@@ -167,7 +167,7 @@ export class MediaController {
       } else if (!file) {
         res.status(400).json({ data: null, message: "No file uploaded" });
       } else {
-        const { buffer, mimetype, size } = file;
+        const { buffer, mimetype, originalname, size } = file;
 
         const { httpStatusCode, key } = await this.s3.putFile({
           acl: "public-read",
@@ -181,7 +181,7 @@ export class MediaController {
         res.status(httpStatusCode).json({
           data: {
             file: {
-              name: key,
+              name: originalname,
               size,
               type: mimetype,
               url,
@@ -306,7 +306,7 @@ export class MediaController {
       } else if (!file) {
         res.status(400).json({ data: null, message: "No file uploaded" });
       } else {
-        const { buffer, mimetype, size } = file;
+        const { buffer, mimetype, originalname, size } = file;
 
         const { httpStatusCode, key } = await this.s3.putFile({
           acl: "public-read",
@@ -320,7 +320,7 @@ export class MediaController {
         res.status(httpStatusCode).json({
           data: {
             file: {
-              name: key,
+              name: originalname,
               size,
               type: mimetype,
               url,
