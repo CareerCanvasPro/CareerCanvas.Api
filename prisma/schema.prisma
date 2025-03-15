@@ -112,6 +112,17 @@ model Otp {
   @@unique([otp, username])
 }
 
+/// CAREER TREND SCHEMA
+
+model CareerTrend {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  description String
+  image       String
+  name        String
+  updatedAt   DateTime @updatedAt
+}
+
 /// COURSE SCHEMA
 
 model Course {

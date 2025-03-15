@@ -1,30 +1,23 @@
-import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { CareerTrend } from "@prisma/client";
 
-import { config } from "../../config";
+import { prismaClient } from "../../config";
 
-export class CareerTrendsDB {
-  private readonly dynamoDBClient = new DynamoDBClient({
-    region: config.aws.region,
-  });
+export class CareerTrendsDb {
+  public createCareerTrend = async ({
+    careerTrend,
+  }: {
+    careerTrend: Pick<CareerTrend, "description" | "image" | "name">;
+  }): Promise<void> => {
+    await prismaClient.careerTrend.create({
+      data: careerTrend,
+    });
+  };
 
-  private readonly tableName = "CareerTrends";
-
-  public getCareerTrends = async (): Promise<{
-    careers: Record<string, unknown>[];
-    httpStatusCode: number;
+  public retrieveCareerTrends = async (): Promise<{
+    careerTrends: CareerTrend[];
   }> => {
-    const {
-      $metadata: { httpStatusCode },
-      Items: Careers,
-    } = await this.dynamoDBClient.send(
-      new ScanCommand({
-        TableName: this.tableName,
-      })
-    );
+    const careerTrends = await prismaClient.careerTrend.findMany();
 
-    const careers = Careers.map((career) => unmarshall(career));
-
-    return { careers, httpStatusCode };
+    return { careerTrends };
   };
 }

@@ -1,12 +1,18 @@
-import { Job, JobLocationType, JobType, Prisma } from "@prisma/client";
+import {
+  CareerTrend,
+  Job,
+  JobLocationType,
+  JobType,
+  Prisma,
+} from "@prisma/client";
 import { Request, Response } from "express";
 
 import { cleanMessage } from "../../utils";
 import { jobArraySchema } from "../schemas";
-import { CareerTrendsDB, JobsDb, UsersDb } from "../services";
+import { CareerTrendsDb, JobsDb, UsersDb } from "../services";
 
 export class JobManagementController {
-  private readonly careerTrendsDB = new CareerTrendsDB();
+  private readonly careerTrendsDb = new CareerTrendsDb();
 
   private readonly jobsDb = new JobsDb();
 
@@ -38,6 +44,39 @@ export class JobManagementController {
     }
 
     return { shuffledJobs };
+  };
+
+  public handleCreateCareerTrends = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { careerTrends } = req.body;
+
+      for (const careerTrend of careerTrends as Pick<
+        CareerTrend,
+        "description" | "image" | "name"
+      >[]) {
+        await this.careerTrendsDb.createCareerTrend({
+          careerTrend,
+        });
+      }
+
+      res.status(200).json({
+        data: null,
+        message: "New career trends created successfully",
+      });
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
   };
 
   public handleCreateJobs = async (
@@ -95,12 +134,11 @@ export class JobManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { careers, httpStatusCode } =
-        await this.careerTrendsDB.getCareerTrends();
+      const { careerTrends } = await this.careerTrendsDb.retrieveCareerTrends();
 
-      if (careers) {
-        res.status(httpStatusCode).json({
-          data: { careers },
+      if (careerTrends) {
+        res.status(200).json({
+          data: { careerTrends },
           message: "Career trends retrieved successfully",
         });
       } else {

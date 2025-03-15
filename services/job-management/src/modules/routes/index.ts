@@ -19,8 +19,12 @@ export class JobManagementRoute {
   };
 
   private initRoutes = (): void => {
+    this.router
+      .route("/career-trends")
+      .post(this.jobManagementController.handleCreateCareerTrends);
+
     // this.router
-    //   .route("/post")
+    //   .route("/")
     //   .post(this.jobManagementController.handleCreateJobs);
 
     this.initMiddlewares([handleVerifyAccessToken]);
