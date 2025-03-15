@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
-import SMTPTransport from "nodemailer/lib/smtp-transport";
+import nodemailer, { TransportOptions } from "nodemailer";
+import { Options as SMTPTransportOptions } from "nodemailer/lib/smtp-transport";
 
 import { config } from "../../config";
 
@@ -12,21 +12,21 @@ interface SendMailParams {
 
 export class Nodemailer {
   private readonly transporter = nodemailer.createTransport({
-    auth: {
-      pass: config.mail.password,
-      user: config.mail.username,
-    },
     host: config.mail.host,
-    port: config.mail.port,
+    port: parseInt(config.mail.port, 10),
     secure: true,
-  });
+    auth: {
+      user: config.mail.username,
+      pass: config.mail.password,
+    },
+  } as SMTPTransportOptions);
 
   public sendMail = async ({
     html,
     subject,
     text,
     to,
-  }: SendMailParams): Promise<SMTPTransport.SentMessageInfo> => {
+  }: SendMailParams): Promise<any> => {
     return await this.transporter.sendMail({
       from: "Career Canvas <noreply@careercanvas.pro>",
       html,

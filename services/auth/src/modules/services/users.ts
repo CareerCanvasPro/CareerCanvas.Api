@@ -1,6 +1,6 @@
 import { User } from "@prisma/client";
 
-import { prismaClient } from "../../config";
+import prisma from "./prisma";
 
 export class UsersDb {
   public findUser = async ({
@@ -10,7 +10,7 @@ export class UsersDb {
   }): Promise<{
     user: User;
   }> => {
-    const user = await prismaClient.user.findUnique({ where: { username } });
+    const user = await prisma.user.findUnique({ where: { username } });
 
     return { user };
   };

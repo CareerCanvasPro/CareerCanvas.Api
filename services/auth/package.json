@@ -4,6 +4,7 @@
     "@aws-sdk/client-ses": "^3.731.1",
     "@aws-sdk/client-sns": "^3.665.0",
     "@prisma/client": "^6.4.1",
+    "axios": "^1.8.3",
     "body-parser": "^1.20.3",
     "cors": "2.8.5",
     "ejs": "^3.1.10",
@@ -18,6 +19,7 @@
   "description": "Authentication service for Career Canvas API",
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/aws-lambda": "^8.10.147",
     "@types/body-parser": "^1.19.5",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",
@@ -31,7 +33,6 @@
     "@types/otp-generator": "^4.0.2",
     "@types/uuid": "^10.0.0",
     "concurrently": "8.2.2",
-    "dotenv": "^16.4.7",
     "eslint": "^9.18.0",
     "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import": "^2.31.0",
@@ -60,7 +61,12 @@
     "server": "concurrently \"npm run watch-tsc\" \"npm run watch-deploy\"",
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "watch-deploy": "node --watch lib/server"
+    "watch-deploy": "node --watch lib/server",
+    "watch-tsc": "tsc --watch",
+    "sam:build": "sam build",
+    "sam:deploy": "sam deploy --guided",
+    "sam:package": "sam package --output-template-file packaged.yaml",
+    "sam:local": "sam local start-api"
   },
   "typings": "lib/index.d.ts",
   "version": "0.0.0"

@@ -5,6 +5,7 @@ import morgan from "morgan";
 import { App } from "./app";
 import { config } from "./config";
 import { AuthRoute } from "./modules/routes";
+import { HomeRoute } from "./modules/routes/home";
 
 const startServer = (): void => {
   try {
@@ -21,7 +22,7 @@ const startServer = (): void => {
       cors(),
     ]);
 
-    app.initRoutes([new AuthRoute()]);
+    app.initRoutes([new HomeRoute(), new AuthRoute()]);
 
     app.initNotFound();
 

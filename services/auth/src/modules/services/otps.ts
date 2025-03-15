@@ -1,6 +1,6 @@
 import { Otp } from "@prisma/client";
 
-import { prismaClient } from "../../config";
+import prisma from "./prisma";
 
 export class OtpsDb {
   public createOtp = async ({
@@ -10,7 +10,7 @@ export class OtpsDb {
     otp: string;
     username: string;
   }): Promise<void> => {
-    await prismaClient.otp.create({
+    await prisma.otp.create({
       data: {
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
         otp,
@@ -28,7 +28,7 @@ export class OtpsDb {
   }): Promise<{
     foundOtp: Otp;
   }> => {
-    const foundOtp = await prismaClient.otp.findUnique({
+    const foundOtp = await prisma.otp.findUnique({
       where: {
         otp_username: {
           otp,
