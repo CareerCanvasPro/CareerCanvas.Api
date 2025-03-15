@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { S3 } from "../services";
+import { Axios, S3 } from "../services";
 
 export class MediaController {
+  private readonly axios = new Axios();
+
   private readonly s3 = new S3();
 
   public handleRemoveCertificate = async (
@@ -297,7 +299,7 @@ export class MediaController {
   ): Promise<void> => {
     try {
       const {
-        body: { error, userId },
+        body: { authorization, error, userId },
         file,
       } = req;
 
@@ -308,7 +310,7 @@ export class MediaController {
       } else {
         const { buffer, mimetype, originalname, size } = file;
 
-        const { httpStatusCode, key } = await this.s3.putFile({
+        const { key } = await this.s3.putFile({
           acl: "public-read",
           body: buffer,
           contentType: mimetype,
@@ -317,17 +319,20 @@ export class MediaController {
 
         const { url } = this.s3.getUrl({ key });
 
-        res.status(httpStatusCode).json({
+        const { data, status } = await this.axios.post({authorization,
           data: {
-            file: {
+            resume: {
+              key,
               name: originalname,
               size,
               type: mimetype,
               url,
             },
           },
-          message: "Resume uploaded successfully",
+          url: "http://localhost:8004/user/resumes",
         });
+
+        res.status(status).json(data);
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

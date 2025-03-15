@@ -10,6 +10,7 @@
     "@aws-sdk/client-sns": "^3.665.0",
     "@aws-sdk/s3-request-presigner": "^3.744.0",
     "@prisma/client": "^6.4.1",
+    "axios": "^1.8.3",
     "body-parser": "^1.20.3",
     "cors": "2.8.5",
     "ejs": "^3.1.10",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/axios": "^0.9.36",
     "@types/body-parser": "^1.19.5",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",

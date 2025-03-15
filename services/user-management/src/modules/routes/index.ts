@@ -91,11 +91,10 @@ export class UserManagementRoute {
 
     this.router
       .route("/resumes")
-      .post(this.userManagementController.handleCreateUserResumes);
+      .post(this.userManagementController.handleCreateUserResume);
 
     this.router
       .route("/resumes/:resumeId")
-      .put(this.userManagementController.handleUpdateUserResume)
       .delete(this.userManagementController.handleDeleteUserResume);
 
     this.router

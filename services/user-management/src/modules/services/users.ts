@@ -285,7 +285,7 @@ export class UsersDb {
     educationId,
     id,
   }: {
-    certificate: Pick<Certificate, "name" | "size" | "type" | "url">;
+    certificate: Pick<Certificate, "key" | "name" | "size" | "type" | "url">;
     educationId: string;
     id: string;
   }): Promise<void> => {
@@ -545,17 +545,17 @@ export class UsersDb {
 
   // RESUMES
 
-  public createUserResumes = async ({
+  public createUserResume = async ({
     id,
-    resumes,
+    resume,
   }: {
     id: string;
-    resumes: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">[];
+    resume: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">;
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
         resumes: {
-          create: resumes,
+          create: resume,
         },
       },
       where: {

@@ -9,16 +9,17 @@ import {
   educationSchema,
   occupationArraySchema,
   occupationSchema,
-  resumeArraySchema,
   resumeSchema,
   stringArraySchema,
   stringSchema,
   urlSchema,
   userSchema,
 } from "../schemas";
-import { UsersDb } from "../services";
+import { Axios, UsersDb } from "../services";
 
 export class UserManagementController {
+  private readonly axios = new Axios();
+
   private readonly usersDb = new UsersDb();
 
   public handleCreateUser = async (
@@ -934,19 +935,16 @@ export class UserManagementController {
 
   // RESUMES
 
-  public handleCreateUserResumes = async (
+  public handleCreateUserResume = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { resumes, userId } = req.body;
+      const { resume, userId } = req.body;
 
-      const { error, value: validatedResumes } = resumeArraySchema.validate(
-        resumes,
-        {
-          abortEarly: false,
-        }
-      );
+      const { error, value: validatedResume } = resumeSchema.validate(resume, {
+        abortEarly: false,
+      });
 
       if (error) {
         const validationErrors = error.details.map((error) =>
@@ -955,14 +953,14 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        await this.usersDb.createUserResumes({
+        await this.usersDb.createUserResume({
           id: userId,
-          resumes: validatedResumes,
+          resume: validatedResume,
         });
 
         res
           .status(200)
-          .json({ data: null, message: "Resumes created successfully" });
+          .json({ data: null, message: "Resume created successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -983,8 +981,9 @@ export class UserManagementController {
   ): Promise<void> => {
     try {
       const {
-        body: { userId },
+        body: { authorization, userId },
         params: { resumeId },
+        query: { key }
       } = req;
 
       await this.usersDb.deleteUserResume({
@@ -992,9 +991,11 @@ export class UserManagementController {
         resumeId,
       });
 
+      const { data, status} = await this.axios.delete({authorization, url: `http://localhost:8002/media/resume?key=${key}`});
+
       res
-        .status(200)
-        .json({ data: null, message: "Resume deleted successfully" });
+        .status(status)
+        .json(data);
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res

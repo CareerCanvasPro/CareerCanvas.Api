@@ -1,16 +1,19 @@
 import axios from "axios";
 
 export class Axios {
-  public delete = async ({
+  public post = async ({
     authorization,
+    data,
     url,
   }: {
     authorization: string;
+    data: Record<string, unknown>;
     url: string;
   }): Promise<{ data: Record<string, null | string>; status: number }> => {
-    const response = await axios.delete(url, {
+    const response = await axios.post(url, data, {
       headers: {
-        Authorization: authorization
+        Authorization: authorization,
+        "Content-Type": "application/json",
       },
     });
 

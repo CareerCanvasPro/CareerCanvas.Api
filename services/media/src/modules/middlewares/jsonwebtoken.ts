@@ -41,7 +41,7 @@ export const handleVerifyAccessToken = (
               });
             }
           } else {
-            req.body = { ...req.body, ...decoded };
+            req.body = { ...req.body, ...decoded, authorization };
 
             next();
           }

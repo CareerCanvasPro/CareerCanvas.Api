@@ -3,6 +3,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.744.0",
     "@aws-sdk/s3-request-presigner": "^3.744.0",
+    "axios": "^1.8.3",
     "body-parser": "^1.20.3",
     "cors": "2.8.5",
     "express": "4.18.2",
@@ -14,6 +15,7 @@
   "description": "Media upload service for Career Canvas API",
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/axios": "^0.9.36",
     "@types/body-parser": "^1.19.5",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",

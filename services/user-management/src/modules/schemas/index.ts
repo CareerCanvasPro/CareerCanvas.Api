@@ -97,6 +97,7 @@ export const educationSchema = joi
 export const educationCertificateSchema = joi
   .object()
   .keys({
+    key: joi.string().required(),
     name: joi.string().required(),
     size: joi.number().required(),
     type: joi.string().required(),
@@ -149,6 +150,7 @@ export const resumeArraySchema = joi
     joi
       .object()
       .keys({
+        key: joi.string().required(),
         name: joi.string().required(),
         size: joi.number().required(),
         type: joi.string().required(),
@@ -167,6 +169,7 @@ export const resumeArraySchema = joi
 export const resumeSchema = joi
   .object()
   .keys({
+    key: joi.string().required(),
     name: joi.string().required(),
     size: joi.number().required(),
     type: joi.string().required(),

@@ -246,6 +246,7 @@ model Education {
 model Certificate {
   id          String    @id @default(cuid())
   createdAt   DateTime  @default(now())
+  key         String
   name        String
   size        Int
   type        String
@@ -284,6 +285,7 @@ model Personality {
 model Resume {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
+  key       String
   name      String
   size      Int
   type      String
