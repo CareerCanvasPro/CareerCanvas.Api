@@ -1,26 +1,23 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
-
-const ssm = new SSMClient({ region: process.env.REGION });
-async function getParameter(name: string) {
-  const command = new GetParameterCommand({
-    Name: name,
-    WithDecryption: true
-  });
-  const response = await ssm.send(command);
-  return response.Parameter?.Value;
-}
 import { renderFile } from 'ejs';
 import { join } from 'path';
 import { sign } from 'jsonwebtoken';
 
 import { config } from '../config';
+import { getParameter } from '../config/ssm';
 import { cleanMessage } from '../utils';
 import { emailSchema } from '../modules/schemas';
 import { Nodemailer } from '../modules/services';
+import prisma from '../modules/services/prisma';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
+    // Validate essential services
+    await Promise.all([
+      getParameter('JWT_SECRET'),
+      prisma.$connect()
+    ]);
+
     const body = JSON.parse(event.body || '{}');
     
     const { error, value } = emailSchema.validate(body, {
@@ -64,7 +61,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
                 body: JSON.stringify({ data: null, message: `${error.name}: ${error.message}` }),
               });
             } else {
-              const magicLink = `http://54.151.208.63:8001/auth/magic-link/verify?token=${token}`;
+              const apiGatewayUrl = process.env.API_GATEWAY_URL || 'http://localhost:8001';
+              const magicLink = `${apiGatewayUrl}/auth/magic-link/verify?token=${token}`;
 
               await nodemailer.sendMail({
                 html: await renderFile(
@@ -101,26 +99,68 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       });
     }
   } catch (error) {
-    if (error.$metadata && error.$metadata.httpStatusCode) {
+    console.error('Error in requestMagicLink:', error instanceof Error ? error.stack : error);
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true
+    };
+
+    // Handle database connection errors
+    if (error.name === 'PrismaClientInitializationError' || error.name === 'PrismaClientKnownRequestError') {
+      console.error('Database connection error:', error.message);
       return {
-        statusCode: error.$metadata.httpStatusCode,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify({ data: null, message: `${error.name}: ${error.message}` }),
-      };
-    } else {
-      return {
-        statusCode: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify({ data: null, message: `${error.name}: ${error.message}` }),
+        statusCode: 503,
+        headers,
+        body: JSON.stringify({
+          data: null,
+          message: 'Service temporarily unavailable. Please try again later.'
+        })
       };
     }
+
+    if (error.name === 'ValidationError') {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ data: null, message: error.message }),
+      };
+    }
+
+    if (error.name === 'Error' && error.message.includes('Config validation error')) {
+      console.error('Configuration error:', error.message);
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ 
+          data: null, 
+          message: 'Server configuration error. Please contact support if this persists.' 
+        }),
+      };
+    }
+
+    if (error.$metadata && error.$metadata.httpStatusCode) {
+      console.error('AWS Service error:', error.message);
+      return {
+        statusCode: error.$metadata.httpStatusCode,
+        headers,
+        body: JSON.stringify({ 
+          data: null, 
+          message: `Service error: ${error.message}. Please try again later.` 
+        }),
+      };
+    }
+
+    console.error('Unhandled error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        data: null, 
+        message: 'An unexpected error occurred. Please try again later.' 
+      }),
+    };
+
   }
 };

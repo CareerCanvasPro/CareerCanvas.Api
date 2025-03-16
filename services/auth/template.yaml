@@ -27,11 +27,19 @@ Resources:
   AuthApi:
     Type: AWS::Serverless::Api
     Properties:
+      OpenApiVersion: '2.0'
       StageName: !Ref Environment
       Cors:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
+      EndpointConfiguration: REGIONAL
+      Auth:
+        DefaultAuthorizer: NONE
+      DisableExecuteApiEndpoint: false
+      TracingEnabled: false
+
+
 
   # Lambda Functions
   RequestMagicLinkFunction:

@@ -1,6 +1,6 @@
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 
-const ssm = new SSMClient({ region: process.env.REGION });
+const ssm = new SSMClient({ region: process.env.REGION || 'ap-southeast-1' });
 const cache = new Map<string, { value: string; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const MAX_RETRIES = 3;
@@ -12,8 +12,9 @@ export async function getParameter(name: string, retryCount = 0): Promise<string
     return cachedParam.value;
   }
 
+  const env = process.env.NODE_ENV || 'dev';
   try {
-    const paramPath = `/careercanvas/${process.env.NODE_ENV}/${name}`;
+    const paramPath = `/careercanvas/${env}/${name}`;
     const command = new GetParameterCommand({
       Name: paramPath,
       WithDecryption: true,
@@ -22,6 +23,17 @@ export async function getParameter(name: string, retryCount = 0): Promise<string
     const value = response.Parameter?.Value;
 
     if (!value) {
+      console.error(`Parameter ${paramPath} not found`);
+      if (env === 'dev') {
+        switch (name) {
+          case 'AUTH_JWT_SECRET':
+            return 'dev_jwt_secret_key';
+          case 'AUTH_TOKEN_EXPIRY':
+            return '86400';
+          default:
+            throw new Error(`Parameter ${paramPath} not found`);
+        }
+      }
       throw new Error(`Parameter ${paramPath} not found`);
     }
 

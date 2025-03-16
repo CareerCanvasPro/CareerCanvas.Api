@@ -12,7 +12,13 @@ const axios = require('axios');
 const readline = require('readline');
 
 // Configuration
-const API_ENDPOINT = 'https://kecvilnt2j.execute-api.ap-southeast-1.amazonaws.com/prod';
+const PROD_ENDPOINT = 'https://kecvilnt2j.execute-api.ap-southeast-1.amazonaws.com/prod/';
+const LOCAL_ENDPOINT = 'http://127.0.0.1:3000';
+
+// Use environment variable to switch between local and production endpoints
+const API_ENDPOINT = process.env.USE_LOCAL === 'true' ? LOCAL_ENDPOINT : PROD_ENDPOINT;
+console.log(`Using API endpoint: ${API_ENDPOINT}`);
+
 
 // Configure axios with error handling
 axios.interceptors.response.use(

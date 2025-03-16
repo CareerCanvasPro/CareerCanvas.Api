@@ -27,11 +27,6 @@ enum JobType {
   PART_TIME
 }
 
-enum Language {
-  BANGLA
-  ENGLISH
-}
-
 enum Level {
   BEGINNER
   INTERMEDIATE
@@ -91,6 +86,12 @@ model Goal {
   courses Course[]
   jobs    Job[]
   users   User[]
+}
+
+model Language {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
 }
 
 model Skill {
@@ -201,7 +202,11 @@ model User {
   createdAt      DateTime                @default(now())
   email          String?                 @unique
   fcmToken       String?
-  languages      Language[]
+  followers      Int                     @default(0)
+  following      Int                     @default(0)
+  isEducations   Boolean                 @default(false)
+  isOccupations  Boolean                 @default(false)
+  isSkills       Boolean                 @default(false)
   name           String
   phone          String?                 @unique
   profilePicture String
@@ -212,6 +217,7 @@ model User {
   educations     Education[]
   goals          Goal[]
   interests      Field[]
+  languages      Language[]
   occupations    Occupation[]
   personality    Personality?
   resumes        Resume[]

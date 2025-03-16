@@ -4,12 +4,20 @@ import { join } from 'path';
 import otpGenerator from 'otp-generator';
 
 import { config } from '../config';
+import { getParameter } from '../config/ssm';
 import { cleanMessage } from '../utils';
 import { emailSchema } from '../modules/schemas';
 import { Nodemailer, OtpsDb } from '../modules/services';
+import prisma from '../modules/services/prisma';
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
+    // Validate essential services
+    await Promise.all([
+      getParameter('JWT_SECRET'),
+      prisma.$connect()
+    ]);
+
     const body = JSON.parse(event.body || '{}');
     
     const { error, value } = emailSchema.validate(body, {
@@ -68,52 +76,67 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
   } catch (error) {
-    console.error('Error in requestEmailOtp:', error);
-    
-    if (error.name === 'ValidationError') {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify({ data: null, message: 'Invalid request parameters' }),
-      };
-    }
-    
-    if (error.name === 'Error' && error.message.includes('Config validation error')) {
-      return {
-        statusCode: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify({ data: null, message: 'Server configuration error' }),
-      };
-    }
-    
-    if (error.$metadata && error.$metadata.httpStatusCode) {
-      return {
-        statusCode: error.$metadata.httpStatusCode,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Credentials': true,
-        },
-        body: JSON.stringify({ data: null, message: `Service error: ${error.message}` }),
-      };
-    }
-    
-    return {
-      statusCode: 500,
-      headers: {
+      console.error('Error in requestEmailOtp:', error instanceof Error ? error.stack : error);
+
+      const headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true,
-      },
-      body: JSON.stringify({ data: null, message: 'Internal server error' }),
-    };
+        'Access-Control-Allow-Credentials': true
+      };
+
+      // Handle database connection errors
+      if (error.name === 'PrismaClientInitializationError' || error.name === 'PrismaClientKnownRequestError') {
+        console.error('Database connection error:', error.message);
+        return {
+          statusCode: 503,
+          headers,
+          body: JSON.stringify({
+            data: null,
+            message: 'Service temporarily unavailable. Please try again later.'
+          })
+        };
+      }
+
+      if (error.name === 'ValidationError') {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ data: null, message: error.message }),
+        };
+      }
+
+      if (error.name === 'Error' && error.message.includes('Config validation error')) {
+        console.error('Configuration error:', error.message);
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ 
+            data: null, 
+            message: 'Server configuration error. Please contact support if this persists.' 
+          }),
+        };
+      }
+
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        console.error('AWS Service error:', error.message);
+        return {
+          statusCode: error.$metadata.httpStatusCode,
+          headers,
+          body: JSON.stringify({ 
+            data: null, 
+            message: `Service error: ${error.message}. Please try again later.` 
+          }),
+        };
+      }
+
+      console.error('Unhandled error:', error);
+      return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ 
+            data: null, 
+            message: 'An unexpected error occurred. Please try again later.' 
+          }),
+      };
   }
 };
