@@ -96,14 +96,28 @@ export class UsersDb {
     await prismaClient.user.update({ data: { address }, where: { id } });
   };
 
-  public updateUserCoins = async ({
-    coins,
+  private updateUserCoins = async ({
+    coinsToAdd,
     id,
   }: {
-    coins: number;
+    coinsToAdd: number;
     id: string;
   }): Promise<void> => {
-    await prismaClient.user.update({ data: { coins }, where: { id } });
+    const user = await prismaClient.user.findUnique({
+      select: {
+        coins: true,
+      },
+      where: {
+        id,
+      },
+    });
+
+    const { coins } = user;
+
+    await prismaClient.user.update({
+      data: { coins: coins + coinsToAdd },
+      where: { id },
+    });
   };
 
   public updateUserFcmToken = async ({
@@ -138,20 +152,20 @@ export class UsersDb {
 
   // APPRECIATIONS
 
-  public createUserAppreciations = async ({
-    appreciations,
+  public createUserAppreciation = async ({
+    appreciation,
     id,
   }: {
-    appreciations: Omit<
+    appreciation: Omit<
       Appreciation,
       "createdAt" | "id" | "updatedAt" | "userId"
-    >[];
+    >;
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
         appreciations: {
-          create: appreciations,
+          create: appreciation,
         },
       },
       where: {
@@ -212,23 +226,75 @@ export class UsersDb {
 
   // EDUCATIONS
 
-  public createUserEducations = async ({
-    educations,
+  public createUserEducation = async ({
+    certificate,
+    education,
     id,
   }: {
-    educations: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">[];
+    certificate:
+      | Pick<Certificate, "key" | "name" | "size" | "type" | "url">
+      | null
+      | undefined;
+    education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
     id: string;
   }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          create: educations,
-        },
+    const user = await prismaClient.user.findUnique({
+      select: {
+        coins: true,
+        isEducations: true,
       },
       where: {
         id,
       },
     });
+
+    const { coins, isEducations } = user;
+
+    if (isEducations) {
+      await prismaClient.user.update({
+        data: {
+          educations: {
+            create: {
+              ...education,
+              ...(certificate
+                ? {
+                    certificate: {
+                      create: certificate,
+                    },
+                  }
+                : {}),
+            },
+          },
+        },
+        where: {
+          id,
+        },
+      });
+    } else {
+      const coinsToAdd = 5;
+
+      await prismaClient.user.update({
+        data: {
+          coins: coins + coinsToAdd,
+          educations: {
+            create: {
+              ...education,
+              ...(certificate
+                ? {
+                    certificate: {
+                      create: certificate,
+                    },
+                  }
+                : {}),
+            },
+          },
+          isEducations: true,
+        },
+        where: {
+          id,
+        },
+      });
+    }
   };
 
   public deleteUserEducation = async ({
@@ -253,108 +319,36 @@ export class UsersDb {
   };
 
   public updateUserEducation = async ({
+    certificate,
     education,
     educationId,
     id,
   }: {
+    certificate:
+      | Pick<Certificate, "key" | "name" | "size" | "type" | "url">
+      | null
+      | undefined;
     education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
     educationId: string;
     id: string;
   }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          update: {
-            data: education,
-            where: {
-              id: educationId,
-            },
-          },
-        },
-      },
+    const currentCertificate = await prismaClient.certificate.findUnique({
       where: {
-        id,
+        educationId,
       },
     });
-  };
 
-  // EDUCATION CERTIFICATE
-
-  public createUserEducationCertificate = async ({
-    certificate,
-    educationId,
-    id,
-  }: {
-    certificate: Pick<Certificate, "key" | "name" | "size" | "type" | "url">;
-    educationId: string;
-    id: string;
-  }): Promise<void> => {
     await prismaClient.user.update({
       data: {
         educations: {
           update: {
             data: {
-              certificate: {
-                create: certificate,
-              },
-            },
-            where: {
-              id: educationId,
-            },
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public deleteUserEducationCertificate = async ({
-    educationId,
-    id,
-  }: {
-    educationId: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          update: {
-            data: {
-              certificate: {
-                delete: true,
-              },
-            },
-            where: {
-              id: educationId,
-            },
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateUserEducationCertificate = async ({
-    certificate,
-    educationId,
-    id,
-  }: {
-    certificate: Pick<Certificate, "name" | "size" | "type" | "url">;
-    educationId: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          update: {
-            data: {
-              certificate: {
-                update: certificate,
-              },
+              ...education,
+              certificate: certificate
+                ? currentCertificate
+                  ? { update: certificate }
+                  : { create: certificate }
+                : { delete: true },
             },
             where: {
               id: educationId,
@@ -472,6 +466,60 @@ export class UsersDb {
     });
   };
 
+  // LANGUAGES
+
+  public updateUserLanguages = async ({
+    id,
+    languages,
+  }: {
+    id: string;
+    languages: string[];
+  }): Promise<void> => {
+    const user = await prismaClient.user.findUnique({
+      select: {
+        languages: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      where: {
+        id,
+      },
+    });
+
+    const userLanguages = user.languages.map((language) => language.name);
+
+    const languagesToAdd = languages.filter(
+      (language) => !userLanguages.includes(language)
+    );
+
+    const languagesToRemove = userLanguages.filter(
+      (language) => !languages.includes(language)
+    );
+
+    await prismaClient.user.update({
+      data: {
+        languages: {
+          connectOrCreate: languagesToAdd.map((language) => ({
+            create: {
+              name: language,
+            },
+            where: {
+              name: language,
+            },
+          })),
+          disconnect: languagesToRemove.map((language) => ({
+            name: language,
+          })),
+        },
+      },
+      where: {
+        id,
+      },
+    });
+  };
+
   // OCCUPATIONS
 
   public createUserOccupations = async ({
@@ -484,16 +532,45 @@ export class UsersDb {
       "createdAt" | "id" | "updatedAt" | "userId"
     >[];
   }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        occupations: {
-          create: occupations,
-        },
+    const user = await prismaClient.user.findUnique({
+      select: {
+        coins: true,
+        isOccupations: true,
       },
       where: {
         id,
       },
     });
+
+    const { coins, isOccupations } = user;
+
+    if (isOccupations) {
+      await prismaClient.user.update({
+        data: {
+          occupations: {
+            create: occupations,
+          },
+        },
+        where: {
+          id,
+        },
+      });
+    } else {
+      const coinsToAdd = 5;
+
+      await prismaClient.user.update({
+        data: {
+          coins: coins + coinsToAdd,
+          isOccupations: true,
+          occupations: {
+            create: occupations,
+          },
+        },
+        where: {
+          id,
+        },
+      });
+    }
   };
 
   public deleteUserOccupation = async ({
@@ -550,7 +627,7 @@ export class UsersDb {
     resume,
   }: {
     id: string;
-    resume: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">;
+    resume: Omit<Resume, "createdAt" | "updatedAt" | "userId">;
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
@@ -585,32 +662,6 @@ export class UsersDb {
     });
   };
 
-  public updateUserResume = async ({
-    id,
-    resume,
-    resumeId,
-  }: {
-    id: string;
-    resume: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">;
-    resumeId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        resumes: {
-          update: {
-            data: resume,
-            where: {
-              id: resumeId,
-            },
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
   // SKILLS
 
   public updateUserSkills = async ({
@@ -622,6 +673,8 @@ export class UsersDb {
   }): Promise<void> => {
     const user = await prismaClient.user.findUnique({
       select: {
+        coins: true,
+        isSkills: true,
         skills: {
           select: {
             name: true,
@@ -641,25 +694,54 @@ export class UsersDb {
       (skill) => !skills.includes(skill)
     );
 
-    await prismaClient.user.update({
-      data: {
-        skills: {
-          connectOrCreate: skillsToAdd.map((skill) => ({
-            create: {
+    const { coins, isSkills } = user;
+
+    if (isSkills) {
+      await prismaClient.user.update({
+        data: {
+          skills: {
+            connectOrCreate: skillsToAdd.map((skill) => ({
+              create: {
+                name: skill,
+              },
+              where: {
+                name: skill,
+              },
+            })),
+            disconnect: skillsToRemove.map((skill) => ({
               name: skill,
-            },
-            where: {
-              name: skill,
-            },
-          })),
-          disconnect: skillsToRemove.map((skill) => ({
-            name: skill,
-          })),
+            })),
+          },
         },
-      },
-      where: {
-        id,
-      },
-    });
+        where: {
+          id,
+        },
+      });
+    } else {
+      const coinsToAdd = 5;
+
+      await prismaClient.user.update({
+        data: {
+          coins: coins + coinsToAdd,
+          isSkills: true,
+          skills: {
+            connectOrCreate: skillsToAdd.map((skill) => ({
+              create: {
+                name: skill,
+              },
+              where: {
+                name: skill,
+              },
+            })),
+            disconnect: skillsToRemove.map((skill) => ({
+              name: skill,
+            })),
+          },
+        },
+        where: {
+          id,
+        },
+      });
+    }
   };
 }

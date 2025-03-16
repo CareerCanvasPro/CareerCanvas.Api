@@ -6,6 +6,7 @@ const envVarsSchema = joi
   .object()
   .keys({
     JWT_SECRET: joi.string().required(),
+    MEDIA_BASE_URL: joi.string().required(),
     PORT: joi.number().default(8004),
   })
   .unknown();
@@ -19,6 +20,9 @@ if (error) {
 }
 
 export const config = {
+  baseUrl: {
+    media: envVars.MEDIA_BASE_URL,
+  },
   jwt: {
     secret: envVars.JWT_SECRET,
   },

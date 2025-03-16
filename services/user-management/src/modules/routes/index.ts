@@ -48,7 +48,7 @@ export class UserManagementRoute {
 
     this.router
       .route("/appreciations")
-      .post(this.userManagementController.handleCreateUserAppreciations);
+      .post(this.userManagementController.handleCreateUserAppreciation);
 
     this.router
       .route("/appreciations/:appreciationId")
@@ -65,20 +65,16 @@ export class UserManagementRoute {
       .delete(this.userManagementController.handleDeleteUserEducation);
 
     this.router
-      .route("/educations/:educationId/certificate")
-      .post(this.userManagementController.handleCreateUserEducationCertificate)
-      .put(this.userManagementController.handleUpdateUserEducationCertificate)
-      .delete(
-        this.userManagementController.handleDeleteUserEducationCertificate
-      );
-
-    this.router
       .route("/goals")
       .put(this.userManagementController.handleUpdateUserGoals);
 
     this.router
       .route("/interests")
       .put(this.userManagementController.handleUpdateUserInterests);
+
+    this.router
+      .route("/languages")
+      .put(this.userManagementController.handleUpdateUserLanguages);
 
     this.router
       .route("/occupations")

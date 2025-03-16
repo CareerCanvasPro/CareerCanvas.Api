@@ -1,12 +1,14 @@
 import "dotenv/config";
-import Joi from "joi";
+import joi from "joi";
 
-const envVarsSchema = Joi.object()
+const envVarsSchema = joi
+  .object()
   .keys({
-    AWS_REGION: Joi.string().required(),
-    JWT_SECRET: Joi.string().required(),
-    PORT: Joi.number().default(8002),
-    S3_BUCKET: Joi.string().required(),
+    AWS_REGION: joi.string().required(),
+    JWT_SECRET: joi.string().required(),
+    PORT: joi.number().default(8002),
+    S3_BUCKET: joi.string().required(),
+    USERS_BASE_URL: joi.string().required(),
   })
   .unknown();
 
@@ -21,6 +23,9 @@ if (error) {
 export const config = {
   aws: {
     region: envVars.AWS_REGION,
+  },
+  baseUrl: {
+    users: envVars.USERS_BASE_URL,
   },
   jwt: {
     secret: envVars.JWT_SECRET,
