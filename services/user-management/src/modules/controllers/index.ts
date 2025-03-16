@@ -499,7 +499,7 @@ export class UserManagementController {
         for (const education of validatedEducations) {
           const { certificate } = education;
 
-          delete education.certificate;
+          delete education?.certificate;
 
           await this.usersDb.createUserEducation({
             certificate,
@@ -531,14 +531,22 @@ export class UserManagementController {
   ): Promise<void> => {
     try {
       const {
-        body: { userId },
+        body: { authorization, userId },
         params: { educationId },
+        query: { key },
       } = req;
 
       await this.usersDb.deleteUserEducation({
         educationId,
         id: userId,
       });
+
+      if (key) {
+        await this.axios.delete({
+          authorization,
+          url: `${config.baseUrl.media}/media/certificate?key=${key}`,
+        });
+      }
 
       res
         .status(200)
@@ -582,7 +590,7 @@ export class UserManagementController {
       } else {
         const { certificate } = validatedEducation;
 
-        delete validatedEducation.certificate;
+        delete validatedEducation?.certificate;
 
         await this.usersDb.updateUserEducation({
           certificate,
@@ -839,8 +847,6 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        const { key } = resume;
-
         const resumeId = cuid();
 
         await this.usersDb.createUserResume({
@@ -849,7 +855,7 @@ export class UserManagementController {
         });
 
         res.status(200).json({
-          data: { key, resumeId },
+          data: { ...validatedResume, resumeId },
           message: "Resume created successfully",
         });
       }
