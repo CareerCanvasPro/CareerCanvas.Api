@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 
 import { CourseManagementController } from "../controllers";
 import { handleVerifyAccessToken } from "../middlewares";
@@ -15,15 +15,14 @@ export class CourseManagementRoute {
     this.initRoutes();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private initMiddlewares = (middlewares: any[]): void => {
+  private initMiddlewares = (middlewares: RequestHandler[]): void => {
     this.router.use(middlewares);
   };
 
   private initRoutes = (): void => {
     // this.router
     //   .route("/post")
-    //   .post(this.courseManagementController.handlePostCourses);
+    //   .post(this.courseManagementController.handleCreateCourses);
 
     this.initMiddlewares([handleVerifyAccessToken]);
 

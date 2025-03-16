@@ -22,7 +22,7 @@ export class CoursesDb {
       query.OR = durations.map((duration) => ({
         duration: {
           gte: duration[0],
-          lte: duration[1],
+          ...(duration[1] && { lte: duration[1] }),
         },
       }));
     }

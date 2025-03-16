@@ -62,7 +62,7 @@ export const courseArraySchema = joi
           .required(),
         level: joi
           .string()
-          .valid("Beginner", "Intermediate", "Expert")
+          .valid("BEGINNER", "INTERMEDIATE", "EXPERT")
           .required(),
         name: joi.string().required().trim(),
         price: joi.number().min(0).required(),

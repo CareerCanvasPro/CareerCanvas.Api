@@ -6,7 +6,7 @@ import { App } from "./app";
 import { config } from "./config";
 import { CourseManagementRoute } from "./modules/routes";
 
-function startServer(): void {
+const startServer = (): void => {
   try {
     const app = new App({ port: config.port });
 

@@ -50,7 +50,9 @@
     "start": "npm run deploy",
     "test": "echo \"Error: run tests from root\" && exit 1",
     "tsc": "tsc",
-    "watch-deploy": "node --watch lib/server"
+    "watch-deploy": "node --watch lib/server",
+    "watch-nodemon": "lsof -ti :8006 | xargs kill -9; nodemon lib/server",
+    "watch-tsc": "tsc --watch"
   },
   "typings": "lib/index.d.ts",
   "version": "0.0.0"

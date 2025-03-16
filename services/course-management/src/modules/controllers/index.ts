@@ -16,7 +16,7 @@ export class CourseManagementController {
     durations: string[];
   }): number[][] =>
     durations.map((duration) =>
-      duration.split("-").map((value) => parseInt(value, 10))
+      duration.split("-").map((value) => parseFloat(value))
     );
 
   private shuffleCourses = ({
@@ -73,27 +73,25 @@ export class CourseManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        (validatedCourses as Record<string, unknown>[]).forEach(
-          async (course) => {
-            const { authors, goals, topic } = course;
+        for (const course of validatedCourses) {
+          const { authors, goals, topic } = course;
 
-            delete course.authors;
+          delete course.authors;
 
-            delete course.goals;
+          delete course.goals;
 
-            delete course.topic;
+          delete course.topic;
 
-            await this.coursesDb.createCourse({
-              authors: authors as string[],
-              course: course as Omit<
-                Course,
-                "id" | "createdAt" | "topicId" | "updatedAt"
-              >,
-              goals: goals as string[],
-              topic: topic as string,
-            });
-          }
-        );
+          await this.coursesDb.createCourse({
+            authors: authors as string[],
+            course: course as Omit<
+              Course,
+              "id" | "createdAt" | "topicId" | "updatedAt"
+            >,
+            goals: goals as string[],
+            topic: topic as string,
+          });
+        }
 
         res.status(200).json({
           data: null,
