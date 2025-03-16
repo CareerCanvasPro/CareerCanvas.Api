@@ -27,6 +27,8 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
+      delete req.body.authorization;
+
       delete req.body.exp;
 
       delete req.body.iat;
@@ -692,6 +694,51 @@ export class UserManagementController {
         res
           .status(200)
           .json({ data: null, message: "Interests updated successfully" });
+      }
+    } catch (error) {
+      if (error.$metadata && error.$metadata.httpStatusCode) {
+        res
+          .status(error.$metadata.httpStatusCode)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      } else {
+        res
+          .status(500)
+          .json({ data: null, message: `${error.name}: ${error.message}` });
+      }
+    }
+  };
+
+  // LANGUAGES
+
+  public handleUpdateUserLanguages = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      const { languages, userId } = req.body;
+
+      const { error, value: validatedLanguages } = stringArraySchema.validate(
+        languages,
+        {
+          abortEarly: false,
+        }
+      );
+
+      if (error) {
+        const validationErrors = error.details.map((error) =>
+          cleanMessage(error.message)
+        );
+
+        res.status(400).json({ data: null, message: validationErrors });
+      } else {
+        await this.usersDb.updateUserLanguages({
+          id: userId,
+          languages: validatedLanguages,
+        });
+
+        res
+          .status(200)
+          .json({ data: null, message: "Languages updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

@@ -73,6 +73,10 @@ export class UserManagementRoute {
       .put(this.userManagementController.handleUpdateUserInterests);
 
     this.router
+      .route("/languages")
+      .put(this.userManagementController.handleUpdateUserLanguages);
+
+    this.router
       .route("/occupations")
       .post(this.userManagementController.handleCreateUserOccupations);
 
