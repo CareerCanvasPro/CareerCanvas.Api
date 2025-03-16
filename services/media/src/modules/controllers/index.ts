@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
+import { config } from "../../config";
 import { Axios, S3 } from "../services";
 
 export class MediaController {
@@ -183,6 +184,7 @@ export class MediaController {
         res.status(httpStatusCode).json({
           data: {
             file: {
+              key,
               name: originalname,
               size,
               type: mimetype,
@@ -319,7 +321,8 @@ export class MediaController {
 
         const { url } = this.s3.getUrl({ key });
 
-        const { data, status } = await this.axios.post({authorization,
+        const { data, status } = await this.axios.post({
+          authorization,
           data: {
             resume: {
               key,
@@ -329,7 +332,7 @@ export class MediaController {
               url,
             },
           },
-          url: "http://localhost:8004/user/resumes",
+          url: `${config.baseUrl.users}/user/resumes`,
         });
 
         res.status(status).json(data);

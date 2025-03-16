@@ -1,10 +1,10 @@
 import { join } from "path";
 
+import cuid from "cuid";
 import { renderFile } from "ejs";
 import { Request, Response } from "express";
 import { sign, verify } from "jsonwebtoken";
 import otpGenerator from "otp-generator";
-import { v4 as uuidv4 } from "uuid";
 
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
@@ -51,7 +51,7 @@ export class AuthController {
             if (error) {
               throw error;
             } else {
-              const magicLink = `http://54.151.208.63:8001/auth/magic-link/verify?token=${token}`;
+              const magicLink = `${config.baseUrl.auth}/auth/magic-link/verify?token=${token}`;
 
               await this.nodemailer.sendMail({
                 html: await renderFile(
@@ -230,7 +230,7 @@ export class AuthController {
 
             const isNewUser = !user;
 
-            const userId = isNewUser ? uuidv4() : user.id;
+            const userId = isNewUser ? cuid() : user.id;
 
             sign(
               {
@@ -299,7 +299,7 @@ export class AuthController {
 
           const isNewUser = !user;
 
-          const userId = isNewUser ? uuidv4() : user.id;
+          const userId = isNewUser ? cuid() : user.id;
 
           sign(
             {

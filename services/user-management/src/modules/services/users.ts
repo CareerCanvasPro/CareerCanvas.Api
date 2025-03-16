@@ -138,20 +138,20 @@ export class UsersDb {
 
   // APPRECIATIONS
 
-  public createUserAppreciations = async ({
-    appreciations,
+  public createUserAppreciation = async ({
+    appreciation,
     id,
   }: {
-    appreciations: Omit<
+    appreciation: Omit<
       Appreciation,
       "createdAt" | "id" | "updatedAt" | "userId"
-    >[];
+    >;
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
         appreciations: {
-          create: appreciations,
+          create: appreciation,
         },
       },
       where: {
@@ -212,17 +212,29 @@ export class UsersDb {
 
   // EDUCATIONS
 
-  public createUserEducations = async ({
-    educations,
+  public createUserEducation = async ({
+    certificate,
+    education,
     id,
   }: {
-    educations: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">[];
+    certificate:
+      | Pick<Certificate, "key" | "name" | "size" | "type" | "url">
+      | null
+      | undefined;
+    education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
         educations: {
-          create: educations,
+          create: {
+            ...education,
+            certificate: certificate
+              ? {
+                  create: certificate,
+                }
+              : null,
+          },
         },
       },
       where: {
@@ -253,108 +265,36 @@ export class UsersDb {
   };
 
   public updateUserEducation = async ({
+    certificate,
     education,
     educationId,
     id,
   }: {
+    certificate:
+      | Pick<Certificate, "key" | "name" | "size" | "type" | "url">
+      | null
+      | undefined;
     education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
     educationId: string;
     id: string;
   }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          update: {
-            data: education,
-            where: {
-              id: educationId,
-            },
-          },
-        },
-      },
+    const currentCertificate = await prismaClient.certificate.findUnique({
       where: {
-        id,
+        educationId,
       },
     });
-  };
 
-  // EDUCATION CERTIFICATE
-
-  public createUserEducationCertificate = async ({
-    certificate,
-    educationId,
-    id,
-  }: {
-    certificate: Pick<Certificate, "key" | "name" | "size" | "type" | "url">;
-    educationId: string;
-    id: string;
-  }): Promise<void> => {
     await prismaClient.user.update({
       data: {
         educations: {
           update: {
             data: {
-              certificate: {
-                create: certificate,
-              },
-            },
-            where: {
-              id: educationId,
-            },
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public deleteUserEducationCertificate = async ({
-    educationId,
-    id,
-  }: {
-    educationId: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          update: {
-            data: {
-              certificate: {
-                delete: true,
-              },
-            },
-            where: {
-              id: educationId,
-            },
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateUserEducationCertificate = async ({
-    certificate,
-    educationId,
-    id,
-  }: {
-    certificate: Pick<Certificate, "name" | "size" | "type" | "url">;
-    educationId: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        educations: {
-          update: {
-            data: {
-              certificate: {
-                update: certificate,
-              },
+              ...education,
+              certificate: certificate
+                ? currentCertificate
+                  ? { update: certificate }
+                  : { create: certificate }
+                : { delete: true },
             },
             where: {
               id: educationId,
@@ -550,7 +490,7 @@ export class UsersDb {
     resume,
   }: {
     id: string;
-    resume: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">;
+    resume: Omit<Resume, "createdAt" | "updatedAt" | "userId">;
   }): Promise<void> => {
     await prismaClient.user.update({
       data: {
@@ -576,32 +516,6 @@ export class UsersDb {
         resumes: {
           delete: {
             id: resumeId,
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateUserResume = async ({
-    id,
-    resume,
-    resumeId,
-  }: {
-    id: string;
-    resume: Omit<Resume, "createdAt" | "id" | "updatedAt" | "userId">;
-    resumeId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        resumes: {
-          update: {
-            data: resume,
-            where: {
-              id: resumeId,
-            },
           },
         },
       },

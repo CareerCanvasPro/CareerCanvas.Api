@@ -1,11 +1,11 @@
+import cuid from "cuid";
 import { Request, Response } from "express";
 
+import { config } from "../../config";
 import { cleanMessage } from "../../utils";
 import {
-  appreciationArraySchema,
   appreciationSchema,
   educationArraySchema,
-  educationCertificateSchema,
   educationSchema,
   occupationArraySchema,
   occupationSchema,
@@ -358,15 +358,15 @@ export class UserManagementController {
 
   // APPRECIATIONS
 
-  public handleCreateUserAppreciations = async (
+  public handleCreateUserAppreciation = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { appreciations, userId } = req.body;
+      const { appreciation, userId } = req.body;
 
-      const { error, value: validatedAppreciations } =
-        appreciationArraySchema.validate(appreciations, {
+      const { error, value: validatedAppreciation } =
+        appreciationSchema.validate(appreciation, {
           abortEarly: false,
         });
 
@@ -377,14 +377,14 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        await this.usersDb.createUserAppreciations({
-          appreciations: validatedAppreciations,
+        await this.usersDb.createUserAppreciation({
+          appreciation: validatedAppreciation,
           id: userId,
         });
 
         res
           .status(200)
-          .json({ data: null, message: "Appreciations created successfully" });
+          .json({ data: null, message: "Appreciation created successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -496,10 +496,17 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
-        await this.usersDb.createUserEducations({
-          educations: validatedEducations,
-          id: userId,
-        });
+        for (const education of validatedEducations) {
+          const { certificate } = education;
+
+          delete education.certificate;
+
+          await this.usersDb.createUserEducation({
+            certificate,
+            education,
+            id: userId,
+          });
+        }
 
         res
           .status(200)
@@ -573,7 +580,12 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
+        const { certificate } = validatedEducation;
+
+        delete validatedEducation.certificate;
+
         await this.usersDb.updateUserEducation({
+          certificate,
           education: validatedEducation,
           educationId,
           id: userId,
@@ -582,132 +594,6 @@ export class UserManagementController {
         res
           .status(200)
           .json({ data: null, message: "Education updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  // EDUCATION CERTIFICATE
-
-  public handleCreateUserEducationCertificate = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { certificate, userId },
-        params: { educationId },
-      } = req;
-
-      const { error, value: validatedCertificate } =
-        educationCertificateSchema.validate(certificate, {
-          abortEarly: false,
-        });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.createUserEducationCertificate({
-          certificate: validatedCertificate,
-          educationId,
-          id: userId,
-        });
-
-        res.status(200).json({
-          data: null,
-          message: "Education certificate created successfully",
-        });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleDeleteUserEducationCertificate = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { userId },
-        params: { educationId },
-      } = req;
-
-      await this.usersDb.deleteUserEducationCertificate({
-        educationId,
-        id: userId,
-      });
-
-      res.status(200).json({
-        data: null,
-        message: "Education certificate deleted successfully",
-      });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserEducationCertificate = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { certificate, userId },
-        params: { educationId },
-      } = req;
-
-      const { error, value: validatedCertificate } =
-        educationCertificateSchema.validate(certificate, {
-          abortEarly: false,
-        });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserEducationCertificate({
-          certificate: validatedCertificate,
-          educationId,
-          id: userId,
-        });
-
-        res.status(200).json({
-          data: null,
-          message: "Education certificate updated successfully",
-        });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -953,14 +839,19 @@ export class UserManagementController {
 
         res.status(400).json({ data: null, message: validationErrors });
       } else {
+        const { key } = resume;
+
+        const resumeId = cuid();
+
         await this.usersDb.createUserResume({
           id: userId,
-          resume: validatedResume,
+          resume: { ...validatedResume, id: resumeId },
         });
 
-        res
-          .status(200)
-          .json({ data: null, message: "Resume created successfully" });
+        res.status(200).json({
+          data: { key, resumeId },
+          message: "Resume created successfully",
+        });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -983,7 +874,7 @@ export class UserManagementController {
       const {
         body: { authorization, userId },
         params: { resumeId },
-        query: { key }
+        query: { key },
       } = req;
 
       await this.usersDb.deleteUserResume({
@@ -991,55 +882,12 @@ export class UserManagementController {
         resumeId,
       });
 
-      const { data, status} = await this.axios.delete({authorization, url: `http://localhost:8002/media/resume?key=${key}`});
-
-      res
-        .status(status)
-        .json(data);
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserResume = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { resume, userId },
-        params: { resumeId },
-      } = req;
-
-      const { error, value: validatedResume } = resumeSchema.validate(resume, {
-        abortEarly: false,
+      const { data, status } = await this.axios.delete({
+        authorization,
+        url: `${config.baseUrl.media}/media/resume?key=${key}`,
       });
 
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserResume({
-          id: userId,
-          resume: validatedResume,
-          resumeId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Resume updated successfully" });
-      }
+      res.status(status).json(data);
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res

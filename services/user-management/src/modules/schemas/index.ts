@@ -36,21 +36,6 @@ export const urlSchema = joi
 
 // APPRECIATIONS
 
-export const appreciationArraySchema = joi
-  .array()
-  .items(
-    joi
-      .object()
-      .keys({
-        date: joi.date().allow(null),
-        name: joi.string().required().trim(),
-        organization: joi.string().required().trim(),
-      })
-      .unknown(false)
-      .required()
-  )
-  .required();
-
 export const appreciationSchema = joi
   .object()
   .keys({
@@ -70,6 +55,22 @@ export const educationArraySchema = joi
       .object()
       .keys({
         achievements: joi.string().trim().allow(null),
+        certificate: joi
+          .object()
+          .keys({
+            key: joi.string().required(),
+            name: joi.string().required(),
+            size: joi.number().required(),
+            type: joi.string().required(),
+            url: joi
+              .string()
+              .uri({
+                scheme: ["https"],
+              })
+              .required(),
+          })
+          .unknown(false)
+          .allow(null),
         field: joi.string().required().trim(),
         graduationDate: joi.date().allow(null),
         institute: joi.string().required().trim(),
@@ -84,29 +85,26 @@ export const educationSchema = joi
   .object()
   .keys({
     achievements: joi.string().trim().allow(null),
+    certificate: joi
+      .object()
+      .keys({
+        key: joi.string().required(),
+        name: joi.string().required(),
+        size: joi.number().required(),
+        type: joi.string().required(),
+        url: joi
+          .string()
+          .uri({
+            scheme: ["https"],
+          })
+          .required(),
+      })
+      .unknown(false)
+      .allow(null),
     field: joi.string().required().trim(),
     graduationDate: joi.date().allow(null),
     institute: joi.string().required().trim(),
     isCurrent: joi.boolean().default(false),
-  })
-  .unknown(false)
-  .required();
-
-// EDUCATION CERTIFICATE
-
-export const educationCertificateSchema = joi
-  .object()
-  .keys({
-    key: joi.string().required(),
-    name: joi.string().required(),
-    size: joi.number().required(),
-    type: joi.string().required(),
-    url: joi
-      .string()
-      .uri({
-        scheme: ["https"],
-      })
-      .required(),
   })
   .unknown(false)
   .required();
@@ -143,28 +141,6 @@ export const occupationSchema = joi
   .required();
 
 // RESUMES
-
-export const resumeArraySchema = joi
-  .array()
-  .items(
-    joi
-      .object()
-      .keys({
-        key: joi.string().required(),
-        name: joi.string().required(),
-        size: joi.number().required(),
-        type: joi.string().required(),
-        url: joi
-          .string()
-          .uri({
-            scheme: ["https"],
-          })
-          .required(),
-      })
-      .unknown(false)
-      .required()
-  )
-  .required();
 
 export const resumeSchema = joi
   .object()
