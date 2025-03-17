@@ -257,7 +257,6 @@ model Certificate {
   size        Int
   type        String
   updatedAt   DateTime  @updatedAt
-  url         String
   education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
   educationId String    @unique
 }
@@ -296,7 +295,6 @@ model Resume {
   size      Int
   type      String
   updatedAt DateTime @updatedAt
-  url       String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 }

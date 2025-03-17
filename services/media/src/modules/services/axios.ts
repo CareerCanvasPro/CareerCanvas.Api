@@ -9,7 +9,7 @@ export class Axios {
     authorization: string;
     data: Record<string, unknown>;
     url: string;
-  }): Promise<{ data: Record<string, null | string>; status: number }> => {
+  }): Promise<{ data: Record<string, unknown>; status: number }> => {
     const response = await axios.post(url, data, {
       headers: {
         Authorization: authorization,

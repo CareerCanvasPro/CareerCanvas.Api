@@ -232,7 +232,7 @@ export class UsersDb {
     id,
   }: {
     certificate:
-      | Pick<Certificate, "key" | "name" | "size" | "type" | "url">
+      | Pick<Certificate, "key" | "name" | "size" | "type">
       | null
       | undefined;
     education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
@@ -325,7 +325,7 @@ export class UsersDb {
     id,
   }: {
     certificate:
-      | Pick<Certificate, "key" | "name" | "size" | "type" | "url">
+      | Pick<Certificate, "key" | "name" | "size" | "type">
       | null
       | undefined;
     education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;

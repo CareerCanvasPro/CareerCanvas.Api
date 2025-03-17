@@ -62,12 +62,6 @@ export const educationArraySchema = joi
             name: joi.string().required(),
             size: joi.number().required(),
             type: joi.string().required(),
-            url: joi
-              .string()
-              .uri({
-                scheme: ["https"],
-              })
-              .required(),
           })
           .unknown(false)
           .allow(null),
@@ -92,12 +86,6 @@ export const educationSchema = joi
         name: joi.string().required(),
         size: joi.number().required(),
         type: joi.string().required(),
-        url: joi
-          .string()
-          .uri({
-            scheme: ["https"],
-          })
-          .required(),
       })
       .unknown(false)
       .allow(null),
@@ -149,12 +137,6 @@ export const resumeSchema = joi
     name: joi.string().required(),
     size: joi.number().required(),
     type: joi.string().required(),
-    url: joi
-      .string()
-      .uri({
-        scheme: ["https"],
-      })
-      .required(),
   })
   .unknown(false)
   .required();

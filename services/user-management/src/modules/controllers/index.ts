@@ -119,13 +119,41 @@ export class UserManagementController {
     res: Response
   ): Promise<void> => {
     try {
-      const { userId } = req.body;
+      const { authorization, userId } = req.body;
 
       const { user } = await this.usersDb.findUser({
         id: userId,
       });
 
       if (user) {
+        const { educations, resumes } = user;
+
+        for (const education of educations) {
+          if (education.certificate) {
+            const { certificate } = education;
+
+            const {
+              data: { data },
+            } = await this.axios.get({
+              authorization,
+              url: `${config.baseUrl.media}/media/signed-url?key=${certificate.key}`,
+            });
+
+            certificate["url"] = data["signedUrl"];
+          }
+        }
+
+        for (const resume of resumes) {
+          const {
+            data: { data },
+          } = await this.axios.get({
+            authorization,
+            url: `${config.baseUrl.media}/media/signed-url?key=${resume.key}`,
+          });
+
+          resume["url"] = data["signedUrl"];
+        }
+
         res
           .status(200)
           .json({ data: user, message: "Profile retrieved successfully" });

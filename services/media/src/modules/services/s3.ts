@@ -9,25 +9,6 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { config } from "../../config";
 
-interface DeleteFileParams {
-  key: string;
-}
-
-interface GetSignedUrlParams {
-  key: string;
-}
-
-interface GetUrlParams {
-  key: string;
-}
-
-interface UploadFileParams {
-  acl: ObjectCannedACL;
-  body: Buffer;
-  contentType: string;
-  key: string;
-}
-
 export class S3 {
   private readonly BUCKET = config.s3.bucket;
 
@@ -37,7 +18,9 @@ export class S3 {
 
   public deleteFile = async ({
     key,
-  }: DeleteFileParams): Promise<{ httpStatusCode: number }> => {
+  }: {
+    key: string;
+  }): Promise<{ httpStatusCode: number }> => {
     const {
       $metadata: { httpStatusCode },
     } = await this.s3Client.send(
@@ -52,7 +35,9 @@ export class S3 {
 
   public getSignedUrl = async ({
     key,
-  }: GetSignedUrlParams): Promise<{ signedUrl: string }> => {
+  }: {
+    key: string;
+  }): Promise<{ signedUrl: string }> => {
     const signedUrl = await getSignedUrl(
       this.s3Client,
       new GetObjectCommand({
@@ -65,7 +50,7 @@ export class S3 {
     return { signedUrl }; // when the user wants to get his profile, extract the key from the db and generate the signed url and send in the response body
   };
 
-  public getUrl = ({ key }: GetUrlParams): { url: string } => {
+  public getUrl = ({ key }: { key: string }): { url: string } => {
     const url = `https://${this.BUCKET}.s3.${config.aws.region}.amazonaws.com/${key}`;
 
     return { url };
@@ -76,7 +61,12 @@ export class S3 {
     body,
     contentType,
     key,
-  }: UploadFileParams): Promise<{ httpStatusCode: number; key: string }> => {
+  }: {
+    acl: ObjectCannedACL;
+    body: Buffer;
+    contentType: string;
+    key: string;
+  }): Promise<{ httpStatusCode: number; key: string }> => {
     const {
       $metadata: { httpStatusCode },
     } = await this.s3Client.send(

@@ -99,61 +99,29 @@ export class MediaController {
     }
   };
 
-  public handleRetrieveCertificate = async (
+  public handleRetrieveSignedUrl = async (
     req: Request,
     res: Response
   ): Promise<void> => {
     try {
-      const { certificate } = req.body;
+      const { key } = req.query;
 
-      const { signedUrl } = await this.s3.getSignedUrl({
-        key: certificate,
-      });
+      const { signedUrl } = await this.s3.getSignedUrl({ key: key as string });
 
       res.status(200).json({
         data: { signedUrl },
-        message: "Certificate retrieved successfully",
+        message: "Signed URL retrieved successfully",
       });
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res
           .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
+          .json({ data: null, message: error.message });
       } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
+        res.status(500).json({ data: null, message: error.message });
       }
     }
-  };
-
-  public handleRetrieveProfilePicture = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { profilePicture } = req.body;
-
-      const { url } = this.s3.getUrl({
-        key: profilePicture,
-      });
-
-      res.status(200).json({
-        data: { url },
-        message: "Profile picture retrieved successfully",
-      });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
+  }
 
   public handleUploadCertificate = async (
     req: Request,
@@ -173,13 +141,11 @@ export class MediaController {
         const { buffer, mimetype, originalname, size } = file;
 
         const { httpStatusCode, key } = await this.s3.putFile({
-          acl: "public-read",
+          acl: "private",
           body: buffer,
           contentType: mimetype,
           key: `${userId}-certificate-${Date.now()}`,
         });
-
-        const { url } = this.s3.getUrl({ key });
 
         res.status(httpStatusCode).json({
           data: {
@@ -188,7 +154,6 @@ export class MediaController {
               name: originalname,
               size,
               type: mimetype,
-              url,
             },
           },
           message: "Certificate uploaded successfully",
@@ -313,13 +278,11 @@ export class MediaController {
         const { buffer, mimetype, originalname, size } = file;
 
         const { key } = await this.s3.putFile({
-          acl: "public-read",
+          acl: "private",
           body: buffer,
           contentType: mimetype,
           key: `${userId}-resume-${Date.now()}`,
         });
-
-        const { url } = this.s3.getUrl({ key });
 
         const { data, status } = await this.axios.post({
           authorization,
@@ -329,7 +292,6 @@ export class MediaController {
               name: originalname,
               size,
               type: mimetype,
-              url,
             },
           },
           url: `${config.baseUrl.users}/user/resumes`,
@@ -349,32 +311,4 @@ export class MediaController {
       }
     }
   };
-
-  // public async getPresignedImageUrls(
-  //   req: Request,
-  //   res: Response
-  // ): Promise<void> {
-  //   try {
-  //     const data = await this.s3.getPresignedUrls(req.body.imageGallery);
-
-  //     if (data.length === 0) {
-  //       res.status(404).json({
-  //         data: null,
-  //         message: "No presigned URLs found for the specified image gallery",
-  //       });
-  //     } else {
-  //       res
-  //         .status(200)
-  //         .json({ data, message: "Presigned URLs retrieved successfully" });
-  //     }
-  //   } catch (error) {
-  //     if (error.$metadata && error.$metadata.httpStatusCode) {
-  //       res
-  //         .status(error.$metadata.httpStatusCode)
-  //         .json({ data: null, message: error.message });
-  //     } else {
-  //       res.status(500).json({ data: null, message: error.message });
-  //     }
-  //   }
-  // }
 }

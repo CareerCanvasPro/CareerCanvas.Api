@@ -59,5 +59,9 @@ export class MediaRoute {
       .route("/resume")
       .delete(this.mediaController.handleRemoveResume)
       .post(this.mediaController.handleUploadResume);
+
+    this.router
+      .route("/signed-url")
+      .get(this.mediaController.handleRetrieveSignedUrl);
   };
 }
