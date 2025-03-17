@@ -12,9 +12,11 @@ export async function getParameter(name: string, retryCount = 0): Promise<string
     return cachedParam.value;
   }
 
-  const env = process.env.NODE_ENV || 'dev';
   try {
-    const paramPath = `/careercanvas/${env}/${name}`;
+    const paramPath = name.startsWith('auth/') 
+      ? `/careercanvas/auth/${name.replace('auth/', '')}` 
+      : `/careercanvas/${name}`;
+    
     const command = new GetParameterCommand({
       Name: paramPath,
       WithDecryption: true,
@@ -24,16 +26,6 @@ export async function getParameter(name: string, retryCount = 0): Promise<string
 
     if (!value) {
       console.error(`Parameter ${paramPath} not found`);
-      if (env === 'dev') {
-        switch (name) {
-          case 'AUTH_JWT_SECRET':
-            return 'dev_jwt_secret_key';
-          case 'AUTH_TOKEN_EXPIRY':
-            return '86400';
-          default:
-            throw new Error(`Parameter ${paramPath} not found`);
-        }
-      }
       throw new Error(`Parameter ${paramPath} not found`);
     }
 
@@ -51,12 +43,13 @@ export async function getParameter(name: string, retryCount = 0): Promise<string
 }
 
 export async function loadConfig() {
-  const [jwtSecret, mailHost, mailPassword, mailPort, mailUsername] = await Promise.all([
-    getParameter('JWT_SECRET'),
-    getParameter('MAIL_HOST'),
-    getParameter('MAIL_PASSWORD'),
-    getParameter('MAIL_PORT'),
-    getParameter('MAIL_USERNAME'),
+  const [jwtSecret, mailHost, mailPassword, mailPort, mailUsername, s3Bucket] = await Promise.all([
+    getParameter('auth/jwt-secret'),
+    getParameter('auth/mail-host'),
+    getParameter('auth/mail-password'),
+    getParameter('auth/mail-port'),
+    getParameter('auth/mail-username'),
+    getParameter('s3-bucket'),
   ]);
 
   return {
@@ -71,6 +64,9 @@ export async function loadConfig() {
       password: mailPassword,
       port: mailPort,
       username: mailUsername,
+    },
+    s3: {
+      bucket: s3Bucket,
     },
     port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8001,
   };

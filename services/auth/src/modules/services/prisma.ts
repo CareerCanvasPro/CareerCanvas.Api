@@ -1,32 +1,39 @@
 import { PrismaClient, Prisma } from '@prisma/client';
 
-// PrismaClient is attached to the `global` object in development to prevent
-// exhausting your database connection limit.
-// Learn more: https://pris.ly/d/help/next-js-best-practices
-
-let prisma: PrismaClient;
-
 const prismaClientOptions: Prisma.PrismaClientOptions = {
   log: ['error', 'warn'],
   errorFormat: 'pretty' as const
 };
 
+let prisma: PrismaClient;
+
 if (process.env.NODE_ENV === 'production') {
   prisma = new PrismaClient(prismaClientOptions);
 } else {
-  if (!global.prisma) {
-    global.prisma = new PrismaClient(prismaClientOptions);
+  if (!(global as any).prisma) {
+    (global as any).prisma = new PrismaClient(prismaClientOptions);
   }
-  prisma = global.prisma;
+  prisma = (global as any).prisma;
 }
 
-// Handle connection errors
-prisma.$on('error', (e: Error) => {
+// Improved error handling for connection issues
+prisma.$on('error' as never, async (e: Error) => {
   console.error('Prisma Client error:', e);
+  try {
+    await prisma.$disconnect();
+    await prisma.$connect();
+  } catch (reconnectError) {
+    console.error('Failed to reconnect:', reconnectError);
+  }
 });
 
-prisma.$on('warn', (e: Error) => {
+prisma.$on('warn' as never, (e: Error) => {
   console.warn('Prisma Client warning:', e);
+});
+
+// Ensure connections are properly handled
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
 });
 
 export default prisma;

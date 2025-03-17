@@ -1,17 +1,19 @@
 import { PrismaClient } from "@prisma/client";
-import "dotenv/config";
 import joi from "joi";
+import { getParameter } from "./ssm";
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const envVarsSchema = joi
   .object()
   .keys({
+    NODE_ENV: joi.string().valid('development', 'production').default('development'),
     AUTH_BASE_URL: joi.string().required(),
-    AWS_REGION: joi.string().required(),
-    JWT_SECRET: joi.string().required(),
-    MAIL_HOST: joi.string().required(),
-    MAIL_PASSWORD: joi.string().required(),
-    MAIL_PORT: joi.string().required(),
-    MAIL_USERNAME: joi.string().required(),
+    AWS_REGION: joi.string().when('NODE_ENV', {
+      is: 'production',
+      then: joi.string().required(),
+      otherwise: joi.string().optional(),
+    }),
     PORT: joi.number().default(8001),
   })
   .unknown();
@@ -26,19 +28,19 @@ if (error) {
 
 export const config = {
   aws: {
-    region: envVars.AWS_REGION,
+    region: envVars.AWS_REGION || 'ap-southeast-1',
   },
   baseUrl: {
     auth: envVars.AUTH_BASE_URL,
   },
   jwt: {
-    secret: envVars.JWT_SECRET,
+    secret: isDevelopment ? 'dev_jwt_secret_key' : await getParameter('JWT_SECRET'),
   },
   mail: {
-    host: envVars.MAIL_HOST,
-    password: envVars.MAIL_PASSWORD,
-    port: envVars.MAIL_PORT,
-    username: envVars.MAIL_USERNAME,
+    host: isDevelopment ? 'smtp.mailtrap.io' : await getParameter('MAIL_HOST'),
+    password: isDevelopment ? 'dev_password' : await getParameter('MAIL_PASSWORD'),
+    port: isDevelopment ? '2525' : await getParameter('MAIL_PORT'),
+    username: isDevelopment ? 'dev_user' : await getParameter('MAIL_USERNAME'),
   },
   port: envVars.PORT,
 };

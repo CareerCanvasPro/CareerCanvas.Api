@@ -38,6 +38,9 @@ Resources:
         DefaultAuthorizer: NONE
       DisableExecuteApiEndpoint: false
       TracingEnabled: false
+      # Set local development port
+      Variables:
+        Port: 8001
 
 
 
@@ -45,8 +48,8 @@ Resources:
   RequestMagicLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./
-      Handler: lib/lambda/requestMagicLink.handler
+      CodeUri: src
+      Handler: lambda/requestMagicLink.handler
       Policies:
         - AWSLambdaBasicExecutionRole
         - Version: "2012-10-17"
@@ -79,8 +82,8 @@ Resources:
   VerifyMagicLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./
-      Handler: lib/lambda/verifyMagicLink.handler
+      CodeUri: src
+      Handler: lambda/verifyMagicLink.handler
       Policies:
         - AWSLambdaBasicExecutionRole
         - Version: "2012-10-17"
@@ -113,8 +116,8 @@ Resources:
   RequestEmailOtpFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./
-      Handler: lib/lambda/requestEmailOtp.handler
+      CodeUri: src
+      Handler: lambda/requestEmailOtp.handler
       Policies:
         - AWSLambdaBasicExecutionRole
         - Version: "2012-10-17"
@@ -147,8 +150,8 @@ Resources:
   VerifyOtpFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./
-      Handler: lib/lambda/verifyOtp.handler
+      CodeUri: src
+      Handler: lambda/verifyOtp.handler
       Policies:
         - AWSLambdaBasicExecutionRole
         - Version: "2012-10-17"
