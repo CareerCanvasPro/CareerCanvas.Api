@@ -1,0 +1,10 @@
+version = 0.1
+[default.deploy.parameters]
+stack_name = "cc-serverless-auth-api"
+resolve_s3 = true
+s3_prefix = "cc-serverless-auth-api"
+region = "ap-southeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+parameter_overrides = "Environment=\"prod\""
+disable_rollback = true

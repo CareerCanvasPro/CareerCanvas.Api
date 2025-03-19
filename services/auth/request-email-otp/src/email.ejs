@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>OTP for Career Canvas Account Verification</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://career-canvas-media.s3.ap-southeast-1.amazonaws.com/93ffa903-70c9-42cc-8100-3d50680b6014"
+      rel="icon"
+      type="image/png"
+    />
+  </head>
+
+  <body
+    style="
+      align-items: center;
+      background-color: #f4f4f4;
+      display: flex;
+      font-family: 'Open Sans', sans-serif;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    "
+  >
+    <div
+      style="
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        margin: auto;
+        max-width: 600px;
+        padding: 20px 60px;
+      "
+    >
+      <img
+        alt="Career Canvas App Logo"
+        src="https://career-canvas-media.s3.ap-southeast-1.amazonaws.com/93ffa903-70c9-42cc-8100-3d50680b6014"
+        style="
+          max-height: 100px;
+          margin-top: 20px;
+          border-radius: 15px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        "
+      />
+      <h2
+        style="
+          font-size: 1.8em;
+          color: #333;
+          margin-bottom: 10px;
+          font-weight: 600;
+        "
+      >
+        Welcome to Career Canvas!
+      </h2>
+      <p style="font-size: 1.2em; color: #555; margin-bottom: 20px">
+        Your One-Time Password (OTP) for Career Canvas account verification is:
+      </p>
+      <h1
+        style="
+          font-size: 2em;
+          color: #0052cc;
+          margin: 20px 0;
+          font-weight: bold;
+          border: 2px solid #ccc;
+          padding: 10px;
+          border-radius: 5px;
+        "
+      >
+        <%= otp %>
+      </h1>
+      <p
+        style="
+          font-weight: bold;
+          color: #d9534f;
+          background-color: #f8d7da;
+          border: 1px solid #f5c6cb;
+          padding: 10px;
+          border-radius: 5px;
+          margin-top: 20px;
+        "
+      >
+        Don't share this OTP with anyone. This is confidential information
+        intended only for you. If you did not request this OTP, please contact
+        our support team immediately at
+        <a
+          href="mailto:support@careercanvas.pro"
+          style="color: #d9534f; text-decoration: underline"
+          >support@careercanvas.pro</a
+        >.
+      </p>
+      <p
+        style="
+          color: #888;
+          font-size: 14px;
+          margin-top: 30px;
+          border-top: 1px solid #ddd;
+          padding-top: 10px;
+        "
+      >
+        &copy; 2025 Career Canvas. All rights reserved.
+      </p>
+    </div>
+  </body>
+</html>

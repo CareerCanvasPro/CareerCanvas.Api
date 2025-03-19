@@ -17,3 +17,4 @@ dist/
 build/
 lib/
 *.tsbuildinfo
+.aws-sam

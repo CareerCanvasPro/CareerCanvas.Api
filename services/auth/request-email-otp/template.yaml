@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: CareerCanvas Auth Service - Serverless API
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: nodejs18.x
+
+Resources:
+  # API Gateway
+  AuthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      OpenApiVersion: "2.0"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+      EndpointConfiguration: REGIONAL
+      Auth:
+        DefaultAuthorizer: NONE
+      DisableExecuteApiEndpoint: false
+      TracingEnabled: false
+      # Set local development port
+      Variables:
+        Port: 8001
+
+  # Lambda Functions
+  # RequestMagicLinkFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: src
+  #     Handler: lambda/requestMagicLink.handler
+  #     Policies:
+  #       - AWSLambdaBasicExecutionRole
+  #       - Version: "2012-10-17"
+  #         Statement:
+  #           - Effect: Allow
+  #             Action:
+  #               - ssm:GetParameter
+  #             Resource:
+  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
+  #           - Effect: Allow
+  #             Action:
+  #               - kms:Decrypt
+  #             Resource:
+  #               - !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/alias/aws/ssm"
+  #           - Effect: Allow
+  #             Action:
+  #               - ssm:GetParameters
+  #               - ssm:GetParameter
+  #               - ssm:GetParametersByPath
+  #             Resource:
+  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
+  #     Events:
+  #       ApiEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref AuthApi
+  #           Path: /auth/magic-link/request
+  #           Method: post
+
+  # VerifyMagicLinkFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: src
+  #     Handler: lambda/verifyMagicLink.handler
+  #     Policies:
+  #       - AWSLambdaBasicExecutionRole
+  #       - Version: "2012-10-17"
+  #         Statement:
+  #           - Effect: Allow
+  #             Action:
+  #               - ssm:GetParameter
+  #             Resource:
+  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
+  #           - Effect: Allow
+  #             Action:
+  #               - kms:Decrypt
+  #             Resource:
+  #               - !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/alias/aws/ssm"
+  #           - Effect: Allow
+  #             Action:
+  #               - ssm:GetParameters
+  #               - ssm:GetParameter
+  #               - ssm:GetParametersByPath
+  #             Resource:
+  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
+  #     Events:
+  #       ApiEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref AuthApi
+  #           Path: /auth/magic-link/verify
+  #           Method: get
+
+  RequestEmailOtpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lib
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/otp/request/email
+            Method: post
+
+  # VerifyOtpFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: src
+  #     Handler: lambda/verifyOtp.handler
+  #     Policies:
+  #       - AWSLambdaBasicExecutionRole
+  #       - Version: "2012-10-17"
+  #         Statement:
+  #           - Effect: Allow
+  #             Action:
+  #               - ssm:GetParameter
+  #             Resource:
+  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
+  #           - Effect: Allow
+  #             Action:
+  #               - kms:Decrypt
+  #             Resource:
+  #               - !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/alias/aws/ssm"
+  #           - Effect: Allow
+  #             Action:
+  #               - ssm:GetParameters
+  #               - ssm:GetParameter
+  #               - ssm:GetParametersByPath
+  #             Resource:
+  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
+  #     Events:
+  #       ApiEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref AuthApi
+  #           Path: /auth/otp/verify
+  #           Method: get
+
+Outputs:
+  AuthApiEndpoint:
+    Description: "API Gateway endpoint URL for the Auth service"
+    Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  # RequestMagicLinkFunction:
+  #   Description: "Request Magic Link Lambda Function ARN"
+  #   Value: !GetAtt RequestMagicLinkFunction.Arn
+  # VerifyMagicLinkFunction:
+  #   Description: "Verify Magic Link Lambda Function ARN"
+  #   Value: !GetAtt VerifyMagicLinkFunction.Arn
+  RequestEmailOtpFunction:
+    Description: "Request Email OTP Lambda Function ARN"
+    Value: !GetAtt RequestEmailOtpFunction.Arn
+  # VerifyOtpFunction:
+  #   Description: "Verify OTP Lambda Function ARN"
+  #   Value: !GetAtt VerifyOtpFunction.Arn
