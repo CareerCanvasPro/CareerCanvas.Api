@@ -1,6 +1,6 @@
 import { join } from "path";
 
-import express, { RequestHandler } from "express";
+import express, { Express, RequestHandler } from "express";
 
 import { handleNotFound } from "./modules/middlewares";
 import { IRoute } from "./types";
@@ -12,7 +12,7 @@ export class App {
 
   public initTemplates = (): void => {
     this.app.set("view engine", "ejs");
-    this.app.set("views", join(__dirname, "..", "src", "views"));
+    this.app.set("views", join(__dirname, "views"));
   };
 
   public initMiddlewares = (middlewares: RequestHandler[]): void => {
@@ -33,5 +33,9 @@ export class App {
     this.app.listen(this.config.port, () => {
       console.log(`App listening on port ${this.config.port}`);
     });
+  };
+
+  public getApp = (): { app: Express } => {
+    return { app: this.app };
   };
 }

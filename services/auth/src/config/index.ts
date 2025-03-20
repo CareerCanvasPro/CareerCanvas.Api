@@ -1,12 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import "dotenv/config";
 import joi from "joi";
 
 const envVarsSchema = joi
   .object()
   .keys({
     AUTH_BASE_URL: joi.string().required(),
-    AWS_REGION: joi.string().required(),
     JWT_SECRET: joi.string().required(),
     MAIL_HOST: joi.string().required(),
     MAIL_PASSWORD: joi.string().required(),
@@ -25,12 +23,6 @@ if (error) {
 }
 
 export const config = {
-  aws: {
-    region: envVars.AWS_REGION,
-  },
-  baseUrl: {
-    auth: envVars.AUTH_BASE_URL,
-  },
   jwt: {
     secret: envVars.JWT_SECRET,
   },
@@ -41,6 +33,11 @@ export const config = {
     username: envVars.MAIL_USERNAME,
   },
   port: envVars.PORT,
+  url: {
+    base: {
+      auth: envVars.AUTH_BASE_URL,
+    },
+  },
 };
 
 export const prismaClient = new PrismaClient();

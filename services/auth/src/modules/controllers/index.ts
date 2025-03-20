@@ -51,7 +51,7 @@ export class AuthController {
             if (error) {
               throw error;
             } else {
-              const magicLink = `${config.baseUrl.auth}/auth/magic-link/verify?token=${token}`;
+              const magicLink = `${config.url.base.auth}/auth/magic-link/verify?token=${token}`;
 
               await this.nodemailer.sendMail({
                 html: await renderFile(
@@ -59,8 +59,6 @@ export class AuthController {
                     __dirname,
                     "..",
                     "..",
-                    "..",
-                    "src",
                     "views",
                     "email.ejs"
                   ),
@@ -119,7 +117,7 @@ export class AuthController {
 
         await this.nodemailer.sendMail({
           html: await renderFile(
-            join(__dirname, "..", "..", "..", "src", "views", "email-otp.ejs"),
+            join(__dirname, "..", "..", "views", "email-otp.ejs"),
             { otp }
           ),
           subject: "OTP for Career Canvas Account Verification",

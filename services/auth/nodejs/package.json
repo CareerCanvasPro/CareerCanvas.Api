@@ -1,0 +1,23 @@
+{
+  "author": "CareerCanvas Team <support@careercanvas.pro>",
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "aws-lambda": "^1.0.7",
+    "aws-serverless-express": "^3.4.0",
+    "body-parser": "^1.20.3",
+    "cors": "2.8.5",
+    "cuid": "^3.0.0",
+    "ejs": "^3.1.10",
+    "express": "4.18.2",
+    "joi": "17.11.0",
+    "jsonwebtoken": "9.0.2",
+    "morgan": "1.10.0",
+    "nodemailer": "^6.10.0",
+    "otp-generator": "^4.0.1",
+    "prisma": "^6.5.0"
+  },
+  "description": "Authentication service for Career Canvas API",
+  "license": "ISC",
+  "name": "@careercanvas-api/auth",
+  "version": "0.0.0"
+}

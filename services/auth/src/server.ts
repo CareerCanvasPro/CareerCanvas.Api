@@ -1,12 +1,13 @@
 import { json, urlencoded } from "body-parser";
 import cors from "cors";
+import { Express } from "express";
 import morgan from "morgan";
 
 import { App } from "./app";
 import { config } from "./config";
 import { AuthRoute } from "./modules/routes";
 
-const startServer = (): void => {
+const startServer = (): { app: Express } => {
   try {
     const app = new App({ port: config.port });
 
@@ -26,9 +27,11 @@ const startServer = (): void => {
     app.initNotFound();
 
     app.listen();
+
+    return app.getApp();
   } catch (error) {
     console.error(`${error.name}: ${error.message}`);
   }
 };
 
-startServer();
+export const { app } = startServer();

@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: CareerCanvas Auth Service - Serverless API
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: nodejs18.x
+
+Resources:
+  AuthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      OpenApiVersion: "2.0"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+      EndpointConfiguration: REGIONAL
+      Auth:
+        DefaultAuthorizer: NONE
+      DisableExecuteApiEndpoint: false
+      TracingEnabled: false
+      Variables:
+        Port: 8001
+
+  NodejsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${AWS::StackName}-nodejs-dependencies"
+      Description: Node.js dependencies for Auth API
+      ContentUri: nodejs
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Retain
+
+  AuthApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lib
+      Handler: index.handler
+      Layers:
+        - !Ref NodejsLayer
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /
+            Method: any
+
+Outputs:
+  AuthApiEndpoint:
+    Description: "API Gateway endpoint URL for the Auth service"
+    Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
+  AuthApiFunction:
+    Description: "Auth API Lambda Function ARN"
+    Value: !GetAtt AuthApiFunction.Arn
