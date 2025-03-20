@@ -1,1 +1,0 @@
-export {validateJwt} from "./app"
