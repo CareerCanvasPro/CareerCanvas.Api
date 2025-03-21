@@ -1,11 +1,13 @@
 # Dependencies
 node_modules
+nodejs-layers
 package-lock.json
 
 # Environment
 .env
 .env.*
 !.env.example
+env.*
 
 # IDE
 .vscode

@@ -6,5 +6,4 @@ s3_prefix = "cc-serverless-auth-api"
 region = "ap-southeast-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=\"prod\""
 disable_rollback = true

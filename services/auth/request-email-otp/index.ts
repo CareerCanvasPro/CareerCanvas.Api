@@ -1,6 +1,6 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { join } from "path";
 
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { renderFile } from "ejs";
 import otpGenerator from "otp-generator";
 

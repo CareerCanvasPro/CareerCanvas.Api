@@ -3,6 +3,10 @@ Transform: AWS::Serverless-2016-10-31
 Description: CareerCanvas Auth Service - Serverless API
 
 Parameters:
+  # AuthBaseUrl:
+  #   Type: String
+  DatabaseUrl:
+    Type: String
   Environment:
     Type: String
     Default: dev
@@ -11,6 +15,16 @@ Parameters:
       - staging
       - prod
     Description: Environment name
+  JwtSecret:
+    Type: String
+  MailHost:
+    Type: String
+  MailPassword:
+    Type: String
+  MailPort:
+    Type: String
+  MailUsername:
+    Type: String
 
 Globals:
   Function:
@@ -110,7 +124,7 @@ Resources:
   RequestEmailOtpFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: lib
+      CodeUri: request-email-otp
       Handler: index.handler
       Policies:
         - AWSLambdaBasicExecutionRole
@@ -121,40 +135,50 @@ Resources:
             RestApiId: !Ref AuthApi
             Path: /auth/otp/request/email
             Method: post
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          MAIL_HOST: !Ref MailHost
+          MAIL_PASSWORD: !Ref MailPassword
+          MAIL_PORT: !Ref MailPort
+          MAIL_USERNAME: !Ref MailUsername
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
 
-  # VerifyOtpFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: src
-  #     Handler: lambda/verifyOtp.handler
-  #     Policies:
-  #       - AWSLambdaBasicExecutionRole
-  #       - Version: "2012-10-17"
-  #         Statement:
-  #           - Effect: Allow
-  #             Action:
-  #               - ssm:GetParameter
-  #             Resource:
-  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
-  #           - Effect: Allow
-  #             Action:
-  #               - kms:Decrypt
-  #             Resource:
-  #               - !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/alias/aws/ssm"
-  #           - Effect: Allow
-  #             Action:
-  #               - ssm:GetParameters
-  #               - ssm:GetParameter
-  #               - ssm:GetParametersByPath
-  #             Resource:
-  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
-  #     Events:
-  #       ApiEvent:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref AuthApi
-  #           Path: /auth/otp/verify
-  #           Method: get
+  VerifyOtpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: verify-otp
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/otp/verify
+            Method: get
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          JWT_SECRET: !Ref JwtSecret
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
 
 Outputs:
   AuthApiEndpoint:
@@ -169,6 +193,6 @@ Outputs:
   RequestEmailOtpFunction:
     Description: "Request Email OTP Lambda Function ARN"
     Value: !GetAtt RequestEmailOtpFunction.Arn
-  # VerifyOtpFunction:
-  #   Description: "Verify OTP Lambda Function ARN"
-  #   Value: !GetAtt VerifyOtpFunction.Arn
+  VerifyOtpFunction:
+    Description: "Verify OTP Lambda Function ARN"
+    Value: !GetAtt VerifyOtpFunction.Arn
