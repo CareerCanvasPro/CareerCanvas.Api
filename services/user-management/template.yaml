@@ -35,12 +35,25 @@ Resources:
         AllowOrigin: "'*'"
       EndpointConfiguration: REGIONAL
       Auth:
-        DefaultAuthorizer: NONE
+        DefaultAuthorizer: JwtAuthorizer
+        Authorizers:
+          JwtAuthorizer:
+            FunctionArn: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JwtAuthorizerFunction
+            Identity:
+              Header: Authorization
       DisableExecuteApiEndpoint: false
       TracingEnabled: false
       # Set local development port
       Variables:
         Port: 8004
+
+  UsersApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JwtAuthorizerFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UsersApi}/*"
 
   # Lambda Functions
   CreateUserFunction:
@@ -49,7 +62,7 @@ Resources:
       CodeUri: create-user
       Handler: index.handler
       Layers:
-        - arn:aws:lambda:ap-southeast-1:185627371157:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -57,7 +70,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: arn:aws:lambda:ap-southeast-1:185627371157:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
       Events:
         ApiEvent:
           Type: Api

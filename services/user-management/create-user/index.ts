@@ -1,5 +1,4 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { TokenError, createVerifier } from "fast-jwt";
 
 import { createUser } from "./users.db.service";
 import { cleanMessage } from "./utils";
@@ -9,106 +8,69 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { Authorization } = event.headers;
+    const { userId, username } = JSON.parse(
+      event.requestContext.authorizer?.user
+    );
 
-    if (!Authorization || !Authorization.startsWith("Bearer ")) {
+    let body = JSON.parse(event.body ? event.body : "");
+
+    body = { ...body, userId, username };
+
+    delete body.exp;
+
+    delete body.iat;
+
+    const { error, value } = userValidator.validate(body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      const validationErrors = error.details.map((error) =>
+        cleanMessage(error.message)
+      );
+
       return {
         body: JSON.stringify({
           data: null,
-          message: "Access token is missing",
+          message: validationErrors,
         }),
         headers: {
           "Content-Type": "application/json",
         },
-        statusCode: 401,
+        statusCode: 400,
       };
     } else {
-      const accessToken = Authorization.split(" ")[1];
+      const { address, email, name, phone, profilePicture, userId, username } =
+        value;
 
-      const verify = createVerifier({
-        key: async () => process.env.JWT_SECRET,
-      });
+      const coins = 10;
 
-      const decoded = await verify(accessToken);
-
-      let body = JSON.parse(event.body);
-
-      body = { ...body, ...(decoded as { userId: string; username: string }) };
-
-      delete body.exp;
-
-      delete body.iat;
-
-      const { error, value } = userValidator.validate(body, {
-        abortEarly: false,
-      });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        return {
-          body: JSON.stringify({
-            data: null,
-            message: validationErrors,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          statusCode: 400,
-        };
-      } else {
-        const {
+      await createUser({
+        user: {
           address,
+          coins,
           email,
+          id: userId,
           name,
           phone,
           profilePicture,
-          userId,
           username,
-        } = value;
+        },
+      });
 
-        const coins = 10;
-
-        await createUser({
-          user: {
-            address,
-            coins,
-            email,
-            id: userId,
-            name,
-            phone,
-            profilePicture,
-            username,
-          },
-        });
-
-        return {
-          body: JSON.stringify({
-            data: { coins },
-            message: "New profile created successfully",
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          statusCode: 201,
-        };
-      }
-    }
-  } catch (error) {
-    if (error instanceof TokenError) {
       return {
         body: JSON.stringify({
-          data: null,
-          message: `${error.code}: ${error.message}`,
+          data: { coins },
+          message: "New profile created successfully",
         }),
         headers: {
           "Content-Type": "application/json",
         },
-        statusCode: 401,
+        statusCode: 201,
       };
-    } else if (error.$metadata && error.$metadata.httpStatusCode) {
+    }
+  } catch (error) {
+    if (error.$metadata && error.$metadata.httpStatusCode) {
       return {
         body: JSON.stringify({
           data: null,
