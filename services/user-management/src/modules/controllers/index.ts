@@ -10,9 +10,7 @@ import {
   occupationArraySchema,
   occupationSchema,
   resumeSchema,
-  stringArraySchema,
   stringSchema,
-  urlSchema,
 } from "../schemas";
 import { Axios, UsersDb } from "../services";
 
@@ -109,50 +107,6 @@ export class UserManagementController {
         res
           .status(200)
           .json({ data: null, message: "FCM token updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserProfilePicture = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { profilePicture, userId } = req.body;
-
-      const { error, value: validatedProfilePicture } = urlSchema.validate(
-        profilePicture,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserProfilePicture({
-          id: userId,
-          profilePicture: validatedProfilePicture,
-        });
-
-        res.status(200).json({
-          data: null,
-          message: "Profile picture updated successfully",
-        });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
@@ -427,141 +381,6 @@ export class UserManagementController {
     }
   };
 
-  // GOALS
-
-  public handleUpdateUserGoals = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { goals, userId } = req.body;
-
-      const { error, value: validatedGoals } = stringArraySchema.validate(
-        goals,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserGoals({
-          goals: validatedGoals,
-          id: userId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Goals updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  // INTERESTS
-
-  public handleUpdateUserInterests = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { interests, userId } = req.body;
-
-      const { error, value: validatedInterests } = stringArraySchema.validate(
-        interests,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserInterests({
-          id: userId,
-          interests: validatedInterests,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Interests updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  // LANGUAGES
-
-  public handleUpdateUserLanguages = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { languages, userId } = req.body;
-
-      const { error, value: validatedLanguages } = stringArraySchema.validate(
-        languages,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserLanguages({
-          id: userId,
-          languages: validatedLanguages,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Languages updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
   // OCCUPATIONS
 
   public handleCreateUserOccupations = async (
@@ -750,51 +569,6 @@ export class UserManagementController {
       });
 
       res.status(status).json(data);
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  // SKILLS
-
-  public handleUpdateUserSkills = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { skills, userId } = req.body;
-
-      const { error, value: validatedSkills } = stringArraySchema.validate(
-        skills,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserSkills({
-          id: userId,
-          skills: validatedSkills,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Skills updated successfully" });
-      }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res

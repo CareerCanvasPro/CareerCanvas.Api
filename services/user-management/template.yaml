@@ -126,6 +126,294 @@ Resources:
         Target: "node18"
         TreeShaking: true
 
+  UpdateUserAboutMeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-about-me
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/about-me
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserAddressFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-address
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/address
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserNameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-name
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/name
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-profile-picture
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/profile-picture
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserGoalsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-goals
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/goals
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserInterestsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-interests
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/interests
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserLanguagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-languages
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/languages
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserSkillsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-skills
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/skills
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
 Outputs:
   UsersApiEndpoint:
     Description: "API Gateway endpoint URL for the User Management service"
@@ -136,3 +424,27 @@ Outputs:
   DeleteUserFunction:
     Description: "Delete User Lambda Function ARN"
     Value: !GetAtt DeleteUserFunction.Arn
+  UpdateUserAboutMeFunction:
+    Description: "Update User About Me Lambda Function ARN"
+    Value: !GetAtt UpdateUserAboutMeFunction.Arn
+  UpdateUserAddressFunction:
+    Description: "Update User Address Lambda Function ARN"
+    Value: !GetAtt UpdateUserAddressFunction.Arn
+  UpdateUserNameFunction:
+    Description: "Update User Name Lambda Function ARN"
+    Value: !GetAtt UpdateUserNameFunction.Arn
+  UpdateUserProfilePictureFunction:
+    Description: "Update User Profile Picture Lambda Function ARN"
+    Value: !GetAtt UpdateUserProfilePictureFunction.Arn
+  UpdateUserGoalsFunction:
+    Description: "Update User Goals Lambda Function ARN"
+    Value: !GetAtt UpdateUserGoalsFunction.Arn
+  UpdateUserInterestsFunction:
+    Description: "Update User Interests Lambda Function ARN"
+    Value: !GetAtt UpdateUserInterestsFunction.Arn
+  UpdateUserLanguagesFunction:
+    Description: "Update User Languages Lambda Function ARN"
+    Value: !GetAtt UpdateUserLanguagesFunction.Arn
+  UpdateUserSkillsFunction:
+    Description: "Update User Skills Lambda Function ARN"
+    Value: !GetAtt UpdateUserSkillsFunction.Arn
