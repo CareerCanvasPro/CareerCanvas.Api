@@ -53,16 +53,6 @@ export class UsersDb {
     return { user };
   };
 
-  public updateUserAboutMe = async ({
-    aboutMe,
-    id,
-  }: {
-    aboutMe: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({ data: { aboutMe }, where: { id } });
-  };
-
   private updateUserCoins = async ({
     coinsToAdd,
     id,
@@ -95,16 +85,6 @@ export class UsersDb {
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({ data: { fcmToken }, where: { id } });
-  };
-
-  public updateUserName = async ({
-    id,
-    name,
-  }: {
-    id: string;
-    name: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({ data: { name }, where: { id } });
   };
 
   public updateUserProfilePicture = async ({

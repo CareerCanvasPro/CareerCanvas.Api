@@ -80,49 +80,6 @@ export class UserManagementController {
     }
   };
 
-  public handleUpdateUserAboutMe = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { aboutMe, userId } = req.body;
-
-      const { error, value: validatedAboutMe } = stringSchema.validate(
-        aboutMe,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserAboutMe({
-          aboutMe: validatedAboutMe,
-          id: userId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "About me updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
   public handleUpdateUserFcmToken = async (
     req: Request,
     res: Response
@@ -152,46 +109,6 @@ export class UserManagementController {
         res
           .status(200)
           .json({ data: null, message: "FCM token updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserName = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { name, userId } = req.body;
-
-      const { error, value: validatedName } = stringSchema.validate(name, {
-        abortEarly: false,
-      });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserName({
-          id: userId,
-          name: validatedName,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Name updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
