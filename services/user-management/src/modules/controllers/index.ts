@@ -13,7 +13,6 @@ import {
   stringArraySchema,
   stringSchema,
   urlSchema,
-  userSchema,
 } from "../schemas";
 import { Axios, UsersDb } from "../services";
 
@@ -21,33 +20,6 @@ export class UserManagementController {
   private readonly axios = new Axios();
 
   private readonly usersDb = new UsersDb();
-
-  public handleDeleteUser = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { userId } = req.body;
-
-      await this.usersDb.deleteUser({
-        id: userId,
-      });
-
-      res
-        .status(200)
-        .json({ data: null, message: "Profile deleted successfully" });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
 
   public handleFindUser = async (
     req: Request,

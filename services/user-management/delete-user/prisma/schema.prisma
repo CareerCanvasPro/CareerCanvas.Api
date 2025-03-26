@@ -1,0 +1,302 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// ENUMS
+
+enum Currency {
+  BDT
+  USD
+}
+
+enum JobLocationType {
+  HYBRID
+  ON_SITE
+  REMOTE
+}
+
+enum JobType {
+  CONTRACTUAL
+  FULL_TIME
+  INTERN
+  PART_TIME
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  EXPERT
+}
+
+enum PersonalityTestQuestionCategory {
+  EI
+  SN
+  TF
+  JP
+}
+
+enum PersonalityType {
+  INTJ
+  INTP
+  ENTJ
+  ENTP
+  INFJ
+  INFP
+  ENFJ
+  ENFP
+  ISTJ
+  ISFJ
+  ESTJ
+  ESFJ
+  ISTP
+  ISFP
+  ESTP
+  ESFP
+}
+
+enum SalaryInterval {
+  ANNUM
+  MONTH
+}
+
+/// COMMON SCHEMA
+
+model Author {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
+}
+
+model Field {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
+  jobs    Job[]
+  users   User[]
+}
+
+model Goal {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  courses Course[]
+  jobs    Job[]
+  users   User[]
+}
+
+model Language {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model Skill {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+/// AUTH SCHEMA
+
+model Otp {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  otp       String
+  updatedAt DateTime @updatedAt
+  username  String
+
+  @@unique([otp, username])
+}
+
+/// CAREER TREND SCHEMA
+
+model CareerTrend {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  description String
+  image       String
+  name        String
+  updatedAt   DateTime @updatedAt
+}
+
+/// COURSE SCHEMA
+
+model Course {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  currency     Currency
+  duration     Int
+  image        String
+  level        Level
+  name         String
+  price        Float    @default(0)
+  rating       Float    @default(0)
+  ratingCount  Int      @default(0)
+  sourceName   String
+  sourceUrl    String
+  studentCount Int      @default(0)
+  updatedAt    DateTime @updatedAt
+  authors      Author[]
+  goals        Goal[]
+  topic        Field    @relation(fields: [topicId], references: [id])
+  topicId      String
+}
+
+/// JOB SCHEMA
+
+model Job {
+  id               String            @id @default(cuid())
+  companyLogo      String
+  createdAt        DateTime          @default(now())
+  currency         Currency
+  deadline         DateTime
+  location         String
+  locationType     JobLocationType
+  organization     String
+  personalityTypes PersonalityType[]
+  position         String
+  salary           Int
+  salaryInterval   SalaryInterval
+  salaryMax        Int?
+  type             JobType
+  updatedAt        DateTime          @updatedAt
+  url              String
+  fields           Field[]
+  goals            Goal[]
+}
+
+/// PERSONALITY TEST SCHEMA
+
+model PersonalityTestAnswer {
+  id         String                  @id @default(cuid())
+  answer     Int
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+  question   PersonalityTestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user       User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questionId String
+  userId     String
+
+  @@unique([questionId, userId])
+}
+
+model PersonalityTestQuestion {
+  id       String                          @id @default(cuid())
+  category PersonalityTestQuestionCategory
+  question String
+  score    Int
+  answers  PersonalityTestAnswer[]
+}
+
+/// USER SCHEMA
+
+model User {
+  id             String                  @id @default(cuid())
+  aboutMe        String?
+  address        String
+  coins          Int                     @default(0)
+  createdAt      DateTime                @default(now())
+  email          String?                 @unique
+  fcmToken       String?
+  followers      Int                     @default(0)
+  following      Int                     @default(0)
+  isEducations   Boolean                 @default(false)
+  isOccupations  Boolean                 @default(false)
+  isSkills       Boolean                 @default(false)
+  name           String
+  phone          String?                 @unique
+  profilePicture String
+  updatedAt      DateTime                @updatedAt
+  username       String                  @unique
+  answers        PersonalityTestAnswer[]
+  appreciations  Appreciation[]
+  educations     Education[]
+  goals          Goal[]
+  interests      Field[]
+  languages      Language[]
+  occupations    Occupation[]
+  personality    Personality?
+  resumes        Resume[]
+  skills         Skill[]
+}
+
+model Appreciation {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  date         DateTime?
+  name         String
+  organization String
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+}
+
+model Education {
+  id             String       @id @default(cuid())
+  achievements   String?
+  createdAt      DateTime     @default(now())
+  field          String
+  graduationDate DateTime?
+  institute      String
+  isCurrent      Boolean      @default(false)
+  updatedAt      DateTime     @updatedAt
+  certificate    Certificate?
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+}
+
+model Certificate {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  key         String
+  name        String
+  size        Int
+  type        String
+  updatedAt   DateTime  @updatedAt
+  education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
+  educationId String    @unique
+}
+
+model Occupation {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  designation  String
+  endDate      DateTime?
+  isCurrent    Boolean   @default(false)
+  organization String
+  startDate    DateTime
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+}
+
+model Personality {
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  testResultEI Float            @default(0)
+  testResultSN Float            @default(0)
+  testResultTF Float            @default(0)
+  testResultJP Float            @default(0)
+  type         PersonalityType?
+  updatedAt    DateTime         @updatedAt
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String           @unique
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  key       String
+  name      String
+  size      Int
+  type      String
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+}

@@ -13,8 +13,6 @@ Parameters:
       - staging
       - prod
     Description: Environment name
-  JwtSecret:
-    Type: String
 
 Globals:
   Function:
@@ -81,7 +79,42 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          JWT_SECRET: !Ref JwtSecret
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  DeleteUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete-user
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user
+            Method: delete
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
           PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
     Metadata:
       BuildMethod: esbuild
@@ -100,3 +133,6 @@ Outputs:
   CreateUserFunction:
     Description: "Create User Lambda Function ARN"
     Value: !GetAtt CreateUserFunction.Arn
+  DeleteUserFunction:
+    Description: "Delete User Lambda Function ARN"
+    Value: !GetAtt DeleteUserFunction.Arn
