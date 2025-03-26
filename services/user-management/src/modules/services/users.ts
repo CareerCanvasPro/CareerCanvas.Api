@@ -10,29 +10,6 @@ import {
 import { prismaClient } from "../../config";
 
 export class UsersDb {
-  public createUser = async ({
-    user,
-  }: {
-    user: Prisma.UserGetPayload<{
-      select: {
-        address: true;
-        coins: true;
-        email: true;
-        id: true;
-        name: true;
-        phone: true;
-        profilePicture: true;
-        username: true;
-      };
-    }>;
-  }): Promise<void> => {
-    await prismaClient.user.create({ data: user });
-  };
-
-  public deleteUser = async ({ id }: { id: string }): Promise<void> => {
-    await prismaClient.user.delete({ where: { id } });
-  };
-
   public findUser = async ({
     id,
   }: {
@@ -84,16 +61,6 @@ export class UsersDb {
     id: string;
   }): Promise<void> => {
     await prismaClient.user.update({ data: { aboutMe }, where: { id } });
-  };
-
-  public updateUserAddress = async ({
-    address,
-    id,
-  }: {
-    address: string;
-    id: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({ data: { address }, where: { id } });
   };
 
   private updateUserCoins = async ({
