@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: CareerCanvas User Management Service - Serverless API
 
 Parameters:
   DatabaseUrl:
@@ -10,9 +9,7 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
-      - staging
       - prod
-    Description: Environment name
 
 Globals:
   Function:
@@ -21,7 +18,6 @@ Globals:
     Runtime: nodejs18.x
 
 Resources:
-  # API Gateway
   UsersApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -39,9 +35,9 @@ Resources:
             FunctionArn: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JwtAuthorizerFunction
             Identity:
               Header: Authorization
+            AuthorizerResultTtlInSeconds: 0
       DisableExecuteApiEndpoint: false
       TracingEnabled: false
-      # Set local development port
       Variables:
         Port: 8004
 
@@ -53,7 +49,6 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${UsersApi}/*"
 
-  # Lambda Functions
   CreateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -522,46 +517,114 @@ Resources:
         Target: "node18"
         TreeShaking: true
 
+  CreateUserOccupationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-user-occupations
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/occupations
+            Method: post
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  DeleteUserOccupationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete-user-occupation
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/occupations/{occupationId}
+            Method: delete
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UpdateUserOccupationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-occupation
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/occupations/{occupationId}
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
 Outputs:
   UsersApiEndpoint:
-    Description: "API Gateway endpoint URL for the User Management service"
     Value: !Sub "https://${UsersApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
-  CreateUserFunction:
-    Description: "Create User Lambda Function ARN"
-    Value: !GetAtt CreateUserFunction.Arn
-  DeleteUserFunction:
-    Description: "Delete User Lambda Function ARN"
-    Value: !GetAtt DeleteUserFunction.Arn
-  UpdateUserAboutMeFunction:
-    Description: "Update User About Me Lambda Function ARN"
-    Value: !GetAtt UpdateUserAboutMeFunction.Arn
-  UpdateUserAddressFunction:
-    Description: "Update User Address Lambda Function ARN"
-    Value: !GetAtt UpdateUserAddressFunction.Arn
-  UpdateUserNameFunction:
-    Description: "Update User Name Lambda Function ARN"
-    Value: !GetAtt UpdateUserNameFunction.Arn
-  UpdateUserProfilePictureFunction:
-    Description: "Update User Profile Picture Lambda Function ARN"
-    Value: !GetAtt UpdateUserProfilePictureFunction.Arn
-  UpdateUserGoalsFunction:
-    Description: "Update User Goals Lambda Function ARN"
-    Value: !GetAtt UpdateUserGoalsFunction.Arn
-  UpdateUserInterestsFunction:
-    Description: "Update User Interests Lambda Function ARN"
-    Value: !GetAtt UpdateUserInterestsFunction.Arn
-  UpdateUserLanguagesFunction:
-    Description: "Update User Languages Lambda Function ARN"
-    Value: !GetAtt UpdateUserLanguagesFunction.Arn
-  UpdateUserSkillsFunction:
-    Description: "Update User Skills Lambda Function ARN"
-    Value: !GetAtt UpdateUserSkillsFunction.Arn
-  CreateUserEducationsFunction:
-    Description: "Create User Educations Lambda Function ARN"
-    Value: !GetAtt CreateUserEducationsFunction.Arn
-  # DeleteUserEducationFunction:
-  #   Description: "Delete User Education Lambda Function ARN"
-  #   Value: !GetAtt DeleteUserEducationFunction.Arn
-  UpdateUserEducationFunction:
-    Description: "Update User Education Lambda Function ARN"
-    Value: !GetAtt UpdateUserEducationFunction.Arn

@@ -3,78 +3,13 @@ import { Request, Response } from "express";
 
 import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import {
-  appreciationSchema,
-  occupationArraySchema,
-  occupationSchema,
-  resumeSchema,
-  stringSchema,
-} from "../schemas";
+import { appreciationSchema, resumeSchema, stringSchema } from "../schemas";
 import { Axios, UsersDb } from "../services";
 
 export class UserManagementController {
   private readonly axios = new Axios();
 
   private readonly usersDb = new UsersDb();
-
-  public handleFindUser = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { authorization, userId } = req.body;
-
-      const { user } = await this.usersDb.findUser({
-        id: userId,
-      });
-
-      if (user) {
-        const { educations, resumes } = user;
-
-        for (const education of educations) {
-          if (education.certificate) {
-            const { certificate } = education;
-
-            const {
-              data: { data },
-            } = await this.axios.get({
-              authorization,
-              url: `${config.baseUrl.media}/media/signed-url?key=${certificate.key}`,
-            });
-
-            certificate["url"] = data["signedUrl"];
-          }
-        }
-
-        for (const resume of resumes) {
-          const {
-            data: { data },
-          } = await this.axios.get({
-            authorization,
-            url: `${config.baseUrl.media}/media/signed-url?key=${resume.key}`,
-          });
-
-          resume["url"] = data["signedUrl"];
-        }
-
-        res
-          .status(200)
-          .json({ data: user, message: "Profile retrieved successfully" });
-      } else {
-        res.status(404).json({ data: null, message: "Profile not found" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
 
   public handleUpdateUserFcmToken = async (
     req: Request,
@@ -224,127 +159,6 @@ export class UserManagementController {
         res
           .status(200)
           .json({ data: null, message: "Appreciation updated successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  // OCCUPATIONS
-
-  public handleCreateUserOccupations = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { occupations, userId } = req.body;
-
-      const { error, value: validatedOccupations } =
-        occupationArraySchema.validate(occupations, {
-          abortEarly: false,
-        });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.createUserOccupations({
-          id: userId,
-          occupations: validatedOccupations,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Occupations created successfully" });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleDeleteUserOccupation = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { userId },
-        params: { occupationId },
-      } = req;
-
-      await this.usersDb.deleteUserOccupation({
-        id: userId,
-        occupationId,
-      });
-
-      res
-        .status(200)
-        .json({ data: null, message: "Occupation deleted successfully" });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUpdateUserOccupation = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { occupation, userId },
-        params: { occupationId },
-      } = req;
-
-      const { error, value: validatedOccupation } = occupationSchema.validate(
-        occupation,
-        {
-          abortEarly: false,
-        }
-      );
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        await this.usersDb.updateUserOccupation({
-          id: userId,
-          occupation: validatedOccupation,
-          occupationId,
-        });
-
-        res
-          .status(200)
-          .json({ data: null, message: "Occupation updated successfully" });
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

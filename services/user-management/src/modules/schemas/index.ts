@@ -97,37 +97,6 @@ export const educationSchema = joi
   .unknown(false)
   .required();
 
-// OCCUPATIONS
-
-export const occupationArraySchema = joi
-  .array()
-  .items(
-    joi
-      .object()
-      .keys({
-        designation: joi.string().required().trim(),
-        endDate: joi.date().allow(null),
-        isCurrent: joi.boolean().default(false),
-        organization: joi.string().required().trim(),
-        startDate: joi.date().required(),
-      })
-      .unknown(false)
-      .required()
-  )
-  .required();
-
-export const occupationSchema = joi
-  .object()
-  .keys({
-    designation: joi.string().required().trim(),
-    endDate: joi.date().allow(null),
-    isCurrent: joi.boolean().default(false),
-    organization: joi.string().required().trim(),
-    startDate: joi.date().required(),
-  })
-  .unknown(false)
-  .required();
-
 // RESUMES
 
 export const resumeSchema = joi

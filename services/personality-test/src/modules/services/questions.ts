@@ -1,5 +1,3 @@
-import { PersonalityTestQuestion } from "@prisma/client";
-
 import { prismaClient } from "../../config";
 
 interface IQuestion {
@@ -19,13 +17,5 @@ export class QuestionsDb {
     await prismaClient.personalityTestQuestion.createMany({
       data: questions,
     });
-  };
-
-  public retrieveQuestions = async (): Promise<{
-    questions: PersonalityTestQuestion[];
-  }> => {
-    const questions = await prismaClient.personalityTestQuestion.findMany();
-
-    return { questions };
   };
 }
