@@ -414,6 +414,114 @@ Resources:
         Target: "node18"
         TreeShaking: true
 
+  CreateUserEducationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-user-educations
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/educations
+            Method: post
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  # DeleteUserEducationFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: delete-user-education
+  #     Handler: index.handler
+  #     Layers:
+  #       - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+  #     Policies:
+  #       - AWSLambdaBasicExecutionRole
+  #       - Statement:
+  #           - Sid: LayerAccess
+  #             Effect: Allow
+  #             Action:
+  #               - lambda:GetLayerVersion
+  #             Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+  #     Events:
+  #       ApiEvent:
+  #         Type: Api
+  #         Properties:
+  #           RestApiId: !Ref UsersApi
+  #           Path: /user/educations/{educationId}
+  #           Method: delete
+  #     Environment:
+  #       Variables:
+  #         DATABASE_URL: !Ref DatabaseUrl
+  #         PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+  #   Metadata:
+  #     BuildMethod: esbuild
+  #     BuildProperties:
+  #       Bundle: true
+  #       KeepNames: false
+  #       Minify: true
+  #       Sourcemap: false
+  #       Target: "node18"
+  #       TreeShaking: true
+
+  UpdateUserEducationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-education
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/educations/{educationId}
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
 Outputs:
   UsersApiEndpoint:
     Description: "API Gateway endpoint URL for the User Management service"
@@ -448,3 +556,12 @@ Outputs:
   UpdateUserSkillsFunction:
     Description: "Update User Skills Lambda Function ARN"
     Value: !GetAtt UpdateUserSkillsFunction.Arn
+  CreateUserEducationsFunction:
+    Description: "Create User Educations Lambda Function ARN"
+    Value: !GetAtt CreateUserEducationsFunction.Arn
+  # DeleteUserEducationFunction:
+  #   Description: "Delete User Education Lambda Function ARN"
+  #   Value: !GetAtt DeleteUserEducationFunction.Arn
+  UpdateUserEducationFunction:
+    Description: "Update User Education Lambda Function ARN"
+    Value: !GetAtt UpdateUserEducationFunction.Arn
