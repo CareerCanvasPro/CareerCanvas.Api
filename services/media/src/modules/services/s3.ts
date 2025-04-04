@@ -1,11 +1,9 @@
 import {
   DeleteObjectCommand,
-  GetObjectCommand,
   ObjectCannedACL,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { config } from "../../config";
 
@@ -31,23 +29,6 @@ export class S3 {
     );
 
     return { httpStatusCode };
-  };
-
-  public getSignedUrl = async ({
-    key,
-  }: {
-    key: string;
-  }): Promise<{ signedUrl: string }> => {
-    const signedUrl = await getSignedUrl(
-      this.s3Client,
-      new GetObjectCommand({
-        Bucket: this.BUCKET,
-        Key: key,
-      }),
-      { expiresIn: 3600 }
-    );
-
-    return { signedUrl }; // when the user wants to get his profile, extract the key from the db and generate the signed url and send in the response body
   };
 
   public getUrl = ({ key }: { key: string }): { url: string } => {

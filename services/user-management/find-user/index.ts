@@ -1,58 +1,83 @@
-public handleFindUser = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { authorization, userId } = req.body;
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
-      const { user } = await this.usersDb.findUser({
-        id: userId,
-      });
+import { getPresignedUrl } from "./s3.service";
+import { findUser } from "./users.db.service";
 
-      if (user) {
-        const { educations, resumes } = user;
+export const handler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  try {
+    const { userId } = JSON.parse(event.requestContext.authorizer?.user);
 
-        for (const education of educations) {
-          if (education.certificate) {
-            const { certificate } = education;
+    const { user } = await findUser({
+      id: userId,
+    });
 
-            const {
-              data: { data },
-            } = await this.axios.get({
-              authorization,
-              url: `${config.baseUrl.media}/media/signed-url?key=${certificate.key}`,
-            });
+    if (user) {
+      const { educations, resumes } = user;
 
-            certificate["url"] = data["signedUrl"];
-          }
-        }
+      for (const education of educations) {
+        if (education.certificate) {
+          const { certificate } = education;
 
-        for (const resume of resumes) {
-          const {
-            data: { data },
-          } = await this.axios.get({
-            authorization,
-            url: `${config.baseUrl.media}/media/signed-url?key=${resume.key}`,
+          const { presignedUrl } = await getPresignedUrl({
+            key: certificate.key,
           });
 
-          resume["url"] = data["signedUrl"];
+          certificate["url"] = presignedUrl;
         }
+      }
 
-        res
-          .status(200)
-          .json({ data: user, message: "Profile retrieved successfully" });
-      } else {
-        res.status(404).json({ data: null, message: "Profile not found" });
+      for (const resume of resumes) {
+        const { presignedUrl } = await getPresignedUrl({
+          key: resume.key,
+        });
+
+        resume["url"] = presignedUrl;
       }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
+
+      return {
+        body: JSON.stringify({
+          data: user,
+          message: "Profile retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    } else {
+      return {
+        body: JSON.stringify({ data: null, message: "Profile not found" }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 404,
+      };
     }
-  };
+  } catch (error) {
+    if (error.$metadata && error.$metadata.httpStatusCode) {
+      return {
+        body: JSON.stringify({
+          data: null,
+          message: `${error.name}: ${error.message}`,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: error.$metadata.httpStatusCode,
+      };
+    } else {
+      return {
+        body: JSON.stringify({
+          data: null,
+          message: `${error.name}: ${error.message}`,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 500,
+      };
+    }
+  }
+};
