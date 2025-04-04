@@ -10,6 +10,8 @@ Parameters:
     AllowedValues:
       - dev
       - prod
+  S3Bucket:
+    Type: String
 
 Globals:
   Function:
@@ -23,6 +25,10 @@ Resources:
     Properties:
       OpenApiVersion: "2.0"
       StageName: !Ref Environment
+      BinaryMediaTypes:
+        - "multipart~1form-data"
+        - "image~1*"
+        - "application~1pdf"
       Cors:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
@@ -255,6 +261,42 @@ Resources:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
           PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  UploadUserProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: upload-user-profile-picture
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource:
+                - !Sub "arn:aws:s3:::${S3Bucket}/*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/profile-picture/upload
+            Method: put
+      Environment:
+        Variables:
+          REGION: !Ref AWS::Region
+          S3_BUCKET: !Ref S3Bucket
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
