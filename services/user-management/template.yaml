@@ -712,6 +712,97 @@ Resources:
         Target: "node18"
         TreeShaking: true
 
+  CreateUserResumeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-user-resume
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource:
+                - !Sub "arn:aws:s3:::${S3Bucket}/*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/resumes
+            Method: post
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          REGION: !Ref AWS::Region
+          S3_BUCKET: !Ref S3Bucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
+  DeleteUserResumeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete-user-resume
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:DeleteObject
+              Resource:
+                - !Sub "arn:aws:s3:::${S3Bucket}/*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/resumes/{resumeId}
+            Method: delete
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          REGION: !Ref AWS::Region
+          S3_BUCKET: !Ref S3Bucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node18"
+        TreeShaking: true
+
 Outputs:
   UsersApiEndpoint:
     Value: !Sub "https://${UsersApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"

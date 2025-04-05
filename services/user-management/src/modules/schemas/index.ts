@@ -96,16 +96,3 @@ export const educationSchema = joi
   })
   .unknown(false)
   .required();
-
-// RESUMES
-
-export const resumeSchema = joi
-  .object()
-  .keys({
-    key: joi.string().required(),
-    name: joi.string().required(),
-    size: joi.number().required(),
-    type: joi.string().required(),
-  })
-  .unknown(false)
-  .required();

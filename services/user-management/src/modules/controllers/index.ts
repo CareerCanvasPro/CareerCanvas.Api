@@ -1,9 +1,7 @@
-import cuid from "cuid";
 import { Request, Response } from "express";
 
-import { config } from "../../config";
 import { cleanMessage } from "../../utils";
-import { appreciationSchema, resumeSchema, stringSchema } from "../schemas";
+import { appreciationSchema, stringSchema } from "../schemas";
 import { Axios, UsersDb } from "../services";
 
 export class UserManagementController {
@@ -160,86 +158,6 @@ export class UserManagementController {
           .status(200)
           .json({ data: null, message: "Appreciation updated successfully" });
       }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  // RESUMES
-
-  public handleCreateUserResume = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { resume, userId } = req.body;
-
-      const { error, value: validatedResume } = resumeSchema.validate(resume, {
-        abortEarly: false,
-      });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        const resumeId = cuid();
-
-        await this.usersDb.createUserResume({
-          id: userId,
-          resume: { ...validatedResume, id: resumeId },
-        });
-
-        res.status(200).json({
-          data: { ...validatedResume, resumeId },
-          message: "Resume created successfully",
-        });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleDeleteUserResume = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { authorization, userId },
-        params: { resumeId },
-        query: { key },
-      } = req;
-
-      await this.usersDb.deleteUserResume({
-        id: userId,
-        resumeId,
-      });
-
-      const { data, status } = await this.axios.delete({
-        authorization,
-        url: `${config.baseUrl.media}/media/resume?key=${key}`,
-      });
-
-      res.status(status).json(data);
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {
         res

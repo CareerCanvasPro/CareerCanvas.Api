@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { config } from "../../config";
 import { Axios, S3 } from "../services";
 
 export class MediaController {
@@ -54,36 +53,6 @@ export class MediaController {
         res.status(200).json({
           data: null,
           message: "Profile picture removed successfully",
-        });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleRemoveResume = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { key } = req.query;
-
-      const { httpStatusCode } = await this.s3.deleteFile({
-        key: key as string,
-      });
-
-      if (httpStatusCode === 204) {
-        res.status(200).json({
-          data: null,
-          message: "Resume removed successfully",
         });
       }
     } catch (error) {
@@ -202,58 +171,6 @@ export class MediaController {
           data: { url },
           message: "Image uploaded successfully",
         });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
-  public handleUploadResume = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { authorization, error, userId },
-        file,
-      } = req;
-
-      if (error) {
-        res.status(400).json(error);
-      } else if (!file) {
-        res.status(400).json({ data: null, message: "No file uploaded" });
-      } else {
-        const { buffer, mimetype, originalname, size } = file;
-
-        const { key } = await this.s3.putFile({
-          acl: "private",
-          body: buffer,
-          contentType: mimetype,
-          key: `${userId}-resume-${Date.now()}`,
-        });
-
-        const { data, status } = await this.axios.post({
-          authorization,
-          data: {
-            resume: {
-              key,
-              name: originalname,
-              size,
-              type: mimetype,
-            },
-          },
-          url: `${config.baseUrl.users}/user/resumes`,
-        });
-
-        res.status(status).json(data);
       }
     } catch (error) {
       if (error.$metadata && error.$metadata.httpStatusCode) {

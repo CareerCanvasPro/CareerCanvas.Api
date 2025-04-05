@@ -1,4 +1,4 @@
-import { Appreciation, Resume } from "@prisma/client";
+import { Appreciation } from "@prisma/client";
 
 import { prismaClient } from "../../config";
 
@@ -102,48 +102,6 @@ export class UsersDb {
             where: {
               id: appreciationId,
             },
-          },
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  // RESUMES
-
-  public createUserResume = async ({
-    id,
-    resume,
-  }: {
-    id: string;
-    resume: Omit<Resume, "createdAt" | "updatedAt" | "userId">;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        resumes: {
-          create: resume,
-        },
-      },
-      where: {
-        id,
-      },
-    });
-  };
-
-  public deleteUserResume = async ({
-    id,
-    resumeId,
-  }: {
-    id: string;
-    resumeId: string;
-  }): Promise<void> => {
-    await prismaClient.user.update({
-      data: {
-        resumes: {
-          delete: {
-            id: resumeId,
           },
         },
       },

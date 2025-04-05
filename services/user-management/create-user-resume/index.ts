@@ -1,8 +1,10 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import cuid from "cuid";
 import { parse } from "lambda-multipart-parser";
 
 import { putFile } from "./s3.service";
-import { checkContentTypeValidity, getUrl } from "./utils";
+import { createUserResume } from "./users.db.service";
+import { checkContentTypeValidity } from "./utils";
 
 export const handler = async (
   event: APIGatewayProxyEvent
@@ -23,7 +25,7 @@ export const handler = async (
         statusCode: 400,
       };
     } else {
-      const { content, contentType } = file;
+      const { content, contentType, filename } = file;
 
       const { isContentTypeValid } = checkContentTypeValidity({
         contentType,
@@ -41,24 +43,35 @@ export const handler = async (
           statusCode: 400,
         };
       } else {
-        const { httpStatusCode, key } = await putFile({
-          acl: "public-read",
+        const { key } = await putFile({
+          acl: "private",
           body: content,
           contentType,
-          key: `${userId}-profile-picture`,
+          key: `${userId}-resume-${Date.now()}`,
         });
 
-        const { url } = getUrl({ key });
+        const resume = {
+          id: cuid(),
+          key,
+          name: filename,
+          size: content.length,
+          type: contentType,
+        };
+
+        await createUserResume({
+          id: userId,
+          resume,
+        });
 
         return {
           body: JSON.stringify({
-            data: { url },
-            message: "Profile picture uploaded successfully",
+            data: { resume },
+            message: "Resume created successfully",
           }),
           headers: {
             "Content-Type": "application/json",
           },
-          statusCode: httpStatusCode,
+          statusCode: 200,
         };
       }
     }
