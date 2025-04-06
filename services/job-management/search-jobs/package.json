@@ -1,12 +1,13 @@
 {
   "dependencies": {
-    "fast-jwt": "^6.0.0"
+    "@prisma/client": "^6.5.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",
     "@types/node": "^22.13.11",
-    "aws-lambda": "^1.0.7"
+    "aws-lambda": "^1.0.7",
+    "prisma": "^6.5.0"
   },
-  "name": "@careercanvas-api/authorizer",
+  "name": "@careercanvas-api/jobs-search-jobs",
   "version": "0.0.0"
 }

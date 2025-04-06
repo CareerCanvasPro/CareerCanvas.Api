@@ -35,14 +35,14 @@ export const handler = async (
         statusCode: 400,
       };
     } else {
-      await updateUserSkills({
+      const { coins } = await updateUserSkills({
         id: userId,
         skills: validatedSkills,
       });
 
       return {
         body: JSON.stringify({
-          data: null,
+          data: { coins },
           message: "Skills updated successfully",
         }),
         headers: {

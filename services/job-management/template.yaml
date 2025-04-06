@@ -1,0 +1,215 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  DatabaseUrl:
+    Type: String
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
+
+Resources:
+  JobsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      OpenApiVersion: "2.0"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+      EndpointConfiguration: REGIONAL
+      Auth:
+        DefaultAuthorizer: JwtAuthorizer
+        Authorizers:
+          ApiKeyAuthorizer:
+            FunctionArn: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ApiKeyAuthorizerFunction
+            Identity:
+              Header: Authorization
+            AuthorizerResultTtlInSeconds: 0
+          JwtAuthorizer:
+            FunctionArn: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JwtAuthorizerFunction
+            Identity:
+              Header: Authorization
+            AuthorizerResultTtlInSeconds: 0
+      DisableExecuteApiEndpoint: false
+      TracingEnabled: false
+      Variables:
+        Port: 8006
+
+  CreateJobsApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ApiKeyAuthorizerFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JobsApi}/*"
+
+  JobsApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:JwtAuthorizerFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JobsApi}/*"
+
+  CreateJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-jobs
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JobsApi
+            Path: /jobs
+            Method: post
+            Auth:
+              Authorizer: ApiKeyAuthorizer
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  RecommendJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: recommend-jobs
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JobsApi
+            Path: /jobs/recommendation
+            Method: get
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  SearchJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: search-jobs
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JobsApi
+            Path: /jobs/search
+            Method: get
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  FindCareerTrendsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: find-career-trends
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref JobsApi
+            Path: /jobs/career-trends
+            Method: get
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+Outputs:
+  JobsApiEndpoint:
+    Value: !Sub "https://${JobsApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"

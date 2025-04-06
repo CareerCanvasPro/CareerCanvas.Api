@@ -17,7 +17,9 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 128
-    Runtime: nodejs18.x
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
 
 Resources:
   UsersApi:
@@ -61,7 +63,7 @@ Resources:
       CodeUri: create-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -69,7 +71,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -80,7 +82,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -88,7 +90,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   DeleteUserFunction:
@@ -97,7 +99,7 @@ Resources:
       CodeUri: delete-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -105,7 +107,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -116,7 +118,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -124,7 +126,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   FindUserFunction:
@@ -133,7 +135,7 @@ Resources:
       CodeUri: find-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -141,7 +143,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -159,7 +161,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
           REGION: !Ref AWS::Region
           S3_BUCKET: !Ref S3Bucket
     Metadata:
@@ -169,7 +171,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserAboutMeFunction:
@@ -178,7 +180,7 @@ Resources:
       CodeUri: update-user-about-me
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -186,7 +188,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -197,7 +199,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -205,7 +207,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserAddressFunction:
@@ -214,7 +216,7 @@ Resources:
       CodeUri: update-user-address
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -222,7 +224,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -233,7 +235,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -241,7 +243,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserNameFunction:
@@ -250,7 +252,7 @@ Resources:
       CodeUri: update-user-name
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -258,7 +260,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -269,7 +271,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -277,7 +279,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserProfilePictureFunction:
@@ -286,7 +288,7 @@ Resources:
       CodeUri: update-user-profile-picture
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -294,7 +296,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -305,7 +307,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -313,7 +315,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UploadUserProfilePictureFunction:
@@ -349,7 +351,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserGoalsFunction:
@@ -358,7 +360,7 @@ Resources:
       CodeUri: update-user-goals
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -366,7 +368,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -377,7 +379,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -385,7 +387,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserInterestsFunction:
@@ -394,7 +396,7 @@ Resources:
       CodeUri: update-user-interests
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -402,7 +404,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -413,7 +415,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -421,7 +423,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserLanguagesFunction:
@@ -430,7 +432,7 @@ Resources:
       CodeUri: update-user-languages
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -438,7 +440,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -449,7 +451,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -457,7 +459,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserSkillsFunction:
@@ -466,7 +468,7 @@ Resources:
       CodeUri: update-user-skills
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -474,7 +476,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -485,7 +487,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -493,7 +495,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   CreateUserEducationsFunction:
@@ -502,7 +504,7 @@ Resources:
       CodeUri: create-user-educations
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -510,7 +512,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -521,7 +523,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -529,52 +531,16 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
-  # DeleteUserEducationFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: delete-user-education
-  #     Handler: index.handler
-  #     Layers:
-  #       - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
-  #     Policies:
-  #       - AWSLambdaBasicExecutionRole
-  #       - Statement:
-  #           - Sid: LayerAccess
-  #             Effect: Allow
-  #             Action:
-  #               - lambda:GetLayerVersion
-  #             Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
-  #     Events:
-  #       ApiEvent:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref UsersApi
-  #           Path: /user/educations/{educationId}
-  #           Method: delete
-  #     Environment:
-  #       Variables:
-  #         DATABASE_URL: !Ref DatabaseUrl
-  #         PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
-  #   Metadata:
-  #     BuildMethod: esbuild
-  #     BuildProperties:
-  #       Bundle: true
-  #       KeepNames: false
-  #       Minify: true
-  #       Sourcemap: false
-  #       Target: "node18"
-  #       TreeShaking: true
-
-  UpdateUserEducationFunction:
+  DeleteUserEducationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: update-user-education
+      CodeUri: delete-user-education
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -582,7 +548,52 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:DeleteObject
+              Resource:
+                - !Sub "arn:aws:s3:::${S3Bucket}/*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/educations/{educationId}
+            Method: delete
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+          REGION: !Ref AWS::Region
+          S3_BUCKET: !Ref S3Bucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  UpdateUserEducationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-education
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -593,7 +604,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -601,7 +612,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   CreateUserOccupationsFunction:
@@ -610,7 +621,7 @@ Resources:
       CodeUri: create-user-occupations
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -618,7 +629,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -629,7 +640,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -637,7 +648,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   DeleteUserOccupationFunction:
@@ -646,7 +657,7 @@ Resources:
       CodeUri: delete-user-occupation
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -654,7 +665,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -665,7 +676,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -673,7 +684,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   UpdateUserOccupationFunction:
@@ -682,7 +693,7 @@ Resources:
       CodeUri: update-user-occupation
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -690,7 +701,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -701,7 +712,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -709,7 +720,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   CreateUserResumeFunction:
@@ -718,7 +729,7 @@ Resources:
       CodeUri: create-user-resume
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -726,7 +737,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -745,7 +756,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
           REGION: !Ref AWS::Region
           S3_BUCKET: !Ref S3Bucket
     Metadata:
@@ -755,7 +766,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   DeleteUserResumeFunction:
@@ -764,7 +775,7 @@ Resources:
       CodeUri: delete-user-resume
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -772,7 +783,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -790,7 +801,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
           REGION: !Ref AWS::Region
           S3_BUCKET: !Ref S3Bucket
     Metadata:
@@ -800,7 +811,78 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
+        TreeShaking: true
+
+  DeleteUserCertificateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete-user-certificate
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:DeleteObject
+              Resource:
+                - !Sub "arn:aws:s3:::${S3Bucket}/*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/certificate
+            Method: delete
+      Environment:
+        Variables:
+          REGION: !Ref AWS::Region
+          S3_BUCKET: !Ref S3Bucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  UploadUserCertificateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: upload-user-certificate
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:PutObjectAcl
+              Resource:
+                - !Sub "arn:aws:s3:::${S3Bucket}/*"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/certificate
+            Method: post
+      Environment:
+        Variables:
+          REGION: !Ref AWS::Region
+          S3_BUCKET: !Ref S3Bucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
         TreeShaking: true
 
 Outputs:

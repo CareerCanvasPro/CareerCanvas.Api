@@ -2,12 +2,12 @@ import { build } from "esbuild";
 
 build({
   bundle: true,
-  entryPoints: ["./jwt-authorizer/index"],
+  entryPoints: ["./api-key-authorizer/index", "./jwt-authorizer/index"],
   keepNames: false,
   minify: true,
   outdir: "./lib",
   platform: "node",
   sourcemap: false,
-  target: "node18",
+  target: "node22",
   treeShaking: true,
 });

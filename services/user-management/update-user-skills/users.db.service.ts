@@ -6,7 +6,7 @@ export const updateUserSkills = async ({
 }: {
   id: string;
   skills: string[];
-}): Promise<void> => {
+}): Promise<{ coins: number }> => {
   const user = await prismaClient.user.findUnique({
     select: {
       coins: true,
@@ -51,6 +51,8 @@ export const updateUserSkills = async ({
         id,
       },
     });
+
+    return { coins };
   } else {
     const coinsToAdd = 5;
 
@@ -76,5 +78,7 @@ export const updateUserSkills = async ({
         id,
       },
     });
+
+    return { coins: coins + coinsToAdd };
   }
 };

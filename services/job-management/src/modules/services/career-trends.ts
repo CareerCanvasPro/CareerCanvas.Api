@@ -12,12 +12,4 @@ export class CareerTrendsDb {
       data: careerTrend,
     });
   };
-
-  public retrieveCareerTrends = async (): Promise<{
-    careerTrends: CareerTrend[];
-  }> => {
-    const careerTrends = await prismaClient.careerTrend.findMany();
-
-    return { careerTrends };
-  };
 }

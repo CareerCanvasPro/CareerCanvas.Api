@@ -35,14 +35,14 @@ export const handler = async (
         statusCode: 400,
       };
     } else {
-      await updateUserInterests({
+      const { coins } = await updateUserInterests({
         id: userId,
         interests: validatedInterests,
       });
 
       return {
         body: JSON.stringify({
-          data: null,
+          data: { coins },
           message: "Interests updated successfully",
         }),
         headers: {

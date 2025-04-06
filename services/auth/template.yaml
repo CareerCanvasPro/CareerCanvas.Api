@@ -1,10 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: CareerCanvas Auth Service - Serverless API
 
 Parameters:
-  # AuthBaseUrl:
-  #   Type: String
+  AuthBaseUrl:
+    Type: String
   DatabaseUrl:
     Type: String
   Environment:
@@ -12,9 +11,7 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
-      - staging
       - prod
-    Description: Environment name
   JwtSecret:
     Type: String
   MailHost:
@@ -30,10 +27,11 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 128
-    Runtime: nodejs18.x
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
 
 Resources:
-  # API Gateway
   AuthApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -48,86 +46,24 @@ Resources:
         DefaultAuthorizer: NONE
       DisableExecuteApiEndpoint: false
       TracingEnabled: false
-      # Set local development port
       Variables:
         Port: 8001
-
-  # Lambda Functions
-  # RequestMagicLinkFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: src
-  #     Handler: lambda/requestMagicLink.handler
-  #     Policies:
-  #       - AWSLambdaBasicExecutionRole
-  #       - Version: "2012-10-17"
-  #         Statement:
-  #           - Effect: Allow
-  #             Action:
-  #               - ssm:GetParameter
-  #             Resource:
-  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
-  #           - Effect: Allow
-  #             Action:
-  #               - kms:Decrypt
-  #             Resource:
-  #               - !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/alias/aws/ssm"
-  #           - Effect: Allow
-  #             Action:
-  #               - ssm:GetParameters
-  #               - ssm:GetParameter
-  #               - ssm:GetParametersByPath
-  #             Resource:
-  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
-  #     Events:
-  #       ApiEvent:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref AuthApi
-  #           Path: /auth/magic-link/request
-  #           Method: post
-
-  # VerifyMagicLinkFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: src
-  #     Handler: lambda/verifyMagicLink.handler
-  #     Policies:
-  #       - AWSLambdaBasicExecutionRole
-  #       - Version: "2012-10-17"
-  #         Statement:
-  #           - Effect: Allow
-  #             Action:
-  #               - ssm:GetParameter
-  #             Resource:
-  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
-  #           - Effect: Allow
-  #             Action:
-  #               - kms:Decrypt
-  #             Resource:
-  #               - !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/alias/aws/ssm"
-  #           - Effect: Allow
-  #             Action:
-  #               - ssm:GetParameters
-  #               - ssm:GetParameter
-  #               - ssm:GetParametersByPath
-  #             Resource:
-  #               - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/careercanvas/*"
-  #     Events:
-  #       ApiEvent:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref AuthApi
-  #           Path: /auth/magic-link/verify
-  #           Method: get
 
   RequestEmailOtpFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: request-email-otp
       Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -142,6 +78,7 @@ Resources:
           MAIL_PASSWORD: !Ref MailPassword
           MAIL_PORT: !Ref MailPort
           MAIL_USERNAME: !Ref MailUsername
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -149,7 +86,39 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
+        TreeShaking: true
+
+  RequestMagicLinkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: request-magic-link
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/magic-link/request
+            Method: post
+      Environment:
+        Variables:
+          AUTH_BASE_URL: !Ref AuthBaseUrl
+          JWT_SECRET: !Ref JwtSecret
+          MAIL_HOST: !Ref MailHost
+          MAIL_PASSWORD: !Ref MailPassword
+          MAIL_PORT: !Ref MailPort
+          MAIL_USERNAME: !Ref MailUsername
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
         TreeShaking: true
 
   VerifyOtpFunction:
@@ -157,8 +126,16 @@ Resources:
     Properties:
       CodeUri: verify-otp
       Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -170,6 +147,7 @@ Resources:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
           JWT_SECRET: !Ref JwtSecret
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -177,22 +155,46 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
+        TreeShaking: true
+
+  VerifyMagicLinkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: verify-magic-link
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AuthApi
+            Path: /auth/magic-link/verify
+            Method: get
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          JWT_SECRET: !Ref JwtSecret
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
         TreeShaking: true
 
 Outputs:
   AuthApiEndpoint:
-    Description: "API Gateway endpoint URL for the Auth service"
     Value: !Sub "https://${AuthApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"
-  # RequestMagicLinkFunction:
-  #   Description: "Request Magic Link Lambda Function ARN"
-  #   Value: !GetAtt RequestMagicLinkFunction.Arn
-  # VerifyMagicLinkFunction:
-  #   Description: "Verify Magic Link Lambda Function ARN"
-  #   Value: !GetAtt VerifyMagicLinkFunction.Arn
-  RequestEmailOtpFunction:
-    Description: "Request Email OTP Lambda Function ARN"
-    Value: !GetAtt RequestEmailOtpFunction.Arn
-  VerifyOtpFunction:
-    Description: "Verify OTP Lambda Function ARN"
-    Value: !GetAtt VerifyOtpFunction.Arn

@@ -6,14 +6,16 @@ export const updateUserInterests = async ({
 }: {
   id: string;
   interests: string[];
-}): Promise<void> => {
+}): Promise<{ coins: number }> => {
   const user = await prismaClient.user.findUnique({
     select: {
+      coins: true,
       interests: {
         select: {
           name: true,
         },
       },
+      isInterests: true,
     },
     where: {
       id,
@@ -32,24 +34,57 @@ export const updateUserInterests = async ({
     (interest) => !interests.includes(interest)
   );
 
-  await prismaClient.user.update({
-    data: {
-      interests: {
-        connectOrCreate: interestsToAdd.map((interest) => ({
-          create: {
+  const { coins, isInterests } = user!;
+
+  if (isInterests) {
+    await prismaClient.user.update({
+      data: {
+        interests: {
+          connectOrCreate: interestsToAdd.map((interest) => ({
+            create: {
+              name: interest,
+            },
+            where: {
+              name: interest,
+            },
+          })),
+          disconnect: interestsToRemove.map((interest) => ({
             name: interest,
-          },
-          where: {
-            name: interest,
-          },
-        })),
-        disconnect: interestsToRemove.map((interest) => ({
-          name: interest,
-        })),
+          })),
+        },
       },
-    },
-    where: {
-      id,
-    },
-  });
+      where: {
+        id,
+      },
+    });
+
+    return { coins };
+  } else {
+    const coinsToAdd = 5;
+
+    await prismaClient.user.update({
+      data: {
+        coins: coins + coinsToAdd,
+        interests: {
+          connectOrCreate: interestsToAdd.map((interest) => ({
+            create: {
+              name: interest,
+            },
+            where: {
+              name: interest,
+            },
+          })),
+          disconnect: interestsToRemove.map((interest) => ({
+            name: interest,
+          })),
+        },
+        isInterests: true,
+      },
+      where: {
+        id,
+      },
+    });
+
+    return { coins: coins + coinsToAdd };
+  }
 };

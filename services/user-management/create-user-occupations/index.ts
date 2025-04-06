@@ -33,14 +33,14 @@ export const handler = async (
         statusCode: 400,
       };
     } else {
-      await createUserOccupations({
+      const { coins } = await createUserOccupations({
         id: userId,
         occupations: validatedOccupations,
       });
 
       return {
         body: JSON.stringify({
-          data: null,
+          data: { coins },
           message: "Occupations created successfully",
         }),
         headers: {

@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "fast-jwt": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "@types/node": "^22.13.11",
+    "aws-lambda": "^1.0.7"
+  },
+  "name": "@careercanvas-api/jwt-authorizer",
+  "version": "0.0.0"
+}

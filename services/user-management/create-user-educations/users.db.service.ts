@@ -13,7 +13,7 @@ export const createUserEducation = async ({
     | undefined;
   education: Omit<Education, "createdAt" | "id" | "updatedAt" | "userId">;
   id: string;
-}): Promise<void> => {
+}): Promise<{ coins: number }> => {
   const user = await prismaClient.user.findUnique({
     select: {
       coins: true,
@@ -46,6 +46,8 @@ export const createUserEducation = async ({
         id,
       },
     });
+
+    return { coins };
   } else {
     const coinsToAdd = 5;
 
@@ -70,5 +72,7 @@ export const createUserEducation = async ({
         id,
       },
     });
+
+    return { coins: coins + coinsToAdd };
   }
 };

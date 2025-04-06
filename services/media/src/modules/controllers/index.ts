@@ -8,36 +8,6 @@ export class MediaController {
 
   private readonly s3 = new S3();
 
-  public handleRemoveCertificate = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { key } = req.query;
-
-      const { httpStatusCode } = await this.s3.deleteFile({
-        key: key as string,
-      });
-
-      if (httpStatusCode === 204) {
-        res.status(200).json({
-          data: null,
-          message: "Certificate removed successfully",
-        });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
-
   public handleRemoveProfilePicture = async (
     req: Request,
     res: Response
@@ -88,55 +58,6 @@ export class MediaController {
           .json({ data: null, message: error.message });
       } else {
         res.status(500).json({ data: null, message: error.message });
-      }
-    }
-  };
-
-  public handleUploadCertificate = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { error, userId },
-        file,
-      } = req;
-
-      if (error) {
-        res.status(400).json(error);
-      } else if (!file) {
-        res.status(400).json({ data: null, message: "No file uploaded" });
-      } else {
-        const { buffer, mimetype, originalname, size } = file;
-
-        const { httpStatusCode, key } = await this.s3.putFile({
-          acl: "private",
-          body: buffer,
-          contentType: mimetype,
-          key: `${userId}-certificate-${Date.now()}`,
-        });
-
-        res.status(httpStatusCode).json({
-          data: {
-            file: {
-              key,
-              name: originalname,
-              size,
-              type: mimetype,
-            },
-          },
-          message: "Certificate uploaded successfully",
-        });
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
       }
     }
   };

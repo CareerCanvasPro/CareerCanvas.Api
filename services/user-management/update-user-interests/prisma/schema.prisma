@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -77,7 +77,6 @@ model Field {
   id      String   @id @default(cuid())
   name    String   @unique
   courses Course[]
-  jobs    Job[]
   users   User[]
 }
 
@@ -85,7 +84,6 @@ model Goal {
   id      String   @id @default(cuid())
   name    String   @unique
   courses Course[]
-  jobs    Job[]
   users   User[]
 }
 
@@ -151,24 +149,17 @@ model Course {
 /// JOB SCHEMA
 
 model Job {
-  id               String            @id @default(cuid())
-  companyLogo      String
-  createdAt        DateTime          @default(now())
-  currency         Currency
-  deadline         DateTime
-  location         String
-  locationType     JobLocationType
-  organization     String
-  personalityTypes PersonalityType[]
-  position         String
-  salary           Int
-  salaryInterval   SalaryInterval
-  salaryMax        Int?
-  type             JobType
-  updatedAt        DateTime          @updatedAt
-  url              String
-  fields           Field[]
-  goals            Goal[]
+  id           String          @id @default(cuid())
+  companyLogo  String
+  createdAt    DateTime        @default(now())
+  deadline     DateTime
+  location     String
+  locationType JobLocationType
+  organization String
+  position     String
+  type         JobType
+  updatedAt    DateTime        @updatedAt
+  url          String
 }
 
 /// PERSONALITY TEST SCHEMA
@@ -207,6 +198,7 @@ model User {
   followers      Int                     @default(0)
   following      Int                     @default(0)
   isEducations   Boolean                 @default(false)
+  isInterests    Boolean                 @default(false)
   isOccupations  Boolean                 @default(false)
   isSkills       Boolean                 @default(false)
   name           String

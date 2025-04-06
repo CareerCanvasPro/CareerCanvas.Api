@@ -3,7 +3,7 @@ import { join } from "path";
 import cuid from "cuid";
 import { renderFile } from "ejs";
 import { Request, Response } from "express";
-import { sign, verify } from "jsonwebtoken";
+import { sign } from "jsonwebtoken";
 import otpGenerator from "otp-generator";
 
 import { config } from "../../config";
@@ -12,85 +12,12 @@ import { emailSchema } from "../schemas";
 import { Nodemailer } from "../services";
 import { OtpsDb, UsersDb } from "../services";
 
-interface ITokenPayload {
-  username: string;
-}
-
 export class AuthController {
   private readonly nodemailer = new Nodemailer();
 
   private readonly otpsDb = new OtpsDb();
 
   private readonly usersDb = new UsersDb();
-
-  public handleRequestMagicLink = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { error, value } = emailSchema.validate(req.body, {
-        abortEarly: false,
-      });
-
-      if (error) {
-        const validationErrors = error.details.map((error) =>
-          cleanMessage(error.message)
-        );
-
-        res.status(400).json({ data: null, message: validationErrors });
-      } else {
-        const { email } = value;
-
-        sign(
-          { username: email },
-          config.jwt.secret,
-          {
-            expiresIn: "15m",
-          },
-          async (error, token) => {
-            if (error) {
-              throw error;
-            } else {
-              const magicLink = `${config.baseUrl.auth}/auth/magic-link/verify?token=${token}`;
-
-              await this.nodemailer.sendMail({
-                html: await renderFile(
-                  join(
-                    __dirname,
-                    "..",
-                    "..",
-                    "..",
-                    "src",
-                    "views",
-                    "email.ejs"
-                  ),
-                  { magicLink }
-                ),
-                subject: "Magic Link to Career Canvas",
-                text: `Copy and paste the link below into your browser to access your account:\n\t${magicLink}`,
-                to: email,
-              });
-
-              res.status(200).json({
-                data: null,
-                message: "Magic link sent to given email successfully",
-              });
-            }
-          }
-        );
-      }
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
-    }
-  };
 
   public handleRequestEmailOtp = async (
     req: Request,
@@ -199,85 +126,6 @@ export class AuthController {
   //     }
   //   }
   // };
-
-  public handleVerifyMagicLink = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const { token } = req.query;
-
-      verify(
-        token as string,
-        config.jwt.secret,
-        async (error: unknown, decoded: ITokenPayload) => {
-          if (error) {
-            if ((error as Error).name === "JsonWebTokenError") {
-              res.status(401).render("error", {
-                message: "401 Unauthorized | Invalid link",
-                title: "401 Unauthorized",
-              });
-            } else if ((error as Error).name === "TokenExpiredError") {
-              res.status(401).render("error", {
-                message: "401 Unauthorized | Link has expired",
-                title: "401 Unauthorized",
-              });
-            }
-          } else {
-            const { username } = decoded;
-
-            const { user } = await this.usersDb.findUser({ username });
-
-            const isNewUser = !user;
-
-            const userId = isNewUser ? cuid() : user.id;
-
-            sign(
-              {
-                userId,
-                username,
-              },
-              config.jwt.secret,
-              {
-                expiresIn: "7d",
-              },
-              (error, accessToken) => {
-                if (error) {
-                  throw error;
-                } else {
-                  if (isNewUser) {
-                    const coins = 5;
-
-                    res
-                      .status(301)
-                      .redirect(
-                        `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&username=${username}&expiresAt=${
-                          Date.now() + 604800000
-                        }&coins=${coins}`
-                      );
-                  } else {
-                    res
-                      .status(301)
-                      .redirect(
-                        `https://careercanvas.pro/auth/callback?token=${accessToken}&isNewUser=${isNewUser}&username=${username}&expiresAt=${
-                          Date.now() + 604800000
-                        }`
-                      );
-                  }
-                }
-              }
-            );
-          }
-        }
-      );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      res.status(500).render("error", {
-        message: "500 Internal Server Error",
-        title: "500 Internal Server Error",
-      });
-    }
-  };
 
   public handleVerifyOtp = async (
     req: Request,

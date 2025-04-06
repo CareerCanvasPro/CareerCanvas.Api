@@ -1,38 +1,62 @@
-public handleDeleteUserEducation = async (
-    req: Request,
-    res: Response
-  ): Promise<void> => {
-    try {
-      const {
-        body: { authorization, userId },
-        params: { educationId },
-        query: { key },
-      } = req;
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
-      await this.usersDb.deleteUserEducation({
-        educationId,
-        id: userId,
+import { deleteFile } from "./s3.service";
+import { deleteUserEducation } from "./users.db.service";
+
+export const handler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  try {
+    const { userId } = JSON.parse(event.requestContext.authorizer?.user);
+
+    const { educationId } = event.pathParameters!;
+
+    const { key } = event.queryStringParameters!;
+
+    await deleteUserEducation({
+      educationId: educationId!,
+      id: userId,
+    });
+
+    if (key) {
+      await deleteFile({
+        key: key!,
       });
-
-      if (key) {
-        await this.axios.delete({
-          authorization,
-          url: `${config.baseUrl.media}/media/certificate?key=${key}`,
-        });
-      }
-
-      res
-        .status(200)
-        .json({ data: null, message: "Education deleted successfully" });
-    } catch (error) {
-      if (error.$metadata && error.$metadata.httpStatusCode) {
-        res
-          .status(error.$metadata.httpStatusCode)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      } else {
-        res
-          .status(500)
-          .json({ data: null, message: `${error.name}: ${error.message}` });
-      }
     }
-  };
+
+    return {
+      body: JSON.stringify({
+        data: null,
+        message: "Education deleted successfully",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      statusCode: 200,
+    };
+  } catch (error) {
+    if (error.$metadata && error.$metadata.httpStatusCode) {
+      return {
+        body: JSON.stringify({
+          data: null,
+          message: `${error.name}: ${error.message}`,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: error.$metadata.httpStatusCode,
+      };
+    } else {
+      return {
+        body: JSON.stringify({
+          data: null,
+          message: `${error.name}: ${error.message}`,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 500,
+      };
+    }
+  }
+};

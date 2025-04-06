@@ -33,21 +33,25 @@ export const handler = async (
         statusCode: 400,
       };
     } else {
+      const coinsArray: number[] = [];
+
       for (const education of validatedEducations) {
         const { certificate } = education;
 
         delete education?.certificate;
 
-        await createUserEducation({
+        const { coins } = await createUserEducation({
           certificate,
           education,
           id: userId,
         });
+
+        coinsArray.push(coins);
       }
 
       return {
         body: JSON.stringify({
-          data: null,
+          data: { coins: coinsArray[coinsArray.length - 1] },
           message: "Educations created successfully",
         }),
         headers: {
