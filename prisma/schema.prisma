@@ -10,9 +10,25 @@ datasource db {
 
 /// ENUMS
 
+enum ApiKeyScope {
+  READ_DATA
+  WRITE_DATA
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  EXPIRED
+  INACTIVE
+}
+
 enum Currency {
   BDT
   USD
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
 }
 
 enum JobLocationType {
@@ -99,6 +115,17 @@ model Skill {
   users User[]
 }
 
+/// ADMIN SCHEMA
+
+model Admin {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  email          String
+  hashedPassword String
+  name           String
+  updatedAt      DateTime @updatedAt
+}
+
 /// AUTH SCHEMA
 
 model Otp {
@@ -144,6 +171,30 @@ model Course {
   goals        Goal[]
   topic        Field    @relation(fields: [topicId], references: [id])
   topicId      String
+}
+
+/// INTEGRATION SCHEMA
+
+model Integration {
+  id          String            @id @default(cuid())
+  createdAt   DateTime          @default(now())
+  description String
+  name        String
+  status      IntegrationStatus
+  updatedAt   DateTime          @updatedAt
+  apiKeys     ApiKey[]
+}
+
+model ApiKey {
+  id            String        @id @default(cuid())
+  createdAt     DateTime      @default(now())
+  expiresAt     DateTime
+  hashedValue   String        @unique
+  scopes        ApiKeyScope[]
+  status        ApiKeyStatus
+  updatedAt     DateTime      @updatedAt
+  integration   Integration   @relation(fields: [integrationId], references: [id])
+  integrationId String
 }
 
 /// JOB SCHEMA
