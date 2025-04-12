@@ -193,7 +193,7 @@ model ApiKey {
   scopes        ApiKeyScope[]
   status        ApiKeyStatus
   updatedAt     DateTime      @updatedAt
-  integration   Integration   @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integration   Integration   @relation(fields: [integrationId], references: [id])
   integrationId String
 }
 
