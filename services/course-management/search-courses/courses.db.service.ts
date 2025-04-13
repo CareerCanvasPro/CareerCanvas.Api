@@ -1,85 +1,29 @@
-import { Level, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { prismaClient } from "./config";
+import { splitKeyword } from "./utils";
 
 export const buildQuery = ({
-  durations,
-  goals,
-  interests,
   keyword,
-  levels,
 }: {
-  durations?: number[][] | null | undefined;
-  goals?: string[] | null | undefined;
-  interests?: string[] | null | undefined;
-  keyword?: string | null | undefined;
-  levels?: Level[] | null | undefined;
+  keyword: string | undefined;
 }): { query: Prisma.CourseWhereInput } => {
-  const query: Prisma.CourseWhereInput = {};
-
-  if (durations && durations.length) {
-    query.OR = durations.map((duration) => ({
-      duration: {
-        gte: duration[0],
-        ...(duration[1] && { lte: duration[1] }),
-      },
-    }));
-  }
-
-  if (goals && goals.length) {
-    query.goals = {
-      some: {
-        name: {
-          in: goals,
-        },
-      },
-    };
-  }
-
-  if (interests && interests.length) {
-    query.topic = {
-      name: {
-        in: interests,
-      },
-    };
-  }
+  const query: Prisma.CourseWhereInput = { OR: [] };
 
   if (keyword) {
-    query.OR = [
-      {
-        authors: {
-          some: {
-            name: {
-              contains: keyword,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      {
+    const { keywords } = splitKeyword({ keyword });
+
+    keywords.forEach((keyword) => {
+      query.OR?.push({
         name: {
           contains: keyword,
           mode: "insensitive",
         },
-      },
-      {
-        topic: {
-          name: {
-            contains: keyword,
-            mode: "insensitive",
-          },
-        },
-      },
-    ];
+      });
+    });
   }
 
-  if (levels && levels.length) {
-    query.level = {
-      in: levels,
-    };
-  }
-
-  return { query };
+  return { query: query.OR && query.OR.length > 0 ? query : {} };
 };
 
 export const findCoursesByQuery = async ({
@@ -89,17 +33,13 @@ export const findCoursesByQuery = async ({
 }): Promise<{
   courses: Prisma.CourseGetPayload<{
     include: {
-      authors: true;
-      goals: true;
-      topic: true;
+      tags: true;
     };
   }>[];
 }> => {
   const courses = await prismaClient.course.findMany({
     include: {
-      authors: true,
-      goals: true,
-      topic: true,
+      tags: true,
     },
     where: query,
   });

@@ -13,12 +13,13 @@ export const handler = async (
     const { user } = await findUser({ id: userId });
 
     if (user) {
-      const { interests } = user;
+      const { educations, interests, occupations, skills } = user;
 
       const { query } = buildQuery({
-        interests: interests
-          ? interests.map((interest) => interest.name)
-          : null,
+        educations,
+        interests: interests.map((interest) => interest.name),
+        occupations,
+        skills: skills.map((skill) => skill.name),
       });
 
       const { courses } = await findCoursesByQuery({ query });

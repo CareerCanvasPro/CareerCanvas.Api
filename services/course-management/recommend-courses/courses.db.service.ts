@@ -1,85 +1,82 @@
-import { Level, Prisma } from "@prisma/client";
+import { Education, Occupation, Prisma } from "@prisma/client";
 
 import { prismaClient } from "./config";
+import { generateKeywords } from "./utils";
 
 export const buildQuery = ({
-  durations,
-  goals,
+  educations,
   interests,
-  keyword,
-  levels,
+  occupations,
+  skills,
 }: {
-  durations?: number[][] | null | undefined;
-  goals?: string[] | null | undefined;
-  interests?: string[] | null | undefined;
-  keyword?: string | null | undefined;
-  levels?: Level[] | null | undefined;
+  educations: Education[];
+  interests: string[];
+  occupations: Occupation[];
+  skills: string[];
 }): { query: Prisma.CourseWhereInput } => {
-  const query: Prisma.CourseWhereInput = {};
+  const query: Prisma.CourseWhereInput = { OR: [] };
 
-  if (durations && durations.length) {
-    query.OR = durations.map((duration) => ({
-      duration: {
-        gte: duration[0],
-        ...(duration[1] && { lte: duration[1] }),
-      },
-    }));
-  }
+  if (educations && educations.length > 0) {
+    educations.forEach((education) => {
+      const { keywords } = generateKeywords({ string: education.field });
 
-  if (goals && goals.length) {
-    query.goals = {
-      some: {
-        name: {
-          in: goals,
-        },
-      },
-    };
-  }
-
-  if (interests && interests.length) {
-    query.topic = {
-      name: {
-        in: interests,
-      },
-    };
-  }
-
-  if (keyword) {
-    query.OR = [
-      {
-        authors: {
-          some: {
-            name: {
-              contains: keyword,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      {
-        name: {
-          contains: keyword,
-          mode: "insensitive",
-        },
-      },
-      {
-        topic: {
+      keywords.forEach((keyword) => {
+        query.OR?.push({
           name: {
             contains: keyword,
             mode: "insensitive",
           },
-        },
-      },
-    ];
+        });
+      });
+    });
   }
 
-  if (levels && levels.length) {
-    query.level = {
-      in: levels,
-    };
+  if (interests && interests.length > 0) {
+    interests.forEach((interest) => {
+      const { keywords } = generateKeywords({ string: interest });
+
+      keywords.forEach((keyword) => {
+        query.OR?.push({
+          name: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        });
+      });
+    });
   }
 
-  return { query };
+  if (occupations && occupations.length > 0) {
+    occupations.forEach((occupation) => {
+      const { keywords } = generateKeywords({ string: occupation.designation });
+
+      keywords.forEach((keyword) => {
+        query.OR?.push({
+          name: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        });
+      });
+    });
+  }
+
+  if (skills && skills.length > 0) {
+    skills.forEach((skill) => {
+      const { keywords } = generateKeywords({ string: skill });
+
+      keywords.forEach((keyword) => {
+        query.OR?.push({
+          name: {
+            contains: keyword,
+            mode: "insensitive",
+          },
+        });
+      });
+    });
+  }
+
+  return { query: query.OR && query.OR.length > 0 ? query : {} };
 };
 
 export const findCoursesByQuery = async ({
@@ -89,17 +86,13 @@ export const findCoursesByQuery = async ({
 }): Promise<{
   courses: Prisma.CourseGetPayload<{
     include: {
-      authors: true;
-      goals: true;
-      topic: true;
+      tags: true;
     };
   }>[];
 }> => {
   const courses = await prismaClient.course.findMany({
     include: {
-      authors: true,
-      goals: true,
-      topic: true,
+      tags: true,
     },
     where: query,
   });

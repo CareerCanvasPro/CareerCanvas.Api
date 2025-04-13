@@ -15,7 +15,9 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 128
-    Runtime: nodejs18.x
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
 
 Resources:
   CoursesApi:
@@ -49,13 +51,13 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${CoursesApi}/*"
 
-  RecommendCoursesFunction:
+  CreateCoursesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: recommend-courses
+      CodeUri: create-courses
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -63,7 +65,43 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CoursesApi
+            Path: /courses
+            Method: post
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  RecommendCoursesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: recommend-courses
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -74,7 +112,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -82,7 +120,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   RecommendCoursesByGoalsFunction:
@@ -91,7 +129,7 @@ Resources:
       CodeUri: recommend-courses-by-goals
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -99,7 +137,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -110,7 +148,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -118,7 +156,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
   SearchCoursesFunction:
@@ -127,7 +165,7 @@ Resources:
       CodeUri: search-courses
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -135,7 +173,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:3
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -146,7 +184,7 @@ Resources:
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl
-          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -154,7 +192,7 @@ Resources:
         KeepNames: false
         Minify: true
         Sourcemap: false
-        Target: "node18"
+        Target: "node22"
         TreeShaking: true
 
 Outputs:

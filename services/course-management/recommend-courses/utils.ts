@@ -1,21 +1,27 @@
 import { Prisma } from "@prisma/client";
 
+export const generateKeywords = ({
+  string,
+}: {
+  string: string;
+}): { keywords: string[] } => {
+  const keywords = string.split(" ");
+
+  return { keywords };
+};
+
 export const shuffleCourses = ({
   courses,
 }: {
   courses: Prisma.CourseGetPayload<{
     include: {
-      authors: true;
-      goals: true;
-      topic: true;
+      tags: true;
     };
   }>[];
 }): {
   shuffledCourses: Prisma.CourseGetPayload<{
     include: {
-      authors: true;
-      goals: true;
-      topic: true;
+      tags: true;
     };
   }>[];
 } => {

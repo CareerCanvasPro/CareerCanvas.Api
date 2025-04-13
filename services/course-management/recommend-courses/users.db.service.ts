@@ -9,15 +9,19 @@ export const findUser = async ({
 }): Promise<{
   user: Prisma.UserGetPayload<{
     include: {
-      goals: true;
+      educations: true;
       interests: true;
+      occupations: true;
+      skills: true;
     };
   }>;
 }> => {
   const user = await prismaClient.user.findUnique({
     include: {
-      goals: true,
+      educations: true,
       interests: true,
+      occupations: true,
+      skills: true,
     },
     where: { id },
   });
