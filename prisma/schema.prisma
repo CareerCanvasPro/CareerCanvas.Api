@@ -84,23 +84,26 @@ enum SalaryInterval {
 /// COMMON SCHEMA
 
 model Author {
+  id   String @id @default(cuid())
+  name String @unique
+}
+
+model CourseTag {
   id      String   @id @default(cuid())
   name    String   @unique
   courses Course[]
 }
 
 model Field {
-  id      String   @id @default(cuid())
-  name    String   @unique
-  courses Course[]
-  users   User[]
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
 }
 
 model Goal {
-  id      String   @id @default(cuid())
-  name    String   @unique
-  courses Course[]
-  users   User[]
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
 }
 
 model Language {
@@ -153,24 +156,14 @@ model CareerTrend {
 /// COURSE SCHEMA
 
 model Course {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  currency     Currency
-  duration     Int
-  image        String
-  level        Level
-  name         String
-  price        Float    @default(0)
-  rating       Float    @default(0)
-  ratingCount  Int      @default(0)
-  sourceName   String
-  sourceUrl    String
-  studentCount Int      @default(0)
-  updatedAt    DateTime @updatedAt
-  authors      Author[]
-  goals        Goal[]
-  topic        Field    @relation(fields: [topicId], references: [id])
-  topicId      String
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  description String
+  name        String
+  sourceName  String
+  sourceUrl   String
+  tags        CourseTag[]
+  updatedAt   DateTime    @updatedAt
 }
 
 /// INTEGRATION SCHEMA
