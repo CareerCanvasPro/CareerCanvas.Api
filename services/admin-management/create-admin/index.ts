@@ -51,7 +51,7 @@ export const handler = async (
           headers: {
             "Content-Type": "application/json",
           },
-          statusCode: 404,
+          statusCode: 409,
         };
       } else {
         const hashedPassword = await hash(password, 10);

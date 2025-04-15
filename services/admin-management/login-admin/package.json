@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "bcrypt": "^5.1.1",
+    "fast-jwt": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.147",
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^22.13.10",
+    "aws-lambda": "^1.0.7",
+    "prisma": "^6.5.0"
+  },
+  "name": "@careercanvas-api/admins-login-admin",
+  "version": "0.0.0"
+}
