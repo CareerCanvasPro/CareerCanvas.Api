@@ -42,14 +42,14 @@ export const handler = async (
       });
 
       const token = await sign({
-        username: email,
+        email,
       });
 
       const registrationLink = `https://careercanvas.pro/admin/register?token=${encodeURIComponent(
         token
-      )}&username=${encodeURIComponent(email)}&expiresAt=${encodeURIComponent(
-        Date.now() + 604800000
-      )}`; // DUMMY REGISTRATION LINK // CHANGE EXPIRY TIME
+      )}&email=${encodeURIComponent(email)}&expiresAt=${encodeURIComponent(
+        Date.now() + 900000
+      )}`; // DUMMY REGISTRATION LINK
 
       await sendMail({
         html: await renderFile(join(__dirname, "email.ejs"), {
