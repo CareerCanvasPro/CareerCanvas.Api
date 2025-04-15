@@ -1,8 +1,7 @@
-import { randomBytes } from "crypto";
+import { createHmac, randomBytes } from "crypto";
 
 import { ApiKeyScope } from "@prisma/client";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { hash } from "bcrypt";
 
 import { createApiKey } from "./integrations.db.service";
 import { cleanMessage } from "./utils";
@@ -43,9 +42,14 @@ export const handler = async (
 
       expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
-      const value = randomBytes(64).toString("hex");
+      const value = randomBytes(32).toString("hex");
 
-      const hashedValue = await hash(value, 10);
+      const hashedValue = createHmac(
+        "sha256",
+        process.env.HASH_SECRET ? process.env.HASH_SECRET : ""
+      )
+        .update(value)
+        .digest("hex");
 
       const apiKey = {
         expiresAt,
