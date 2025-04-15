@@ -1,17 +1,20 @@
+import { createHmac } from "crypto";
+
 import {
   APIGatewayAuthorizerResult,
-  APIGatewayTokenAuthorizerEvent,
+  APIGatewayRequestAuthorizerEvent,
 } from "aws-lambda";
 
+import { findApiKey } from "./api-keys.db.service";
 import { generatePolicy } from "./utils";
 
 export const handler = async (
-  event: APIGatewayTokenAuthorizerEvent
+  event: APIGatewayRequestAuthorizerEvent
 ): Promise<APIGatewayAuthorizerResult> => {
   try {
-    const { authorizationToken, methodArn } = event;
+    const { headers, methodArn } = event;
 
-    if (!authorizationToken || !authorizationToken.startsWith("Bearer ")) {
+    if (!headers || !headers["x-api-key"]) {
       return generatePolicy({
         effect: "Deny",
         principalId: "unidentified",
@@ -19,19 +22,27 @@ export const handler = async (
       });
     }
 
-    const apiKey = authorizationToken.split(" ")[1];
+    const hashedValue = createHmac(
+      "sha256",
+      process.env.HASH_SECRET ? process.env.HASH_SECRET : ""
+    )
+      .update(headers["x-api-key"])
+      .digest("hex");
 
-    if (apiKey === process.env.API_KEY) {
+    const { apiKey } = await findApiKey({ hashedValue });
+
+    if (apiKey && apiKey.status === "ACTIVE" && apiKey.expiresAt > new Date()) {
       return generatePolicy({
         effect: "Allow",
-        principalId: "admin",
+        principalId: apiKey.integrationId,
         resource: methodArn,
+        scopes: apiKey.scopes,
       });
     } else {
       return generatePolicy({
         effect: "Deny",
         principalId: "unidentified",
-        resource: event.methodArn,
+        resource: methodArn,
       });
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
