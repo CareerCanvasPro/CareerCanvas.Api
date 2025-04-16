@@ -55,7 +55,7 @@ Resources:
       CodeUri: request-email-otp
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -63,7 +63,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
       Events:
         ApiEvent:
           Type: Api
@@ -127,7 +127,7 @@ Resources:
       CodeUri: verify-otp
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -135,7 +135,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
       Events:
         ApiEvent:
           Type: Api
@@ -164,7 +164,7 @@ Resources:
       CodeUri: verify-magic-link
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -172,7 +172,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
       Events:
         ApiEvent:
           Type: Api
