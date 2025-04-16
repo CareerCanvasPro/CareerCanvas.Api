@@ -1,7 +1,7 @@
 import { ApiKeyStatus } from "@prisma/client";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
-import { buildQuery, findApiKeysByQuery } from "./integrations.db.service";
+import { buildQuery, findApiKeysByQuery } from "./api-keys.db.service";
 
 export const handler = async (
   event: APIGatewayProxyEvent

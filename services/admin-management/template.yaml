@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  AdminJwtSecret:
+    Type: String
+  DatabaseUrl:
+    Type: String
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+  MailHost:
+    Type: String
+  MailPassword:
+    Type: String
+  MailPort:
+    Type: String
+  MailUsername:
+    Type: String
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
+
+Resources:
+  AdminsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      OpenApiVersion: "2.0"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+      EndpointConfiguration: REGIONAL
+      Auth:
+        Authorizers:
+          AdminJwtAuthorizer:
+            FunctionArn: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminJwtAuthorizerFunction
+            Identity:
+              Header: Authorization
+            AuthorizerResultTtlInSeconds: 0
+      DisableExecuteApiEndpoint: false
+      TracingEnabled: false
+
+  AdminsApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:AdminJwtAuthorizerFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${AdminsApi}/*"
+
+  CreateAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create-admin
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminsApi
+            Path: /admin/register/complete
+            Method: post
+      Environment:
+        Variables:
+          ADMIN_JWT_SECRET: !Ref AdminJwtSecret
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        External:
+          - aws-sdk
+          - mock-aws-s3
+          - nock
+        KeepNames: false
+        Loader:
+          - .html=file
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  InviteAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: invite-admin
+      Handler: index.handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminsApi
+            Path: /admin/register
+            Method: post
+            Auth:
+              Authorizer: AdminJwtAuthorizer
+      Environment:
+        Variables:
+          ADMIN_JWT_SECRET: !Ref AdminJwtSecret
+          MAIL_HOST: !Ref MailHost
+          MAIL_PASSWORD: !Ref MailPassword
+          MAIL_PORT: !Ref MailPort
+          MAIL_USERNAME: !Ref MailUsername
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  LoginAdminFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: login-admin
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AdminsApi
+            Path: /admin/login
+            Method: post
+      Environment:
+        Variables:
+          ADMIN_JWT_SECRET: !Ref AdminJwtSecret
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        External:
+          - aws-sdk
+          - mock-aws-s3
+          - nock
+        KeepNames: false
+        Loader:
+          - .html=file
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+Outputs:
+  AdminsApiEndpoint:
+    Value: !Sub "https://${AdminsApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/"

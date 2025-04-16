@@ -1,7 +1,7 @@
 import { ApiKeyStatus } from "@prisma/client";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
-import { updateApiKeyStatus } from "./integrations.db.service";
+import { updateApiKeyStatus } from "./api-keys.db.service";
 import { cleanMessage } from "./utils";
 import { apiKeyStatusValidator } from "./validators";
 

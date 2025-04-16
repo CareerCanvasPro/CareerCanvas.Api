@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 
-import { deleteApiKey } from "./integrations.db.service";
+import { deleteApiKey } from "./api-keys.db.service";
 
 export const handler = async (
   event: APIGatewayProxyEvent
