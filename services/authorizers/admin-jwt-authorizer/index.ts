@@ -22,7 +22,7 @@ export const handler = async (
       const accessToken = authorizationToken.split(" ")[1];
 
       const verify = createVerifier({
-        key: async () => process.env.JWT_SECRET,
+        key: async () => process.env.ADMIN_JWT_SECRET,
       });
 
       const decoded = await verify(accessToken);
@@ -30,7 +30,7 @@ export const handler = async (
       return generatePolicy({
         decoded,
         effect: "Allow",
-        principalId: decoded.userId,
+        principalId: decoded.adminId,
         resource: methodArn,
       });
     }

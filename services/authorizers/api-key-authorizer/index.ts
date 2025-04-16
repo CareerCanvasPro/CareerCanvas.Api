@@ -20,30 +20,34 @@ export const handler = async (
         principalId: "unidentified",
         resource: methodArn,
       });
-    }
-
-    const hashedValue = createHmac(
-      "sha256",
-      process.env.HASH_SECRET ? process.env.HASH_SECRET : ""
-    )
-      .update(headers["x-api-key"])
-      .digest("hex");
-
-    const { apiKey } = await findApiKey({ hashedValue });
-
-    if (apiKey && apiKey.status === "ACTIVE" && apiKey.expiresAt > new Date()) {
-      return generatePolicy({
-        effect: "Allow",
-        principalId: apiKey.integrationId,
-        resource: methodArn,
-        scopes: apiKey.scopes,
-      });
     } else {
-      return generatePolicy({
-        effect: "Deny",
-        principalId: "unidentified",
-        resource: methodArn,
-      });
+      const hashedValue = createHmac(
+        "sha256",
+        process.env.HASH_SECRET ? process.env.HASH_SECRET : ""
+      )
+        .update(headers["x-api-key"])
+        .digest("hex");
+
+      const { apiKey } = await findApiKey({ hashedValue });
+
+      if (
+        apiKey &&
+        apiKey.status === "ACTIVE" &&
+        apiKey.expiresAt > new Date()
+      ) {
+        return generatePolicy({
+          effect: "Allow",
+          principalId: apiKey.integrationId,
+          resource: methodArn,
+          scopes: apiKey.scopes,
+        });
+      } else {
+        return generatePolicy({
+          effect: "Deny",
+          principalId: "unidentified",
+          resource: methodArn,
+        });
+      }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {

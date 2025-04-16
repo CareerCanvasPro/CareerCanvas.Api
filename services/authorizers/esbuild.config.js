@@ -2,7 +2,11 @@ import { build } from "esbuild";
 
 build({
   bundle: true,
-  entryPoints: ["./api-key-authorizer/index", "./jwt-authorizer/index"],
+  entryPoints: [
+    "./admin-jwt-authorizer/index",
+    "./api-key-authorizer/index",
+    "./jwt-authorizer/index",
+  ],
   keepNames: false,
   minify: true,
   outdir: "./lib",
