@@ -9,27 +9,49 @@ export const handler = async (
   try {
     const { integrationId } = event.pathParameters!;
 
-    const { status } = event.multiValueQueryStringParameters!;
+    if (event.multiValueQueryStringParameters) {
+      const { status } = event.multiValueQueryStringParameters;
 
-    const { query } = buildQuery({
-      integrationId: integrationId!,
-      statuses: status as ApiKeyStatus[] | undefined,
-    });
+      const { query } = buildQuery({
+        integrationId: integrationId!,
+        statuses: status as ApiKeyStatus[] | undefined,
+      });
 
-    const { apiKeys } = await findApiKeysByQuery({
-      query,
-    });
+      const { apiKeys } = await findApiKeysByQuery({
+        query,
+      });
 
-    return {
-      body: JSON.stringify({
-        data: { apiKeys },
-        message: "Api keys retrieved successfully",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      statusCode: 200,
-    };
+      return {
+        body: JSON.stringify({
+          data: { apiKeys },
+          message: "Api keys retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    } else {
+      const { query } = buildQuery({
+        integrationId: integrationId!,
+        statuses: undefined,
+      });
+
+      const { apiKeys } = await findApiKeysByQuery({
+        query,
+      });
+
+      return {
+        body: JSON.stringify({
+          data: { apiKeys },
+          message: "Api keys retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    }
   } catch (error) {
     if (error.$metadata && error.$metadata.httpStatusCode) {
       return {

@@ -6,24 +6,43 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { keyword } = event.queryStringParameters!;
+    if (event.queryStringParameters) {
+      const { keyword } = event.queryStringParameters;
 
-    const { query } = buildQuery({
-      keyword,
-    });
+      const { query } = buildQuery({
+        keyword,
+      });
 
-    const { courses } = await findCoursesByQuery({ query });
+      const { courses } = await findCoursesByQuery({ query });
 
-    return {
-      body: JSON.stringify({
-        data: { courses },
-        message: "Search results retrieved successfully",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      statusCode: 200,
-    };
+      return {
+        body: JSON.stringify({
+          data: { courses },
+          message: "Search results retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    } else {
+      const { query } = buildQuery({
+        keyword: undefined,
+      });
+
+      const { courses } = await findCoursesByQuery({ query });
+
+      return {
+        body: JSON.stringify({
+          data: { courses },
+          message: "Search results retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    }
   } catch (error) {
     if (error.$metadata && error.$metadata.httpStatusCode) {
       return {

@@ -11,18 +11,18 @@ export const handler = async (
 
     const { educationId } = event.pathParameters!;
 
-    const { key } = event.queryStringParameters!;
+    if (event.queryStringParameters) {
+      const { key } = event.queryStringParameters;
+
+      await deleteFile({
+        key: key!,
+      });
+    }
 
     await deleteUserEducation({
       educationId: educationId!,
       id: userId,
     });
-
-    if (key) {
-      await deleteFile({
-        key: key!,
-      });
-    }
 
     return {
       body: JSON.stringify({

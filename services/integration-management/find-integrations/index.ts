@@ -7,29 +7,49 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { keyword } = event.queryStringParameters!;
+    if (event.multiValueQueryStringParameters) {
+      const { keyword, status } = event.multiValueQueryStringParameters;
 
-    const { status } = event.multiValueQueryStringParameters!;
+      const { query } = buildQuery({
+        keyword: keyword ? keyword[0] : undefined,
+        statuses: status as IntegrationStatus[] | undefined,
+      });
 
-    const { query } = buildQuery({
-      keyword,
-      statuses: status as IntegrationStatus[] | undefined,
-    });
+      const { integrations } = await findIntegrationsByQuery({
+        query,
+      });
 
-    const { integrations } = await findIntegrationsByQuery({
-      query,
-    });
+      return {
+        body: JSON.stringify({
+          data: { integrations },
+          message: "Integrations retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    } else {
+      const { query } = buildQuery({
+        keyword: undefined,
+        statuses: undefined,
+      });
 
-    return {
-      body: JSON.stringify({
-        data: { integrations },
-        message: "Integrations retrieved successfully",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      statusCode: 200,
-    };
+      const { integrations } = await findIntegrationsByQuery({
+        query,
+      });
+
+      return {
+        body: JSON.stringify({
+          data: { integrations },
+          message: "Integrations retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    }
   } catch (error) {
     if (error.$metadata && error.$metadata.httpStatusCode) {
       return {

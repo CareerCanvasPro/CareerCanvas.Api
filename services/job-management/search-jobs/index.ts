@@ -7,30 +7,52 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const { keyword } = event.queryStringParameters!;
+    if (event.multiValueQueryStringParameters) {
+      const { keyword, locationType, type } =
+        event.multiValueQueryStringParameters;
 
-    const { locationType, type } = event.multiValueQueryStringParameters!;
+      const { query } = buildQuery({
+        keyword: keyword ? keyword[0] : undefined,
+        locationTypes: locationType as JobLocationType[] | undefined,
+        types: type as JobType[] | undefined,
+      });
 
-    const { query } = buildQuery({
-      keyword,
-      locationTypes: locationType as JobLocationType[] | undefined,
-      types: type as JobType[] | undefined,
-    });
+      const { jobs } = await findJobsByQuery({
+        query,
+      });
 
-    const { jobs } = await findJobsByQuery({
-      query,
-    });
+      return {
+        body: JSON.stringify({
+          data: { jobs },
+          message: "Search results retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    } else {
+      const { query } = buildQuery({
+        keyword: undefined,
+        locationTypes: undefined,
+        types: undefined,
+      });
 
-    return {
-      body: JSON.stringify({
-        data: { jobs },
-        message: "Search results retrieved successfully",
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      statusCode: 200,
-    };
+      const { jobs } = await findJobsByQuery({
+        query,
+      });
+
+      return {
+        body: JSON.stringify({
+          data: { jobs },
+          message: "Search results retrieved successfully",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        statusCode: 200,
+      };
+    }
   } catch (error) {
     if (error.$metadata && error.$metadata.httpStatusCode) {
       return {

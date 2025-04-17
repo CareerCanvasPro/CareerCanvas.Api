@@ -89,13 +89,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
-        External:
-          - aws-sdk
-          - mock-aws-s3
-          - nock
         KeepNames: false
-        Loader:
-          - .html=file
         Minify: true
         Sourcemap: false
         Target: "node22"
@@ -165,13 +159,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
-        External:
-          - aws-sdk
-          - mock-aws-s3
-          - nock
         KeepNames: false
-        Loader:
-          - .html=file
         Minify: true
         Sourcemap: false
         Target: "node22"

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 import { createSigner } from "fast-jwt";
 
 import { findAdmin } from "./admins.db.service";

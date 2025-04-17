@@ -1,5 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 import { TokenError, createVerifier } from "fast-jwt";
 
 import { createAdmin, findAdmin } from "./admins.db.service";
