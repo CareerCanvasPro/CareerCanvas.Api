@@ -81,7 +81,6 @@ export const handler = async (
       statusCode: 200,
     };
   } catch (error) {
-    console.error(error);
     return {
       body: JSON.stringify({
         data: null,

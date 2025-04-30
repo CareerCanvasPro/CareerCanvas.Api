@@ -48,13 +48,13 @@ Resources:
       Variables:
         Port: 8006
 
-  CreateJobsApiGatewayInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ApiKeyAuthorizerFunction
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JobsApi}/*"
+  # CreateJobsApiGatewayInvokePermission:
+  #   Type: AWS::Lambda::Permission
+  #   Properties:
+  #     FunctionName: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ApiKeyAuthorizerFunction
+  #     Action: lambda:InvokeFunction
+  #     Principal: apigateway.amazonaws.com
+  #     SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${JobsApi}/*"
 
   JobsApiGatewayInvokePermission:
     Type: AWS::Lambda::Permission
@@ -86,8 +86,8 @@ Resources:
             RestApiId: !Ref JobsApi
             Path: /jobs
             Method: post
-            Auth:
-              Authorizer: ApiKeyAuthorizer
+            # Auth:
+            #   Authorizer: ApiKeyAuthorizer
       Environment:
         Variables:
           DATABASE_URL: !Ref DatabaseUrl

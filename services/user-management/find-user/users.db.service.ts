@@ -17,6 +17,7 @@ export const findUser = async ({
       };
       goals: true;
       interests: true;
+      languages: true;
       occupations: true;
       personality: true;
       resumes: true;
@@ -34,6 +35,7 @@ export const findUser = async ({
       },
       goals: true,
       interests: true,
+      languages: true,
       occupations: true,
       personality: true,
       resumes: true,
