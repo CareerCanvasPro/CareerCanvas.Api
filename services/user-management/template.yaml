@@ -63,7 +63,7 @@ Resources:
       CodeUri: create-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -71,7 +71,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -99,7 +99,7 @@ Resources:
       CodeUri: delete-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -107,7 +107,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -135,7 +135,7 @@ Resources:
       CodeUri: find-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -143,7 +143,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -180,7 +180,7 @@ Resources:
       CodeUri: update-user-about-me
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -188,7 +188,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -216,7 +216,7 @@ Resources:
       CodeUri: update-user-address
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -224,7 +224,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -252,7 +252,7 @@ Resources:
       CodeUri: update-user-name
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -260,7 +260,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -282,13 +282,13 @@ Resources:
         Target: "node22"
         TreeShaking: true
 
-  UpdateUserProfilePictureFunction:
+  UpdateUserProfilePrivacyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: update-user-profile-picture
+      CodeUri: update-user-profile-privacy
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -296,7 +296,43 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/profile-privacy
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  UpdateUserProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update-user-profile-picture
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -360,7 +396,7 @@ Resources:
       CodeUri: update-user-goals
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -368,7 +404,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -396,7 +432,7 @@ Resources:
       CodeUri: update-user-interests
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -404,7 +440,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -432,7 +468,7 @@ Resources:
       CodeUri: update-user-languages
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -440,7 +476,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -468,7 +504,7 @@ Resources:
       CodeUri: update-user-skills
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -476,7 +512,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -504,7 +540,7 @@ Resources:
       CodeUri: create-user-educations
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -512,7 +548,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -540,7 +576,7 @@ Resources:
       CodeUri: delete-user-education
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -548,7 +584,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -585,7 +621,7 @@ Resources:
       CodeUri: update-user-education
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -593,7 +629,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -621,7 +657,7 @@ Resources:
       CodeUri: create-user-occupations
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -629,7 +665,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -657,7 +693,7 @@ Resources:
       CodeUri: delete-user-occupation
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -665,7 +701,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -693,7 +729,7 @@ Resources:
       CodeUri: update-user-occupation
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -701,7 +737,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Events:
         ApiEvent:
           Type: Api
@@ -729,7 +765,7 @@ Resources:
       CodeUri: create-user-resume
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -737,7 +773,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -775,7 +811,7 @@ Resources:
       CodeUri: delete-user-resume
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -783,7 +819,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:1
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
