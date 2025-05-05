@@ -63,7 +63,7 @@ Resources:
       CodeUri: create-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -71,7 +71,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -99,7 +99,7 @@ Resources:
       CodeUri: delete-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -107,7 +107,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -135,7 +135,7 @@ Resources:
       CodeUri: find-user
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -143,7 +143,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -168,6 +168,9 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
+          - "@aws-sdk/s3-request-presigner"
         KeepNames: false
         Minify: true
         Sourcemap: false
@@ -180,7 +183,7 @@ Resources:
       CodeUri: update-user-about-me
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -188,7 +191,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -216,7 +219,7 @@ Resources:
       CodeUri: update-user-address
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -224,7 +227,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -252,7 +255,7 @@ Resources:
       CodeUri: update-user-name
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -260,7 +263,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -288,7 +291,7 @@ Resources:
       CodeUri: update-user-profile-privacy
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -296,7 +299,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -324,7 +327,7 @@ Resources:
       CodeUri: update-user-profile-picture
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -332,7 +335,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -384,6 +387,8 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
         KeepNames: false
         Minify: true
         Sourcemap: false
@@ -396,7 +401,7 @@ Resources:
       CodeUri: update-user-goals
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -404,7 +409,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -432,7 +437,7 @@ Resources:
       CodeUri: update-user-interests
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -440,7 +445,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -468,7 +473,7 @@ Resources:
       CodeUri: update-user-languages
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -476,7 +481,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -504,7 +509,7 @@ Resources:
       CodeUri: update-user-skills
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -512,7 +517,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -540,7 +545,7 @@ Resources:
       CodeUri: create-user-educations
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -548,7 +553,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -576,7 +581,7 @@ Resources:
       CodeUri: delete-user-education
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -584,7 +589,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -609,6 +614,8 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
         KeepNames: false
         Minify: true
         Sourcemap: false
@@ -621,7 +628,7 @@ Resources:
       CodeUri: update-user-education
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -629,7 +636,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -657,7 +664,7 @@ Resources:
       CodeUri: create-user-occupations
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -665,7 +672,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -693,7 +700,7 @@ Resources:
       CodeUri: delete-user-occupation
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -701,7 +708,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -729,7 +736,7 @@ Resources:
       CodeUri: update-user-occupation
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -737,7 +744,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Events:
         ApiEvent:
           Type: Api
@@ -765,7 +772,7 @@ Resources:
       CodeUri: create-user-resume
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -773,7 +780,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -799,6 +806,8 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
         KeepNames: false
         Minify: true
         Sourcemap: false
@@ -811,7 +820,7 @@ Resources:
       CodeUri: delete-user-resume
       Handler: index.handler
       Layers:
-        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
       Policies:
         - AWSLambdaBasicExecutionRole
         - Statement:
@@ -819,7 +828,7 @@ Resources:
               Effect: Allow
               Action:
                 - lambda:GetLayerVersion
-              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:4
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
         - Version: "2012-10-17"
           Statement:
             - Effect: Allow
@@ -844,6 +853,8 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
         KeepNames: false
         Minify: true
         Sourcemap: false
@@ -879,6 +890,8 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
         KeepNames: false
         Minify: true
         Sourcemap: false
@@ -911,6 +924,152 @@ Resources:
         Variables:
           REGION: !Ref AWS::Region
           S3_BUCKET: !Ref S3Bucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        External:
+          - "@aws-sdk/client-s3"
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  SaveCourseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: save-course
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/courses/{courseId}
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  UnsaveCourseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: unsave-course
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/courses/{courseId}
+            Method: delete
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  SaveJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: save-job
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/jobs/{jobId}
+            Method: put
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Bundle: true
+        KeepNames: false
+        Minify: true
+        Sourcemap: false
+        Target: "node22"
+        TreeShaking: true
+
+  UnsaveJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: unsave-job
+      Handler: index.handler
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            - Sid: LayerAccess
+              Effect: Allow
+              Action:
+                - lambda:GetLayerVersion
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:layer:prisma:5
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref UsersApi
+            Path: /user/jobs/{jobId}
+            Method: delete
+      Environment:
+        Variables:
+          DATABASE_URL: !Ref DatabaseUrl
+          PRISMA_QUERY_ENGINE_LIBRARY: /opt/nodejs/node_modules/.prisma/client/libquery_engine-linux-arm64-openssl-3.0.x.so.node
     Metadata:
       BuildMethod: esbuild
       BuildProperties:

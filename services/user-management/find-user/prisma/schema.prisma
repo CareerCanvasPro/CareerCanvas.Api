@@ -170,6 +170,7 @@ model Course {
   sourceUrl   String
   tags        CourseTag[]
   updatedAt   DateTime    @updatedAt
+  users       User[]
 }
 
 /// INTEGRATION SCHEMA
@@ -207,9 +208,11 @@ model Job {
   locationType JobLocationType
   organization String
   position     String
+  sourceName   String
   type         JobType
   updatedAt    DateTime        @updatedAt
   url          String
+  users        User[]
 }
 
 /// PERSONALITY TEST SCHEMA
@@ -267,6 +270,8 @@ model User {
   occupations    Occupation[]
   personality    Personality?
   resumes        Resume[]
+  savedCourses   Course[]
+  savedJobs      Job[]
   skills         Skill[]
 }
 

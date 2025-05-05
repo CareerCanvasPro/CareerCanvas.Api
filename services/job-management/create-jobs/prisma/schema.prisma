@@ -10,9 +10,31 @@ datasource db {
 
 /// ENUMS
 
+enum ApiKeyScope {
+  READ_DATA
+  WRITE_DATA
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  EXPIRED
+  INACTIVE
+}
+
+enum CommunityRole {
+  ADMIN
+  MEMBER
+  MODERATOR
+}
+
 enum Currency {
   BDT
   USD
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
 }
 
 enum JobLocationType {
@@ -68,23 +90,26 @@ enum SalaryInterval {
 /// COMMON SCHEMA
 
 model Author {
+  id   String @id @default(cuid())
+  name String @unique
+}
+
+model CourseTag {
   id      String   @id @default(cuid())
   name    String   @unique
   courses Course[]
 }
 
 model Field {
-  id      String   @id @default(cuid())
-  name    String   @unique
-  courses Course[]
-  users   User[]
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
 }
 
 model Goal {
-  id      String   @id @default(cuid())
-  name    String   @unique
-  courses Course[]
-  users   User[]
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
 }
 
 model Language {
@@ -97,6 +122,17 @@ model Skill {
   id    String @id @default(cuid())
   name  String @unique
   users User[]
+}
+
+/// ADMIN SCHEMA
+
+model Admin {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  email          String   @unique
+  hashedPassword String
+  name           String
+  updatedAt      DateTime @updatedAt
 }
 
 /// AUTH SCHEMA
@@ -126,24 +162,39 @@ model CareerTrend {
 /// COURSE SCHEMA
 
 model Course {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  currency     Currency
-  duration     Int
-  image        String
-  level        Level
-  name         String
-  price        Float    @default(0)
-  rating       Float    @default(0)
-  ratingCount  Int      @default(0)
-  sourceName   String
-  sourceUrl    String
-  studentCount Int      @default(0)
-  updatedAt    DateTime @updatedAt
-  authors      Author[]
-  goals        Goal[]
-  topic        Field    @relation(fields: [topicId], references: [id])
-  topicId      String
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  description String
+  name        String
+  sourceName  String
+  sourceUrl   String
+  tags        CourseTag[]
+  updatedAt   DateTime    @updatedAt
+  users       User[]
+}
+
+/// INTEGRATION SCHEMA
+
+model Integration {
+  id          String            @id @default(cuid())
+  createdAt   DateTime          @default(now())
+  description String
+  name        String
+  status      IntegrationStatus
+  updatedAt   DateTime          @updatedAt
+  apiKeys     ApiKey[]
+}
+
+model ApiKey {
+  id            String        @id @default(cuid())
+  createdAt     DateTime      @default(now())
+  expiresAt     DateTime
+  hashedValue   String        @unique
+  scopes        ApiKeyScope[]
+  status        ApiKeyStatus
+  updatedAt     DateTime      @updatedAt
+  integration   Integration   @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integrationId String
 }
 
 /// JOB SCHEMA
@@ -157,9 +208,11 @@ model Job {
   locationType JobLocationType
   organization String
   position     String
+  sourceName   String
   type         JobType
   updatedAt    DateTime        @updatedAt
   url          String
+  users        User[]
 }
 
 /// PERSONALITY TEST SCHEMA
@@ -200,6 +253,7 @@ model User {
   isEducations   Boolean                 @default(false)
   isInterests    Boolean                 @default(false)
   isOccupations  Boolean                 @default(false)
+  isPrivate      Boolean                 @default(true)
   isSkills       Boolean                 @default(false)
   name           String
   phone          String?                 @unique
@@ -208,6 +262,7 @@ model User {
   username       String                  @unique
   answers        PersonalityTestAnswer[]
   appreciations  Appreciation[]
+  customResumes  CustomResume[]
   educations     Education[]
   goals          Goal[]
   interests      Field[]
@@ -215,6 +270,8 @@ model User {
   occupations    Occupation[]
   personality    Personality?
   resumes        Resume[]
+  savedCourses   Course[]
+  savedJobs      Job[]
   skills         Skill[]
 }
 
@@ -291,4 +348,311 @@ model Resume {
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+}
+
+/// CUSTOM RESUME SCHEMA
+
+model CustomResume {
+  id                         String                            @id @default(cuid())
+  address                    String?
+  communicationLevel         String?
+  contentCreationLevel       String?
+  createdAt                  DateTime                          @default(now())
+  dateOfBirth                DateTime?
+  drivingLicenseCategory     String?
+  email                      String
+  informationProcessingLevel String?
+  jobAppliedFor              String?
+  linkedIn                   String?
+  mobile                     String
+  motherTongue               String?
+  name                       String
+  nationality                String?
+  personalStatement          String?
+  position                   String?
+  preferredJob               String?
+  problemSolvingLevel        String?
+  profilePicture             String?
+  safetyLevel                String?
+  sex                        String?
+  studiesAppliedFor          String?
+  telephone                  String?
+  website                    String?
+  updatedAt                  DateTime                          @updatedAt
+  annexes                    CustomResumeAnnex[]
+  awards                     CustomResumeAward[]
+  certifications             CustomResumeCertification[]
+  citations                  CustomResumeCitation[]
+  communicationSkills        CustomResumeCommunicationSkill[]
+  computerCertificates       CustomResumeComputerCertificate[]
+  computerSkills             CustomResumeComputerSkill[]
+  conferences                CustomResumeConference[]
+  courses                    CustomResumeCourse[]
+  ecas                       CustomResumeEca[]
+  educations                 CustomResumeEducation[]
+  jobSkills                  CustomResumeJobSkill[]
+  managerialSkills           CustomResumeManagerialSkill[]
+  memberships                CustomResumeMembership[]
+  otherLanguages             CustomResumeOtherLanguage[]
+  otherSkills                CustomResumeOtherSkill[]
+  presentations              CustomResumePresentation[]
+  projects                   CustomResumeProject[]
+  publications               CustomResumePublication[]
+  references                 CustomResumeReference[]
+  researchExperiences        CustomResumeResearchExperience[]
+  seminars                   CustomResumeSeminar[]
+  trainings                  CustomResumeTraining[]
+  user                       User                              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                     String
+  workExperiences            CustomResumeWorkExperience[]
+}
+
+model CustomResumeAnnex {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeAward {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeCertification {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeCitation {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeCommunicationSkill {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeComputerCertificate {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeComputerSkill {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeConference {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeCourse {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeEca {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  description String?
+  title       String
+  updatedAt   DateTime     @updatedAt
+  resume      CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId    String
+}
+
+model CustomResumeEducation {
+  id                 String       @id @default(cuid())
+  cgpa               Float
+  completedSemesters Int?
+  createdAt          DateTime     @default(now())
+  degree             String
+  department         String
+  field              String
+  graduationDate     DateTime
+  institute          String
+  instituteLocation  String
+  totalSemesters     Int?
+  updatedAt          DateTime     @updatedAt
+  resume             CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId           String
+}
+
+model CustomResumeJobSkill {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeManagerialSkill {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeMembership {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeOtherLanguage {
+  id                     String       @id @default(cuid())
+  createdAt              DateTime     @default(now())
+  listeningLevel         String
+  readingLevel           String
+  spokenInteractionLevel String
+  spokenProductionLevel  String
+  title                  String
+  updatedAt              DateTime     @updatedAt
+  writingLevel           String
+  resume                 CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId               String
+}
+
+model CustomResumeOtherSkill {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumePresentation {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeProject {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  description String?
+  title       String
+  updatedAt   DateTime     @updatedAt
+  resume      CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId    String
+}
+
+model CustomResumePublication {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeReference {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  department  String
+  designation String
+  email       String
+  institute   String
+  name        String
+  updatedAt   DateTime     @updatedAt
+  resume      CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId    String
+}
+
+model CustomResumeResearchExperience {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  description String?
+  title       String
+  updatedAt   DateTime     @updatedAt
+  resume      CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId    String
+}
+
+model CustomResumeSeminar {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  title     String
+  updatedAt DateTime     @updatedAt
+  resume    CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CustomResumeTraining {
+  id                   String       @id @default(cuid())
+  createdAt            DateTime     @default(now())
+  description          String?
+  endDate              DateTime?
+  eqfLevel             String?
+  isCurrent            Boolean      @default(false)
+  organization         String
+  organizationLocation String?
+  startDate            DateTime
+  title                String
+  updatedAt            DateTime     @updatedAt
+  resume               CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId             String
+}
+
+model CustomResumeWorkExperience {
+  id                   String       @id @default(cuid())
+  createdAt            DateTime     @default(now())
+  description          String?
+  designation          String
+  endDate              DateTime?
+  isCurrent            Boolean      @default(false)
+  organization         String
+  organizationLocation String?
+  organizationWebsite  String?
+  startDate            DateTime
+  updatedAt            DateTime     @updatedAt
+  resume               CustomResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId             String
 }

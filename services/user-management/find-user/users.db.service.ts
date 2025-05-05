@@ -21,6 +21,8 @@ export const findUser = async ({
       occupations: true;
       personality: true;
       resumes: true;
+      savedCourses: { include: { tags: true } };
+      savedJobs: true;
       skills: true;
     };
   }>;
@@ -39,6 +41,8 @@ export const findUser = async ({
       occupations: true,
       personality: true,
       resumes: true,
+      savedCourses: { include: { tags: true } },
+      savedJobs: true,
       skills: true,
     },
     where: { id },

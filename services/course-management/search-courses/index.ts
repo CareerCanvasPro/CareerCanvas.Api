@@ -6,6 +6,8 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
+    const { userId } = JSON.parse(event.requestContext.authorizer?.user);
+
     if (event.queryStringParameters) {
       const { keyword } = event.queryStringParameters;
 
@@ -14,6 +16,10 @@ export const handler = async (
       });
 
       const { courses } = await findCoursesByQuery({ query });
+
+      courses.forEach((course) => {
+        course["isSaved"] = course.id === userId;
+      });
 
       return {
         body: JSON.stringify({
@@ -31,6 +37,10 @@ export const handler = async (
       });
 
       const { courses } = await findCoursesByQuery({ query });
+
+      courses.forEach((course) => {
+        course["isSaved"] = course.id === userId;
+      });
 
       return {
         body: JSON.stringify({

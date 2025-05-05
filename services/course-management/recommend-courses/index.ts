@@ -27,9 +27,15 @@ export const handler = async (
       const { shuffledCourses } = shuffleCourses({ courses });
 
       if (shuffledCourses.length > 10) {
+        const courses = shuffledCourses.slice(0, 10);
+
+        courses.forEach((course) => {
+          course["isSaved"] = course.id === userId;
+        });
+
         return {
           body: JSON.stringify({
-            data: { courses: shuffledCourses.slice(0, 10) },
+            data: { courses },
             message: "Recommended courses retrieved successfully",
           }),
           headers: {
@@ -38,6 +44,10 @@ export const handler = async (
           statusCode: 200,
         };
       } else {
+        shuffledCourses.forEach((course) => {
+          course["isSaved"] = course.id === userId;
+        });
+
         return {
           body: JSON.stringify({
             data: { courses: shuffledCourses },

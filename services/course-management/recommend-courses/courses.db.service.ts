@@ -87,12 +87,14 @@ export const findCoursesByQuery = async ({
   courses: Prisma.CourseGetPayload<{
     include: {
       tags: true;
+      users: true;
     };
   }>[];
 }> => {
   const courses = await prismaClient.course.findMany({
     include: {
       tags: true,
+      users: true,
     },
     where: query,
   });

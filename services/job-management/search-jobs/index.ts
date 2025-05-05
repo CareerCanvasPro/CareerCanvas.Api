@@ -7,6 +7,8 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
+    const { userId } = JSON.parse(event.requestContext.authorizer?.user);
+
     if (event.multiValueQueryStringParameters) {
       const { keyword, locationType, type } =
         event.multiValueQueryStringParameters;
@@ -19,6 +21,10 @@ export const handler = async (
 
       const { jobs } = await findJobsByQuery({
         query,
+      });
+
+      jobs.forEach((job) => {
+        job["isSaved"] = job.id === userId;
       });
 
       return {
@@ -40,6 +46,10 @@ export const handler = async (
 
       const { jobs } = await findJobsByQuery({
         query,
+      });
+
+      jobs.forEach((job) => {
+        job["isSaved"] = job.id === userId;
       });
 
       return {

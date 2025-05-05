@@ -1,4 +1,4 @@
-import { Job, JobLocationType, JobType, Prisma } from "@prisma/client";
+import { JobLocationType, JobType, Prisma } from "@prisma/client";
 
 import { prismaClient } from "./config";
 
@@ -60,9 +60,12 @@ export const findJobsByQuery = async ({
 }: {
   query: Prisma.JobWhereInput;
 }): Promise<{
-  jobs: Job[];
+  jobs: Prisma.JobGetPayload<{
+    include: { users: { select: { id: true } } };
+  }>[];
 }> => {
   const jobs = await prismaClient.job.findMany({
+    include: { users: { select: { id: true } } },
     where: query,
   });
 

@@ -20,6 +20,7 @@ export const jobArrayValidator = joi
           .required(),
         organization: joi.string().trim().allow(""),
         position: joi.string().required().trim(),
+        sourceName: joi.string().required().trim(),
         type: joi
           .string()
           .valid("CONTRACTUAL", "FULL_TIME", "INTERN", "PART_TIME")

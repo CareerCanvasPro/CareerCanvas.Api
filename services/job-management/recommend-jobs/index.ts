@@ -29,9 +29,15 @@ export const handler = async (
       const { shuffledJobs } = shuffleJobs({ jobs });
 
       if (shuffledJobs.length > 10) {
+        const jobs = shuffledJobs.slice(0, 10);
+
+        jobs.forEach((job) => {
+          job["isSaved"] = job.id === userId;
+        });
+
         return {
           body: JSON.stringify({
-            data: { jobs: shuffledJobs.slice(0, 10) },
+            data: { jobs },
             message: "Recommended jobs retrieved successfully",
           }),
           headers: {
@@ -40,6 +46,10 @@ export const handler = async (
           statusCode: 200,
         };
       } else {
+        shuffledJobs.forEach((job) => {
+          job["isSaved"] = job.id === userId;
+        });
+
         return {
           body: JSON.stringify({
             data: { jobs: shuffledJobs },
