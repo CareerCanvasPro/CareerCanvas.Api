@@ -273,6 +273,7 @@ model User {
   savedCourses   Course[]
   savedJobs      Job[]
   skills         Skill[]
+  CoverLetter    CoverLetter[]
 }
 
 model Appreciation {
@@ -310,6 +311,85 @@ model Certificate {
   updatedAt   DateTime  @updatedAt
   education   Education @relation(fields: [educationId], references: [id], onDelete: Cascade)
   educationId String    @unique
+}
+
+model CoverLetter {
+  id        String             @id @default(cuid())
+  content   String
+  createdAt DateTime           @default(now())
+  key       String
+  name      String
+  size      Int
+  type      String
+  updatedAt DateTime           @updatedAt
+  job       CoverLetterJob?
+  resume    CoverLetterResume?
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+}
+
+model CoverLetterJob {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  organization  String
+  position      String
+  updatedAt     DateTime    @updatedAt
+  coverLetter   CoverLetter @relation(fields: [coverLetterId], references: [id], onDelete: Cascade)
+  coverLetterId String      @unique
+}
+
+model CoverLetterResume {
+  id              String                            @id @default(cuid())
+  address         String
+  createdAt       DateTime                          @default(now())
+  email           String
+  mobile          String
+  name            String
+  updatedAt       DateTime                          @updatedAt
+  coverLetter     CoverLetter                       @relation(fields: [coverLetterId], references: [id], onDelete: Cascade)
+  coverLetterId   String                            @unique
+  educations      CoverLetterResumeEducation[]
+  jobSkills       CoverLetterResumeJobSkill[]
+  workExperiences CoverLetterResumeWorkExperience[]
+}
+
+model CoverLetterResumeEducation {
+  id                String            @id @default(cuid())
+  cgpa              Float
+  createdAt         DateTime          @default(now())
+  degree            String
+  department        String
+  field             String
+  graduationDate    DateTime
+  institute         String
+  instituteLocation String
+  updatedAt         DateTime          @updatedAt
+  resume            CoverLetterResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId          String
+}
+
+model CoverLetterResumeJobSkill {
+  id        String            @id @default(cuid())
+  createdAt DateTime          @default(now())
+  title     String
+  updatedAt DateTime          @updatedAt
+  resume    CoverLetterResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId  String
+}
+
+model CoverLetterResumeWorkExperience {
+  id                   String            @id @default(cuid())
+  createdAt            DateTime          @default(now())
+  description          String?
+  designation          String
+  endDate              DateTime?
+  isCurrent            Boolean           @default(false)
+  organization         String
+  organizationLocation String?
+  startDate            DateTime
+  updatedAt            DateTime          @updatedAt
+  resume               CoverLetterResume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  resumeId             String
 }
 
 model Occupation {
